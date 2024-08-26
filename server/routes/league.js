@@ -2,7 +2,6 @@ const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const router = express.Router();
 
-// Open the database
 const db = new sqlite3.Database('../database/db.sqlite', (err) => {
     if (err) {
         console.error('Error opening database:', err.message);
@@ -31,7 +30,6 @@ router.get('/', (req, res) => {
         JOIN region r ON ef.region_id = r.id
     `;
 
-    // Execute SQL queries in sequence
     db.get(sqlGrandChampion, [], (err, grandChampionRow) => {
         if (err) {
             res.status(400).json({ error: err.message });
@@ -50,22 +48,18 @@ router.get('/', (req, res) => {
                     return;
                 }
 
-                // Process data to match expected structure
 
-                // Grand Champion - Single object with id and name
                 const grandChampion = grandChampionRow ? {
                     id: grandChampionRow.id,
                     name: `${grandChampionRow.fname} ${grandChampionRow.lname}`
                 } : null;
 
-                // Champions - Array of objects with region, id, and name
                 const champions = championRows.map(row => ({
                     region: row.region_name,
                     id: row.id,
                     name: `${row.fname} ${row.lname}`
                 }));
 
-                // Elite Four - Array of objects with region and array of elite four members with id and name
                 const eliteFourMap = {};
                 eliteFourRows.forEach(row => {
                     if (!eliteFourMap[row.region_name]) {
@@ -82,7 +76,6 @@ router.get('/', (req, res) => {
                     eliteFour: eliteFourMap[region]
                 }));
 
-                // Final response
                 res.json({
                     message: 'success',
                     data: {

@@ -4,12 +4,19 @@ project(PokemonSimBackend)
 
 set(CMAKE_CXX_STANDARD 17)
 
-# Add Crow and your other include directories
-include_directories(${CMAKE_SOURCE_DIR}/Crow/include)
-include_directories(${CMAKE_SOURCE_DIR}/include)
+# Include FetchContent module
+include(FetchContent)
 
-# Add the path to the installed ASIO headers
-include_directories(/opt/homebrew/Cellar/asio/1.30.2/include)
+# Fetch Crow from GitHub
+FetchContent_Declare(
+  crow
+  GIT_REPOSITORY https://github.com/CrowCpp/Crow.git
+  GIT_TAG v1.0  
+)
+
+FetchContent_MakeAvailable(crow)
+
+include_directories(${CMAKE_SOURCE_DIR}/include)
 
 # Find Boost
 cmake_policy(SET CMP0167 NEW)
@@ -30,5 +37,5 @@ add_executable(PokemonSimBackend
     src/Trainer.cpp
 )
 
-# Link Boost and SQLite3 Libraries
-target_link_libraries(PokemonSimBackend Boost::system SQLite::SQLite3)
+# Link Crow, Boost, and SQLite3 libraries
+target_link_libraries(PokemonSimBackend crow Boost::system SQLite::SQLite3)
