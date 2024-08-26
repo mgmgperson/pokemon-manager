@@ -1,0 +1,11 @@
+# Ignore macOS .DS_Store files
+.DS_Store
+
+# Ignore VSCode settings folder
+.vscode/
+
+# Ignore all .sqlite files
+*.sqlite
+
+# Ignore the database/backups folder
+database/backups/
