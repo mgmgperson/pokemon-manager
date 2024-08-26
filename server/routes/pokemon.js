@@ -2,7 +2,6 @@ const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const router = express.Router();
 
-// Open the database connection
 const db = new sqlite3.Database('../database/db.sqlite', (err) => {
     if (err) {
         console.error('Error opening database:', err.message);
@@ -13,7 +12,6 @@ const db = new sqlite3.Database('../database/db.sqlite', (err) => {
 router.get('/:id', (req, res) => {
     const pokemonId = req.params.id;
     
-    // Query to get the Pokémon details
     const sql = `
         SELECT 
             p.*, 
@@ -45,5 +43,4 @@ router.get('/:id', (req, res) => {
     });
 });
 
-// Export the router
 module.exports = router;
