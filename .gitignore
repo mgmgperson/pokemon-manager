@@ -21,3 +21,6 @@ database/oldjson/
 
 # Ignore Crow
 backend/Crow/
+
+# Ignore build folder
+backend/build/
