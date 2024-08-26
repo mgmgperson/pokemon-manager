@@ -7,6 +7,7 @@ npm start
 **backend:**
 
 make ..
+
 ./PokemonSimBackend
 
 **server:**
