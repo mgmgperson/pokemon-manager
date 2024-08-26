@@ -18,3 +18,6 @@ node_modules/
 
 # Ignore old json
 database/oldjson/
+
+# Ignore Crow
+backend/Crow/
