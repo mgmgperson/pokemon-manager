@@ -1,0 +1,43 @@
+[{
+  "_id": {
+    "$oid": "659b40e54c62ff29a8e080e8"
+  },
+  "seasonID": 1,
+  "year": 2036,
+  "teams": [
+    "One Dance",
+    "idiot stick",
+    "no title",
+    "Reborn City",
+    "Dragon Tail",
+    "KFC Zinger Box",
+    "pon",
+    "Absolut Vodka",
+    "God Bless Unova",
+    "Oasis",
+    "Big Kahuna",
+    "Darkrai's Lament",
+    "Entente Cordiale",
+    "Pika and Friends",
+    "Kids on the Block",
+    "Erza Scarlet Supremacy",
+    "New Haypi",
+    "RAMSING",
+    "Retirement Home",
+    "Spitzkomet",
+    "FIRE",
+    "Lekker met de Meide",
+    "SING",
+    "Tauros Gang",
+    "Tea and Crumpets",
+    "\"The Boonies\"",
+    "Sinnoh Z Team",
+    "Bassdrop Freaks",
+    "Dark me be like",
+    "HYPE",
+    "Cyphisonia",
+    "All the Torren Men"
+  ],
+  "matches": [],
+  "winner": null
+}]

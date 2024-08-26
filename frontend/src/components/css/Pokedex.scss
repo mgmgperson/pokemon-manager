@@ -1,0 +1,158 @@
+.pokemon-card {
+    position: relative;
+    transition: border-color 0.3s ease;
+    border: 2px solid lightgrey !important;
+}
+
+.pokemon-number {
+    position: absolute;
+    top: 5px;
+    left: 10px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    color: #333;
+}
+
+.pokemon-card:hover {
+    border: 2px solid goldenrod !important;
+}
+
+.varieties-container,
+.chain-container {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.varieties-container {
+    gap: 10px;
+}
+
+.variety-item,
+.chain-item {
+    display: flex;
+    align-items: center;
+}
+
+a {
+    color: #3a4a66 !important;
+}
+
+a:hover {
+    color: #8195b8 !important;
+}
+
+.stat-bar-container {
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+}
+
+.stat-bar-label {
+    width: 75px;
+}
+
+.stat-bar-value {
+    width: 30px;
+    text-align: right;
+    font-weight: bold;
+}
+
+.stat-bar {
+    flex-grow: 1;
+    height: 20px;
+    margin-left: 10px;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.stat-bar-fill {
+    height: 100%;
+    border-radius: 5px;
+    transition: width 0.3s ease;
+}
+
+.type-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.type-badge {
+    padding: 5px 10px;
+    border-radius: 12px;
+    color: white;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.type-grass {
+    background-color: #7AC74C;
+}
+
+.type-poison {
+    background-color: #A33EA1;
+}
+
+.type-normal {
+    background-color: #A8A77A;
+}
+
+.type-fire {
+    background-color: #EE8130;
+}
+
+.type-water {
+    background-color: #6390F0;
+}
+
+.type-electric {
+    background-color: #F7D02C;
+}
+
+.type-ice {
+    background-color: #96D9D6;
+}
+
+.type-fighting {
+    background-color: #C22E28;
+}
+
+.type-ground {
+    background-color: #E2BF65;
+}
+
+.type-flying {
+    background-color: #A98FF3;
+}
+
+.type-psychic {
+    background-color: #F95587;
+}
+
+.type-bug {
+    background-color: #A6B91A;
+}
+
+.type-rock {
+    background-color: #B6A136;
+}
+
+.type-ghost {
+    background-color: #735797;
+}
+
+.type-dragon {
+    background-color: #6F35FC;
+}
+
+.type-dark {
+    background-color: #705746;
+}
+
+.type-steel {
+    background-color: #B7B7CE;
+}
+
+.type-fairy {
+    background-color: #D685AD;
+}

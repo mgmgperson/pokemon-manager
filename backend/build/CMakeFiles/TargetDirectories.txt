@@ -1,0 +1,3 @@
+/Users/alin/Documents/Saves/idiot-2/idiot/Project-Pokemon/backend/build/CMakeFiles/PokemonSimBackend.dir
+/Users/alin/Documents/Saves/idiot-2/idiot/Project-Pokemon/backend/build/CMakeFiles/edit_cache.dir
+/Users/alin/Documents/Saves/idiot-2/idiot/Project-Pokemon/backend/build/CMakeFiles/rebuild_cache.dir

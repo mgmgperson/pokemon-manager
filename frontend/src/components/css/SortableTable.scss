@@ -1,0 +1,11 @@
+th {
+    cursor: pointer;
+}
+
+th.ascending::after {
+    content: ' ▲';
+}
+
+th.descending::after {
+    content: ' ▼';
+}
