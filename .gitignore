@@ -9,3 +9,12 @@
 
 # Ignore the database/backups folder
 database/backups/
+
+# Ignore node_modules folder
+node_modules/
+
+# Ignore cache files
+.cache/
+
+# Ignore old json
+database/oldjson/
