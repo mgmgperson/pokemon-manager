@@ -18,6 +18,7 @@ import MentalRatingEdit from './components/trainers/EditMentalRating';
 import FormatRatingEdit from './components/trainers/EditFormatRating';
 import TrainerPokemon from './components/trainers/TrainerPokemon';
 import TrainerPokemonDetail from './components/trainers/TrainerPokemonDetail';
+import AddTrainer from './components/trainers/AddTrainer';
 import './App.scss';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
@@ -45,6 +46,7 @@ const App: React.FC = () => {
                           <Route path="/" element={<div><h1>Welcome to the Trainer Management System</h1></div>} />
                           <Route path="/battle_simulator" element={<BattleSimulator />} />
                           <Route path="/trainers/:id" element={<TrainerDetail />} />
+                          <Route path="/add_trainer/" element={<AddTrainer />} />
                           <Route path="/edit_trainer/:id" element={<EditTrainer />} />
                           <Route path="/edit_trainer/:id/field_ratings" element={<FieldRatingEdit />} />
                           <Route path="/edit_trainer/:id/mental_ratings" element={<MentalRatingEdit />} />

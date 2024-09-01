@@ -114,18 +114,26 @@ const TrainerPokemonStats: React.FC<TrainerPokemonStatsProps> = ({ pokemon }) =>
                     <h3>Stats</h3>
                 </Col>
             </Row>
-            <Row className="stat-bar-header mb-2 text-center">
-                <Col xs={2}>
-                    <strong>Stat</strong>
-                </Col>
-                <Col xs={5}>
-                    <strong>Base</strong>
-                </Col>
-                <Col xs={1}>
-                    <strong>EVs</strong>
-                </Col>
-                <Col xs={3}>
-                    <strong>IVs</strong>
+            <Row className="stat-bar-header mb-2 text-left">
+                <Col md={12}>
+                    <Row className="align-items-center">
+                        <Col xs={2}>
+                        </Col>
+                        <Col xs={1}>
+                            <span>Base</span>
+                        </Col>
+                        <Col xs={4}>
+                        </Col>
+                        <Col xs={1}>
+                            <span>EV</span>
+                        </Col>
+                        <Col xs={1}>
+                            <span>IV</span>
+                        </Col>
+                        <Col xs={2}>
+                            <span>Overall</span>
+                        </Col>
+                    </Row>
                 </Col>
             </Row>
             <Row>

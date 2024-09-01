@@ -150,7 +150,18 @@ router.get('/:id', (req, res) => {
             }
 
             if (!ratingRow) {
-                res.status(404).json({ error: "Rating not found for trainer" });
+                // No rating found, return nulls or empty objects for rating fields
+                res.json({
+                    message: 'success',
+                    data: {
+                        trainer: trainerRow,
+                        rating: null,
+                        format_rating: null,
+                        field_rating: null,
+                        mental_rating: null,
+                        hometowns: []
+                    }
+                });
                 return;
             }
 
@@ -217,6 +228,40 @@ router.get('/:id/pokemon', (req, res) => {
         res.json({
             message: 'success',
             data: rows
+        });
+    });
+});
+
+// Define the POST /trainers route for creating a new trainer
+router.post('/', (req, res) => {
+    const {
+        fname, lname, region_id, birthdate, pwtr_rating, peak_rating, peak_rank, active_status
+    } = req.body;
+
+    const sqlInsertTrainer = `
+        INSERT INTO trainer (fname, lname, region_id, birthdate, pwtr_rating, peak_rating, peak_rank, active_status)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+
+    db.run(sqlInsertTrainer, [fname, lname, region_id, birthdate, pwtr_rating, peak_rating, peak_rank, active_status], function (err) {
+        if (err) {
+            res.status(400).json({ error: err.message });
+            return;
+        }
+
+        res.json({
+            message: 'success',
+            data: {
+                id: this.lastID,
+                fname,
+                lname,
+                region_id,
+                birthdate,
+                pwtr_rating,
+                peak_rating,
+                peak_rank,
+                active_status
+            }
         });
     });
 });

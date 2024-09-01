@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import SortableTable from '../SortableTable';
+import { Button } from 'react-bootstrap'; 
 
 interface Trainer {
     id: number;
@@ -13,6 +14,7 @@ interface Trainer {
     rank: number;
     name: string;
 }
+
 
 const TrainerList: React.FC = () => {
     const [trainers, setTrainers] = useState<Trainer[]>([]);
@@ -63,6 +65,13 @@ const TrainerList: React.FC = () => {
     return (
         <div>
             <h1>PWTR List</h1>
+            <Link 
+            className="btn btn-outline-dark btn-lg"
+            role="button"
+            to="/add_trainer"
+            > 
+            Add Trainers
+            </Link>
             <SortableTable
                 columns={columns}
                 data={trainers}

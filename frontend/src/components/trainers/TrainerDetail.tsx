@@ -5,6 +5,7 @@ import axios from 'axios';
 import { Container, Row, Col, Dropdown, Image, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { TrainerData } from '../../types';
 import SortableTable from '../SortableTable';
+import InactiveTrainerDetail from './InactiveTrainerDetail';
 
 const fieldNamesMap: { [key: string]: string } = {
     pumped_field_rating: 'Pumped',
@@ -91,6 +92,9 @@ const TrainerDetail: React.FC = () => {
     if (isLoading) return <div>Loading...</div>;
 
     const trainer = trainerData!.trainer;
+
+    if(!trainerData?.trainer.active_status) return <InactiveTrainerDetail trainerData={trainerData!} />;
+
     const hometowns = trainerData!.hometowns;
     const rating = trainerData!.rating;
     const fieldRating = trainerData!.field_rating;
@@ -446,7 +450,7 @@ const TrainerDetail: React.FC = () => {
                         >
                             <div>
                                 <p className="mb-1"><strong>Rating</strong></p>
-                                <h2>{trainer.pwtr_rating.toFixed(2)}</h2>
+                                <h2>{trainer.pwtr_rating !== null ? trainer.pwtr_rating.toFixed(2) : 'Unrated'}</h2>
                             </div>
                         </OverlayTrigger>
                     </div>
