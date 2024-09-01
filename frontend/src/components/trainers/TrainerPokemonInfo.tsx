@@ -94,9 +94,9 @@ const TrainerPokemonInfo: React.FC<TrainerPokemonInfoProps> = ({ pokemon }) => {
             <Col md={6}>
                 <div className="pokemon-details">
                     <p><strong>Nature:</strong> {natureName}</p>
-                    <p><strong>Date Met At:</strong> Placeholder</p>
-                    <p><strong>Location Met At:</strong> Placeholder</p>
-                    <p><strong>Level Met At:</strong> Placeholder</p>
+                    <p><strong>Date Met At:</strong> {pokemon.date_met_at}</p>
+                    <p><strong>Location Met At:</strong> {pokemon.location_met_at}</p>
+                    <p><strong>Level Met At:</strong> {pokemon.level_met_at}</p>
                     <p><strong>Happiness:</strong> {pokemon.happiness}</p>
                 </div>
             </Col>

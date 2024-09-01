@@ -124,6 +124,9 @@ CREATE TABLE pokemon (
     experience_points INTEGER,
     is_gigantamax BOOLEAN,
     is_mega BOOLEAN,
+    date_met_at TEXT,
+    location_met_at TEXT,
+    level_met_at INTEGER,
 
     -- stats
     current_hp INTEGER,

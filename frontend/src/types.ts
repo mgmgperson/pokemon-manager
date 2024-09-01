@@ -466,6 +466,9 @@ export interface Pokemon {
     kills: number | null;
     deaths: number | null;
     training_efficiency: number | null;
+    level_met_at: number | null;
+    date_met_at: string | null;
+    location_met_at: string | null;
 }
 
 export interface Nature {
