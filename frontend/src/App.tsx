@@ -19,6 +19,7 @@ import FormatRatingEdit from './components/trainers/EditFormatRating';
 import TrainerPokemon from './components/trainers/TrainerPokemon';
 import TrainerPokemonDetail from './components/trainers/TrainerPokemonDetail';
 import AddTrainer from './components/trainers/AddTrainer';
+import EditTrainerPokemon from './components/trainers/EditTrainerPokemon';
 import './App.scss';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
@@ -53,6 +54,7 @@ const App: React.FC = () => {
                           <Route path="/edit_trainer/:id/format_ratings" element={<FormatRatingEdit />} />
                           <Route path="/trainers/:id/pokemon" element={<TrainerPokemon />} />
                           <Route path="/trainers/:id/pokemon/:pokemonId" element={<TrainerPokemonDetail />} />
+                          <Route path="/trainers/:id/edit_pokemon/:pokemonId" element={<EditTrainerPokemon />} />
                       </Routes>
                   </div>
                 </div>

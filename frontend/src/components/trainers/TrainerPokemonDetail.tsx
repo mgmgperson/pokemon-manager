@@ -2,7 +2,7 @@ import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
-import { Container, Row, Col, Tabs, Tab } from 'react-bootstrap';
+import { Container, Row, Col, Tabs, Tab, Dropdown } from 'react-bootstrap';
 import TrainerPokemonInfo from './TrainerPokemonInfo';
 import TrainerPokemonStats from './TrainerPokemonStats';
 
@@ -35,6 +35,22 @@ const TrainerPokemonDetail: React.FC = () => {
 
     return (
         <Container className="mt-4">
+            <Row className="align-items-center mb-3">
+                <Col>
+                </Col>
+                <Col xs="auto" className="text-end">
+                    <Dropdown className="float-end">
+                        <Dropdown.Toggle variant="secondary" id="dropdown-basic">
+                            Overview
+                        </Dropdown.Toggle>
+
+                        <Dropdown.Menu>
+                            <Dropdown.Item as={Link} to={`/trainers/${pokemonData.trainer_id}/pokemon/${pokemonId}`}>Overview</Dropdown.Item>
+                            <Dropdown.Item as={Link} to={`/trainers/${pokemonData.trainer_id}/edit_pokemon/${pokemonId}`}>Edit</Dropdown.Item>
+                        </Dropdown.Menu>
+                    </Dropdown>
+                </Col>
+            </Row>
             <Row>
                 <Col md={4} className="d-flex flex-column align-items-center">
                     
