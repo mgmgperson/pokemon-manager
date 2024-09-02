@@ -1,38 +1,11 @@
-import React, { useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
-import { Container, Row, Col, Form, Button, Dropdown } from 'react-bootstrap';
+import { Container, Row, Col, Form, Button } from 'react-bootstrap';
 
-const fetchPokemon = async (pokemonId: string) => {
-    const { data } = await axios.get(`http://localhost:5000/pokemon/${pokemonId}`);
-    return data.data;
-};
-
-const updatePokemon = async ({ pokemonId, updatedPokemon }: { pokemonId: string, updatedPokemon: any }) => {
-    const { data } = await axios.put(`http://localhost:5000/pokemon/${pokemonId}`, updatedPokemon);
-    return data;
-};
-
-const EditTrainerPokemon: React.FC = () => {
-    const { id, pokemonId } = useParams<{ id: string; pokemonId: string }>();
+const AddPokemon: React.FC = () => {
+    const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
-
-    const { data: pokemonData, isLoading } = useQuery({
-        queryKey: ['pokemon', pokemonId],
-        queryFn: () => fetchPokemon(pokemonId!),
-    });
-
-    const mutation = useMutation({
-        mutationFn: updatePokemon,
-        onSuccess: () => {
-            navigate(`/trainers/${pokemonData?.trainer_id}/pokemon/${pokemonId}`);
-        },
-        onError: (error) => {
-            alert('Error updating Pokémon');
-            console.error(error);
-        },
-    });
 
     const [formState, setFormState] = useState({
         trainer_id: '',
@@ -83,66 +56,14 @@ const EditTrainerPokemon: React.FC = () => {
         training_efficiency: '',
     });
 
-    if (isLoading) return <div>Loading...</div>;
-
-    if (!pokemonData) return <div>No Data Found</div>;
-
-    const pokemon = pokemonData;
-    //console.log(pokemon);
-
-    if (formState.species_id === '') {
-        setFormState({
-            trainer_id: pokemon.trainer_id,
-            species_id: pokemon.species_id,
-            pokemon_id: pokemon.pokemon_id,
-            level: pokemon.level,
-            ot_name: pokemon.ot_name,
-            ot_id: pokemon.ot_id,
-            nickname: pokemon.nickname,
-            attack: pokemon.attack,
-            defense: pokemon.defense,
-            special_attack: pokemon.special_attack,
-            special_defense: pokemon.special_defense,
-            speed: pokemon.speed,
-            hp: pokemon.hp,
-            happiness: pokemon.happiness,
-            iv_hp: pokemon.iv_hp,
-            iv_attack: pokemon.iv_attack,
-            iv_defense: pokemon.iv_defense,
-            iv_special_attack: pokemon.iv_special_attack,
-            iv_special_defense: pokemon.iv_special_defense,
-            iv_speed: pokemon.iv_speed,
-            ev_hp: pokemon.ev_hp,
-            ev_attack: pokemon.ev_attack,
-            ev_defense: pokemon.ev_defense,
-            ev_special_attack: pokemon.ev_special_attack,
-            ev_special_defense: pokemon.ev_special_defense,
-            ev_speed: pokemon.ev_speed,
-            nature_id: pokemon.nature_id,
-            ability_id: pokemon.ability_id,
-            gender: pokemon.gender,
-            shiny: pokemon.shiny,
-            pokeball_id: pokemon.pokeball_id,
-            held_item_id: pokemon.held_item_id,
-            experience_points: pokemon.experience_points,
-            is_gigantamax: pokemon.is_gigantamax,
-            is_mega: pokemon.is_mega,
-            date_met_at: pokemon.date_met_at,
-            location_met_at: pokemon.location_met_at,
-            level_met_at: pokemon.level_met_at,
-            current_hp: pokemon.current_hp,
-            current_strength: pokemon.current_strength,
-            status_id: pokemon.status_id,
-            battles_won: pokemon.battles_won,
-            battles_lost: pokemon.battles_lost,
-            kills: pokemon.kills,
-            deaths: pokemon.deaths,
-            training_efficiency: pokemon.training_efficiency,
-        });
-    }
-
-    const handleSave = () => {
-        mutation.mutate({ pokemonId: pokemonId!, updatedPokemon: formState });
+    const handleSave = async () => {
+        try {
+            await axios.post('http://localhost:5000/pokemon', formState);
+            navigate(`/trainers/${id}/pokemon`);
+        } catch (error) {
+            alert('Error adding Pokémon');
+            console.error(error);
+        }
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -155,23 +76,17 @@ const EditTrainerPokemon: React.FC = () => {
         setFormState((prev) => ({ ...prev, [name]: checked }));
     };
 
+    useEffect(() => {
+        if (id) {
+            setFormState((prev) => ({ ...prev, trainer_id: id }));
+        }
+    }, [id]);
+
     return (
         <Container className="mt-4">
             <Row className="align-items-center mb-3">
                 <Col>
-                    <h1>Edit Pokémon - {pokemon.nickname || pokemon.species_id}</h1>
-                </Col>
-                <Col xs="auto" className="text-end">
-                    <Dropdown className="float-end">
-                        <Dropdown.Toggle variant="secondary" id="dropdown-basic">
-                            Edit
-                        </Dropdown.Toggle>
-
-                        <Dropdown.Menu>
-                            <Dropdown.Item as={Link} to={`/trainers/${pokemon.trainer_id}/pokemon/${pokemonId}`}>Overview</Dropdown.Item>
-                            <Dropdown.Item as={Link} to={`/trainer/${pokemon.trainer_id}/edit_pokemon/${pokemonId}`}>Edit</Dropdown.Item>
-                        </Dropdown.Menu>
-                    </Dropdown>
+                    <h1>Add Pokémon</h1>
                 </Col>
             </Row>
             <Form>
@@ -439,7 +354,6 @@ const EditTrainerPokemon: React.FC = () => {
                     </Col>
                 </Row>
                 
-
                 {/* Nature, Ability, and Flavor */}
                 <Row>
                     <Col md={4}>
@@ -660,4 +574,4 @@ const EditTrainerPokemon: React.FC = () => {
     );
 };
 
-export default EditTrainerPokemon;
+export default AddPokemon;

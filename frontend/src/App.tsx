@@ -20,6 +20,7 @@ import TrainerPokemon from './components/trainers/TrainerPokemon';
 import TrainerPokemonDetail from './components/trainers/TrainerPokemonDetail';
 import AddTrainer from './components/trainers/AddTrainer';
 import EditTrainerPokemon from './components/trainers/EditTrainerPokemon';
+import AddPokemon from './components/trainers/AddPokemon';
 import './App.scss';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
@@ -55,6 +56,7 @@ const App: React.FC = () => {
                           <Route path="/trainers/:id/pokemon" element={<TrainerPokemon />} />
                           <Route path="/trainers/:id/pokemon/:pokemonId" element={<TrainerPokemonDetail />} />
                           <Route path="/trainers/:id/edit_pokemon/:pokemonId" element={<EditTrainerPokemon />} />
+                          <Route path="/trainers/:id/add_pokemon" element={<AddPokemon />} />
                       </Routes>
                   </div>
                 </div>

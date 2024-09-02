@@ -122,7 +122,18 @@ const TrainerPokemon: React.FC = () => {
                     </Dropdown>
                 </Col>
             </Row>
-
+            <Row className="mt-4">
+                <Col className="text-center">
+                    <Link 
+                        className="btn btn-outline-dark btn-lg" 
+                        role="button" 
+                        to={`/trainers/${id}/add_pokemon`}
+                    >
+                        Add Pokemon
+                    </Link>
+                </Col>
+            </Row>
+            <br></br>
             <Row>
                 {pokemonData.map((pokemon: any) => (
                     <Col md={3} className="mb-4" key={pokemon.id}>

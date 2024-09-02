@@ -73,7 +73,7 @@ const TrainerPokemonInfo: React.FC<TrainerPokemonInfoProps> = ({ pokemon }) => {
             <Col md={6}>
                 <div className="pokemon-info">
                     <div className="pokemon-details">
-                        <p><strong>Dex No.:</strong> {pokemon.species_id}</p>
+                        <p><strong>Dex No:</strong> {pokemon.species_id}</p>
                         <p><strong>Species:</strong> {speciesName.charAt(0).toUpperCase() + speciesName.slice(1)}</p>
                     </div>
                     
@@ -85,7 +85,7 @@ const TrainerPokemonInfo: React.FC<TrainerPokemonInfoProps> = ({ pokemon }) => {
                     
                     <div className="pokemon-details">
                         <p><strong>OT:</strong> {pokemon.ot_name || 'Unknown'}</p>
-                        <p><strong>ID No.:</strong> {pokemon.id}</p>
+                        <p><strong>ID No:</strong> {pokemon.id}</p>
                         <p><strong>Exp. Points:</strong> {pokemon.experience_points || 'Unknown'}</p>
                     </div>
                 </div>

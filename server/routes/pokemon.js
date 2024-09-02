@@ -103,6 +103,73 @@ router.put('/:id', (req, res) => {
     });
 });
 
+// Define the POST /pokemon route for adding a new Pokémon
+router.post('/', (req, res) => {
+    const {
+        trainer_id, species_id, pokemon_id, level,
+        ot_name, ot_id,
+        nickname, attack, defense, special_attack, special_defense, speed, hp, happiness,
+        iv_hp, iv_attack, iv_defense, iv_special_attack, iv_special_defense, iv_speed,
+        ev_hp, ev_attack, ev_defense, ev_special_attack, ev_special_defense, ev_speed,
+        nature_id, ability_id,
+        gender, shiny, pokeball_id, held_item_id, experience_points, is_gigantamax, is_mega,
+        date_met_at, location_met_at, level_met_at,
+        current_hp, current_strength, status_id,
+        battles_won, battles_lost, kills, deaths,
+        training_efficiency
+    } = req.body;
+
+    const sqlInsertPokemon = `
+        INSERT INTO pokemon (trainer_id, species_id, pokemon_id, level, 
+                             ot_name, ot_id, 
+                             nickname, attack, defense, special_attack, special_defense, speed, hp, happiness,
+                             iv_hp, iv_attack, iv_defense, iv_special_attack, iv_special_defense, iv_speed,
+                             ev_hp, ev_attack, ev_defense, ev_special_attack, ev_special_defense, ev_speed,
+                             nature_id, ability_id, 
+                             gender, shiny, pokeball_id, held_item_id, experience_points, is_gigantamax, is_mega,
+                             date_met_at, location_met_at, level_met_at,
+                             current_hp, current_strength, status_id, 
+                             battles_won, battles_lost, kills, deaths,
+                             training_efficiency)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+
+    db.run(sqlInsertPokemon, [
+        trainer_id, species_id, pokemon_id, level,
+        ot_name, ot_id,
+        nickname, attack, defense, special_attack, special_defense, speed, hp, happiness,
+        iv_hp, iv_attack, iv_defense, iv_special_attack, iv_special_defense, iv_speed,
+        ev_hp, ev_attack, ev_defense, ev_special_attack, ev_special_defense, ev_speed,
+        nature_id, ability_id,
+        gender, shiny, pokeball_id, held_item_id, experience_points, is_gigantamax, is_mega,
+        date_met_at, location_met_at, level_met_at,
+        current_hp, current_strength, status_id,
+        battles_won, battles_lost, kills, deaths,
+        training_efficiency
+    ], function (err) {
+        if (err) {
+            res.status(400).json({ error: err.message });
+            return;
+        }
+
+        res.json({
+            message: 'success',
+            data: {
+                trainer_id, species_id, pokemon_id, level,
+                ot_name, ot_id,
+                nickname, attack, defense, special_attack, special_defense, speed, hp, happiness,
+                iv_hp, iv_attack, iv_defense, iv_special_attack, iv_special_defense, iv_speed,
+                ev_hp, ev_attack, ev_defense, ev_special_attack, ev_special_defense, ev_speed,
+                nature_id, ability_id,
+                gender, shiny, pokeball_id, held_item_id, experience_points, is_gigantamax, is_mega,
+                date_met_at, location_met_at, level_met_at,
+                current_hp, current_strength, status_id,
+                battles_won, battles_lost, kills, deaths,
+                training_efficiency
+            }
+        });
+    });
+});
 
 
 module.exports = router;
