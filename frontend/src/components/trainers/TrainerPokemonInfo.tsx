@@ -5,6 +5,7 @@ import { Row, Col } from 'react-bootstrap';
 import TypeBadge from './TypeBadge';
 import '../css/Trainers.scss';
 import { Pokemon, PokemonSpecies, Type, Nature } from '../../types';
+import { Link } from 'react-router-dom';
 
 interface TrainerPokemonInfoProps {
     pokemon: Pokemon;
@@ -74,7 +75,12 @@ const TrainerPokemonInfo: React.FC<TrainerPokemonInfoProps> = ({ pokemon }) => {
                 <div className="pokemon-info">
                     <div className="pokemon-details">
                         <p><strong>Dex No:</strong> {pokemon.species_id}</p>
-                        <p><strong>Species:</strong> {speciesName.charAt(0).toUpperCase() + speciesName.slice(1)}</p>
+                        <p>
+                            <strong>Species: </strong> 
+                            <Link to={`/pokemon/${pokemon.species_id}` } style={{ textDecoration: 'none' }}>
+                                {speciesName.charAt(0).toUpperCase() + speciesName.slice(1)}
+                            </Link>
+                        </p>
                     </div>
                     
                     <div className="type-buttons">
