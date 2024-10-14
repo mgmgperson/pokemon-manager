@@ -48,16 +48,16 @@ const AddTrainer: React.FC = () => {
 
     const handleSave = () => {
         const newTrainer = {
-            fname,
-            lname,
-            region_id: regionId,
+            fname: fname || null,
+            lname: lname || null,
+            region_id: regionId || null,
             birthdate: birthdate || null,
-            pwtr_rating: pwtrRating,
+            pwtr_rating: pwtrRating || null,
             peak_rating: peakRating || null,
             peak_rank: peakRank || null,
             active_status: activeStatus,
         };
-
+    
         mutation.mutate(newTrainer);
     };
 

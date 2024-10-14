@@ -49,10 +49,10 @@ const TrainerList: React.FC = () => {
                 </Link>
             )
         },
-        { 
-            key: 'pwtr_rating', 
-            label: 'Rating', 
-            render: (item: Trainer) => item.pwtr_rating.toFixed(2)
+        {
+            key: 'pwtr_rating',
+            label: 'Rating',
+            render: (item: Trainer) => item.pwtr_rating !== null ? item.pwtr_rating.toFixed(2) : ''
         },
         { key: 'region_name', label: 'Region' },
         {

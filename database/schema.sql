@@ -177,7 +177,7 @@ CREATE TABLE rating (
     typing_rating INTEGER,
     mixed_rating INTEGER,
     special_rating INTEGER,
-    FOREIGN KEY (trainer_id) REFERENCES trainer(trainer_id)
+    FOREIGN KEY (trainer_id) REFERENCES trainer(id)
 );
 
 CREATE TABLE format_rating (
