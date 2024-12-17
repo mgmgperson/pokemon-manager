@@ -6,7 +6,7 @@
 
 class PythonRunner {
 public:
-    static Json::Value runPythonGenerator(int overallRating);
+    static Json::Value runPythonGenerator(int overallRating, const std::string& ratingType);
 };
 
 #endif

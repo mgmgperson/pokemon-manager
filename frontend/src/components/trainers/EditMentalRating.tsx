@@ -175,6 +175,22 @@ const MentalRatingEdit: React.FC = () => {
                     Randomize Ratings
                 </Button>
             </Form>
+            <Row className="mt-3">
+                <Col xs="auto" className="text-end">
+                    <Dropdown className="float-end">
+                        <Dropdown.Toggle variant="secondary" id="dropdown-basic">
+                            Other Edits
+                        </Dropdown.Toggle>
+
+                        <Dropdown.Menu>
+                            <Dropdown.Item as={Link} to={`/edit_trainer/${id}/field_ratings`}>Edit Field Ratings</Dropdown.Item>
+                            <Dropdown.Item as={Link} to={`/edit_trainer/${id}`}>Edit Trainer</Dropdown.Item>
+                            <Dropdown.Item as={Link} to={`/edit_trainer/${id}/mental_ratings`}>Edit Mental Ratings</Dropdown.Item>
+                            <Dropdown.Item as={Link} to={`/edit_trainer/${id}/format_ratings`}>Edit Format Ratings</Dropdown.Item>
+                        </Dropdown.Menu>
+                    </Dropdown>
+                </Col>
+            </Row>
         </Container>
     );
 };

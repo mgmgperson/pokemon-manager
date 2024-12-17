@@ -33,6 +33,7 @@ add_executable(PokemonSimBackend
     src/Trainer.cpp
     src/PythonRunner.cpp
     src/MentalRating.cpp
+    src/FormatRating.cpp
     src/Rating.cpp
 )
 

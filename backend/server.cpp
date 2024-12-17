@@ -3,6 +3,7 @@
 #include "PythonRunner.h"
 #include "Rating.h"
 #include "MentalRating.h"
+#include "FormatRating.h"
 #include <crow.h> // Crow is a lightweight C++ micro web framework
 #include <iostream>
 #include <json/json.h>
@@ -96,7 +97,7 @@ int main() {
         // 2) Generate random mental ratings
         Json::Value randomVals;
         try {
-            randomVals = PythonRunner::runPythonGenerator(r.overall_rating);
+            randomVals = PythonRunner::runPythonGenerator(r.overall_rating, "mental");
         } catch (const std::exception& e) {
             crow::json::wvalue error;
             error["error"] = "Failed to generate mental ratings: ";
@@ -133,26 +134,10 @@ int main() {
         mr.speed_rating             = randomVals.get("speed_rating", 0).asInt();
         mr.gimmick_rating           = randomVals.get("gimmick_rating", 0).asInt();
 
-        // 4) Convert to JSON in specific order
         crow::json::wvalue result;
-        result["id"] = mr.id;
-        result["rating_id"] = mr.rating_id;
-        result["planning_rating"] = mr.planning_rating;
-        result["risk_rating"] = mr.risk_rating;
-        result["prediction_rating"] = mr.prediction_rating;
-        result["clutch_rating"] = mr.clutch_rating;
-        result["consistency_rating"] = mr.consistency_rating;
-        result["motivation_rating"] = mr.motivation_rating;
-        result["pokemon_knowledge_rating"] = mr.pokemon_knowledge_rating;
-        result["trainer_knowledge_rating"] = mr.trainer_knowledge_rating;
-        result["training_rating"] = mr.training_rating;
-        result["conditioning_rating"] = mr.conditioning_rating;
-        result["determination_rating"] = mr.determination_rating;
-        result["facilities_rating"] = mr.facilities_rating;
-        result["attack_rating"] = mr.attack_rating;
-        result["defense_rating"] = mr.defense_rating;
-        result["speed_rating"] = mr.speed_rating;
-        result["gimmick_rating"] = mr.gimmick_rating;
+        for (auto &kv : mr.toMap()) {
+            result[kv.first] = kv.second;
+        }
 
         // 5) Set CORS headers and return
         res.set_header("Access-Control-Allow-Origin", "*");
@@ -166,6 +151,95 @@ int main() {
     // Preflight for /generate-mental-ratings/<int>
     CROW_ROUTE(app, "/generate-mental-ratings/<int>").methods(crow::HTTPMethod::Options)
     ([](const crow::request&, crow::response& res, int trainer_id) {
+        res.set_header("Access-Control-Allow-Origin", "*");
+        res.set_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+        res.set_header("Access-Control-Allow-Headers", "Content-Type");
+        res.end();
+    });
+
+    CROW_ROUTE(app, "/generate-format-ratings/<int>")
+    ([](const crow::request& req, crow::response& res, int trainer_id){
+        // Set up for randomizing FormatRating
+        Trainer t = Trainer::fetchTrainerFromDB(trainer_id);
+        if (t.getId() == 0) {
+            crow::json::wvalue error;
+            error["error"] = "No trainer found with ID " + std::to_string(trainer_id);
+            res.set_header("Access-Control-Allow-Origin", "*");
+            res.set_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+            res.set_header("Access-Control-Allow-Headers", "Content-Type");
+            res.write(error.dump());
+            res.end();
+            return;
+        }
+
+        // Fetch the rating row for the trainer
+        Rating r = Rating::fetchLatestByTrainerId(trainer_id);
+        if (r.id == 0) {
+            crow::json::wvalue error;
+            error["error"] = "No rating record found for trainer " + std::to_string(trainer_id);
+            res.set_header("Access-Control-Allow-Origin", "*");
+            res.set_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+            res.set_header("Access-Control-Allow-Headers", "Content-Type");
+            res.write(error.dump());
+            res.end();
+            return;
+        }
+
+        // Check if FormatRating row exists for that ratingId
+        FormatRating trainerFR = FormatRating::fetchByRatingId(r.id);
+        if (trainerFR.id == 0) {
+            // It's possible the row doesn't exist yet; let's not throw an error,
+            // we can just use a default object with id=0
+            // Alternatively, we can create a new row. For now let's proceed without error.
+            std::cout << "No existing format_rating found for rating_id=" << r.id << ". Using a blank record.\n";
+        }
+
+        // 2) Generate random mental ratings
+        Json::Value randomVals;
+        try {
+            randomVals = PythonRunner::runPythonGenerator(r.overall_rating, "format");
+        } catch (const std::exception& e) {
+            crow::json::wvalue error;
+            error["error"] = "Failed to generate mental ratings: ";
+            error["details"] = e.what();
+            res.set_header("Access-Control-Allow-Origin", "*");
+            res.set_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+            res.set_header("Access-Control-Allow-Headers", "Content-Type");
+            res.set_header("Content-Type", "application/json");
+            res.write(error.dump());
+            res.end();
+            return;
+        }
+
+        // Build an unsaved FormatRating object
+        FormatRating fr;
+        fr.id = trainerFR.id;    // if trainerFR.id=0, means new row on Save
+        fr.rating_id = r.id;
+        fr.singles_rating = randomVals.get("singles_rating", 0).asInt();
+        fr.doubles_rating = randomVals.get("doubles_rating", 0).asInt();
+        fr.tag_battle_rating = randomVals.get("tag_battle_rating", 0).asInt();
+        fr.battle_factory_rating = randomVals.get("battle_factory_rating", 0).asInt();
+        fr.rotation_rating = randomVals.get("rotation_rating", 0).asInt();
+        fr.sixes_rating = randomVals.get("sixes_rating", 0).asInt();
+        fr.threes_rating = randomVals.get("threes_rating", 0).asInt();
+        fr.twos_rating = randomVals.get("twos_rating", 0).asInt();
+
+        // Return JSON response (unsaved)
+        crow::json::wvalue result;
+        for (auto &kv : fr.toMap()) {
+            result[kv.first] = kv.second;
+        }
+
+        res.set_header("Access-Control-Allow-Origin", "*");
+        res.set_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+        res.set_header("Access-Control-Allow-Headers", "Content-Type");
+        res.write(result.dump());
+        res.end();
+    });
+
+
+    CROW_ROUTE(app, "/generate-format-ratings/<int>").methods(crow::HTTPMethod::Options)
+    ([](const crow::request& req, crow::response& res, int trainer_id){
         res.set_header("Access-Control-Allow-Origin", "*");
         res.set_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
         res.set_header("Access-Control-Allow-Headers", "Content-Type");
