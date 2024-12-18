@@ -52,12 +52,34 @@ const FormatRatingEdit: React.FC = () => {
     });
 
     const [updatedRatings, setUpdatedRatings] = useState<any>(null);
+    const [calculatedOverall, setCalculatedOverall] = useState<number>(0);
 
     useEffect(() => {
         if (formatRatings) {
             setUpdatedRatings(formatRatings);
         }
     }, [formatRatings]);
+
+    useEffect(() => {
+        if (updatedRatings) {
+            const singles = updatedRatings.singles_rating ?? 0;
+            const sixes   = updatedRatings.sixes_rating ?? 0;
+            const doubles = updatedRatings.doubles_rating ?? 0;
+            const tag     = updatedRatings.tag_battle_rating ?? 0;
+            const bf      = updatedRatings.battle_factory_rating ?? 0;
+            const rotation= updatedRatings.rotation_rating ?? 0;
+            const threes  = updatedRatings.threes_rating ?? 0;
+            const twos    = updatedRatings.twos_rating ?? 0;
+
+            const totalWeighted =
+                (5 * singles) + (5 * sixes) +
+                (3.5 * doubles) + (2.5 * tag) + (2.5 * bf) +
+                (2 * rotation) + (1 * threes) + (1 * twos);
+            
+            const overall = totalWeighted / 22.5;  // sum of weights
+            setCalculatedOverall(overall);
+        }
+    }, [updatedRatings]);
 
     const mutation = useMutation({
         mutationFn: updateFormatRating,
@@ -82,6 +104,30 @@ const FormatRatingEdit: React.FC = () => {
         } catch (error) {
             console.error('Failed to generate format ratings', error);
             alert('Failed to generate format ratings. Please try again.');
+        }
+    };
+
+    // Handler to increment all ratings by 1
+    const handleIncrementAll = () => {
+        if (updatedRatings) {
+            const incrementedRatings = { ...updatedRatings };
+            orderedFormatRatingFields.forEach((field) => {
+                const currentValue = incrementedRatings[field] ?? 0;
+                incrementedRatings[field] = Math.min(currentValue + 1, 100);
+            });
+            setUpdatedRatings(incrementedRatings);
+        }
+    };
+
+    // Handler to decrement all ratings by 1
+    const handleDecrementAll = () => {
+        if (updatedRatings) {
+            const decrementedRatings = { ...updatedRatings };
+            orderedFormatRatingFields.forEach((field) => {
+                const currentValue = decrementedRatings[field] ?? 0;
+                decrementedRatings[field] = Math.max(currentValue - 1, 0);
+            });
+            setUpdatedRatings(decrementedRatings);
         }
     };
 
@@ -145,6 +191,7 @@ const FormatRatingEdit: React.FC = () => {
                     }
                 </Row>
                 <Button type="submit" variant="primary">Save Changes</Button>
+
                 <Button
                     type="button"
                     variant="secondary"
@@ -153,6 +200,29 @@ const FormatRatingEdit: React.FC = () => {
                 >
                     Randomize Ratings
                 </Button>
+
+                {/* New Increment and Decrement Buttons */}
+                <Button
+                    type="button"
+                    variant="outline-secondary"
+                    className="ms-3"
+                    onClick={handleDecrementAll}
+                >
+                    -
+                </Button>
+
+                <Button
+                    type="button"
+                    variant="outline-secondary"
+                    className="ms-1"
+                    onClick={handleIncrementAll}
+                >
+                    +
+                </Button>
+
+                <div style={{ display: 'inline-block', marginLeft: '1rem' }}>
+                    <strong>Overall: {Math.round(calculatedOverall)}</strong>
+                </div>
             </Form>
             <Row className="mt-3">
                 <Col xs="auto" className="text-end">
@@ -162,10 +232,10 @@ const FormatRatingEdit: React.FC = () => {
                         </Dropdown.Toggle>
 
                         <Dropdown.Menu>
-                            <Dropdown.Item as={Link} to={`/edit_trainer/${id}/field_ratings`}>Edit Field Ratings</Dropdown.Item>
-                            <Dropdown.Item as={Link} to={`/edit_trainer/${id}`}>Edit Trainer</Dropdown.Item>
-                            <Dropdown.Item as={Link} to={`/edit_trainer/${id}/mental_ratings`}>Edit Mental Ratings</Dropdown.Item>
                             <Dropdown.Item as={Link} to={`/edit_trainer/${id}/format_ratings`}>Edit Format Ratings</Dropdown.Item>
+                            <Dropdown.Item as={Link} to={`/edit_trainer/${id}`}>Edit Trainer</Dropdown.Item>
+                            <Dropdown.Item as={Link} to={`/edit_trainer/${id}/field_ratings`}>Edit Field Ratings</Dropdown.Item>
+                            <Dropdown.Item as={Link} to={`/edit_trainer/${id}/mental_ratings`}>Edit Mental Ratings</Dropdown.Item>
                         </Dropdown.Menu>
                     </Dropdown>
                 </Col>

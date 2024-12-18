@@ -486,7 +486,7 @@ router.put('/:id/mental_ratings', (req, res) => {
 // Define the PUT /trainers/:id/format_ratings route
 router.put('/:id/format_ratings', (req, res) => {
     const formatRatingId = req.body.id; 
-    const updatedFormatRatings = req.body; 
+    const updated = req.body; 
 
     const sqlUpdate = `
         UPDATE format_rating
@@ -503,23 +503,56 @@ router.put('/:id/format_ratings', (req, res) => {
     `;
 
     const values = [
-        updatedFormatRatings.singles_rating,
-        updatedFormatRatings.doubles_rating,
-        updatedFormatRatings.tag_battle_rating,
-        updatedFormatRatings.battle_factory_rating,
-        updatedFormatRatings.rotation_rating,
-        updatedFormatRatings.sixes_rating,
-        updatedFormatRatings.threes_rating,
-        updatedFormatRatings.twos_rating,
+        updated.singles_rating,
+        updated.doubles_rating,
+        updated.tag_battle_rating,
+        updated.battle_factory_rating,
+        updated.rotation_rating,
+        updated.sixes_rating,
+        updated.threes_rating,
+        updated.twos_rating,
         formatRatingId
     ];
 
     db.run(sqlUpdate, values, function (err) {
         if (err) {
-            res.status(400).json({ error: err.message });
-            return;
+            return res.status(400).json({ error: err.message });
         }
-        res.json({ message: 'success', data: updatedFormatRatings, changes: this.changes });
+
+        // (A) Recompute the new overall rating using the decaying weights:
+        const totalWeighted =
+            5*updated.singles_rating + 5*updated.sixes_rating +
+            3.5*updated.doubles_rating + 2.5*updated.tag_battle_rating + 2.5*updated.battle_factory_rating +
+            2*updated.rotation_rating + 1*updated.threes_rating + 1*updated.twos_rating;
+        const newOverall = Math.round(totalWeighted / 22.5);
+
+        // (B) Update the rating table’s overall_rating
+        // First find rating_id from the format_rating row
+        const sqlSelectFR = `SELECT rating_id FROM format_rating WHERE id = ?`;
+        db.get(sqlSelectFR, [formatRatingId], (err, row) => {
+            if (err || !row) {
+                return res.status(400).json({ error: "Could not find rating_id" });
+            }
+            const ratingId = row.rating_id;
+            
+            const sqlUpdateRating = `
+                UPDATE rating
+                SET overall_rating = ?
+                WHERE id = ?
+            `;
+            db.run(sqlUpdateRating, [Math.round(newOverall), ratingId], function (err2) {
+                if (err2) {
+                    return res.status(400).json({ error: err2.message });
+                }
+                // Return updated format ratings + the computed overall
+                res.json({
+                    message: 'success',
+                    data: updated,
+                    overall_rating: Math.round(newOverall),
+                    changes: this.changes
+                });
+            });
+        });
     });
 });
 
