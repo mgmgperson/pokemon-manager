@@ -4,7 +4,6 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import axios from 'axios';
 import { Container, Row, Col, Form, Button, Dropdown } from 'react-bootstrap';
 
-// Define the order of mental rating fields as per the SQL schema
 const orderedMentalRatingFields: string[] = [
     'planning_rating',
     'risk_rating',
@@ -24,26 +23,22 @@ const orderedMentalRatingFields: string[] = [
     'gimmick_rating',
 ];
 
-// Fetch trainer data from the Node.js server
 const fetchTrainer = async (id: string) => {
     const { data } = await axios.get(`http://localhost:5000/trainers/${id}`);
     return data.data;
 };
 
-// Fetch mental ratings from the Node.js server
 const fetchMentalRatings = async (id: string) => {
     const { data } = await axios.get(`http://localhost:5000/trainers/${id}`);
     return data.data.mental_rating;
 };
 
-// Update mental ratings in the Node.js server
 const updateMentalRating = async ({ id, updatedMentalRatings }: { id: string; updatedMentalRatings: any }) => {
     console.log('Updated Mental Ratings:', updatedMentalRatings);
     const { data } = await axios.put(`http://localhost:5000/trainers/${id}/mental_ratings`, updatedMentalRatings);
     return data;
 };
 
-// Generate mental ratings from the C++ backend
 const generateMentalRatings = async (id: number) => {
     const { data } = await axios.get(`http://localhost:18080/generate-mental-ratings/${id}`);
     return data; // Expecting the API to return the generated mental ratings
@@ -53,13 +48,11 @@ const MentalRatingEdit: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
 
-    // Fetch trainer data
     const { data: trainerData, isLoading: isTrainerLoading, error: trainerError } = useQuery({
         queryKey: ['trainer', id],
         queryFn: () => fetchTrainer(id!),
     });
 
-    // Fetch existing mental ratings
     const { data: mentalRatings, isLoading: isMentalLoading, error: mentalError } = useQuery({
         queryKey: ['mental_ratings', id],
         queryFn: () => fetchMentalRatings(id!),
@@ -67,14 +60,12 @@ const MentalRatingEdit: React.FC = () => {
 
     const [updatedRatings, setUpdatedRatings] = useState<any>(null);
 
-    // Initialize form with existing mental ratings
     useEffect(() => {
         if (mentalRatings) {
             setUpdatedRatings(mentalRatings);
         }
     }, [mentalRatings]);
 
-    // Mutation to save updated mental ratings
     const mutation = useMutation({
         mutationFn: updateMentalRating,
         onSuccess: () => {
@@ -155,7 +146,7 @@ const MentalRatingEdit: React.FC = () => {
                                         value={updatedRatings[key] !== undefined ? updatedRatings[key] : ''}
                                         onChange={handleInputChange}
                                         min={0}
-                                        max={100}
+                                        max={99}
                                         required
                                     />
                                 </Form.Group>

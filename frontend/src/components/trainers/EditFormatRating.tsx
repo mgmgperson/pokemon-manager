@@ -113,7 +113,7 @@ const FormatRatingEdit: React.FC = () => {
             const incrementedRatings = { ...updatedRatings };
             orderedFormatRatingFields.forEach((field) => {
                 const currentValue = incrementedRatings[field] ?? 0;
-                incrementedRatings[field] = Math.min(currentValue + 1, 100);
+                incrementedRatings[field] = Math.min(currentValue + 1, 99);
             });
             setUpdatedRatings(incrementedRatings);
         }
@@ -183,7 +183,7 @@ const FormatRatingEdit: React.FC = () => {
                                         value={updatedRatings[fieldKey] ?? ''}
                                         onChange={handleInputChange}
                                         min={0}
-                                        max={100}
+                                        max={99}
                                     />
                                 </Form.Group>
                             </Col>

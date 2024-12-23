@@ -431,6 +431,7 @@ router.put('/:id/field_ratings', (req, res) => {
 router.put('/:id/mental_ratings', (req, res) => {
     const mentalRatingId = req.body.id; 
     const updatedMentalRatings = req.body;
+    console.log(updatedMentalRatings);
 
     const sqlUpdate = `
         UPDATE mental_rating

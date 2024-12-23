@@ -115,8 +115,8 @@ int main() {
 
         // 3) Create an *unsaved* MentalRating object
         MentalRating mr;
-        mr.id = 0;                // 0 means “unsaved” in our code
-        mr.rating_id = r.id;      // link to the rating row
+        mr.id = trainermr.id;                
+        mr.rating_id = r.id;      
         mr.planning_rating          = randomVals.get("planning_rating", 0).asInt();
         mr.risk_rating              = randomVals.get("risk_rating", 0).asInt();
         mr.prediction_rating        = randomVals.get("prediction_rating", 0).asInt();
@@ -213,7 +213,7 @@ int main() {
 
         // Build an unsaved FormatRating object
         FormatRating fr;
-        fr.id = trainerFR.id;    // if trainerFR.id=0, means new row on Save
+        fr.id = trainerFR.id;    
         fr.rating_id = r.id;
         fr.singles_rating = randomVals.get("singles_rating", 0).asInt();
         fr.doubles_rating = randomVals.get("doubles_rating", 0).asInt();
