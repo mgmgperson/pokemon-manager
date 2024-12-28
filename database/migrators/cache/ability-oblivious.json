@@ -1,0 +1,1192 @@
+{
+  "effect_changes": [],
+  "effect_entries": [
+    {
+      "effect": "Dieses Pok\u00e9mon kann sich nicht verlieben und ist immun gegen captivate.\n\nWenn ein Pok\u00e9mon verliebt ist und diese F\u00e4higkeit erh\u00e4lt, wird es von der infatuation geheilt.",
+      "language": {
+        "name": "de",
+        "url": "https://pokeapi.co/api/v2/language/6/"
+      },
+      "short_effect": "Verhindert infatuation und sch\u00fctzt gegen captivate."
+    },
+    {
+      "effect": "This Pok\u00e9mon cannot be infatuated and is immune to captivate.\n\nIf a Pok\u00e9mon is infatuated and acquires this ability, its infatuation is cleared.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "short_effect": "Prevents infatuation and protects against captivate."
+    }
+  ],
+  "flavor_text_entries": [
+    {
+      "flavor_text": "Emp\u00eache l'attirance.",
+      "language": {
+        "name": "fr",
+        "url": "https://pokeapi.co/api/v2/language/5/"
+      },
+      "version_group": {
+        "name": "ruby-sapphire",
+        "url": "https://pokeapi.co/api/v2/version-group/5/"
+      }
+    },
+    {
+      "flavor_text": "Prevents attraction.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version_group": {
+        "name": "ruby-sapphire",
+        "url": "https://pokeapi.co/api/v2/version-group/5/"
+      }
+    },
+    {
+      "flavor_text": "Emp\u00eache l'attirance.",
+      "language": {
+        "name": "fr",
+        "url": "https://pokeapi.co/api/v2/language/5/"
+      },
+      "version_group": {
+        "name": "emerald",
+        "url": "https://pokeapi.co/api/v2/version-group/6/"
+      }
+    },
+    {
+      "flavor_text": "Prevents attraction.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version_group": {
+        "name": "emerald",
+        "url": "https://pokeapi.co/api/v2/version-group/6/"
+      }
+    },
+    {
+      "flavor_text": "Emp\u00eache l'attirance.",
+      "language": {
+        "name": "fr",
+        "url": "https://pokeapi.co/api/v2/language/5/"
+      },
+      "version_group": {
+        "name": "firered-leafgreen",
+        "url": "https://pokeapi.co/api/v2/version-group/7/"
+      }
+    },
+    {
+      "flavor_text": "Prevents attraction.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version_group": {
+        "name": "firered-leafgreen",
+        "url": "https://pokeapi.co/api/v2/version-group/7/"
+      }
+    },
+    {
+      "flavor_text": "Emp\u00eache le Pok\u00e9mon de tomber amoureux.",
+      "language": {
+        "name": "fr",
+        "url": "https://pokeapi.co/api/v2/language/5/"
+      },
+      "version_group": {
+        "name": "diamond-pearl",
+        "url": "https://pokeapi.co/api/v2/version-group/8/"
+      }
+    },
+    {
+      "flavor_text": "Prevents the Pok\u00e9mon\nfrom becoming infatuated.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version_group": {
+        "name": "diamond-pearl",
+        "url": "https://pokeapi.co/api/v2/version-group/8/"
+      }
+    },
+    {
+      "flavor_text": "Emp\u00eache le Pok\u00e9mon de tomber amoureux.",
+      "language": {
+        "name": "fr",
+        "url": "https://pokeapi.co/api/v2/language/5/"
+      },
+      "version_group": {
+        "name": "platinum",
+        "url": "https://pokeapi.co/api/v2/version-group/9/"
+      }
+    },
+    {
+      "flavor_text": "Prevents the Pok\u00e9mon\nfrom becoming infatuated.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version_group": {
+        "name": "platinum",
+        "url": "https://pokeapi.co/api/v2/version-group/9/"
+      }
+    },
+    {
+      "flavor_text": "Emp\u00eache le Pok\u00e9mon de tomber amoureux.",
+      "language": {
+        "name": "fr",
+        "url": "https://pokeapi.co/api/v2/language/5/"
+      },
+      "version_group": {
+        "name": "heartgold-soulsilver",
+        "url": "https://pokeapi.co/api/v2/version-group/10/"
+      }
+    },
+    {
+      "flavor_text": "Prevents it from\nbecoming infatuated.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version_group": {
+        "name": "heartgold-soulsilver",
+        "url": "https://pokeapi.co/api/v2/version-group/10/"
+      }
+    },
+    {
+      "flavor_text": "Emp\u00eache le Pok\u00e9mon de tomber amoureux.",
+      "language": {
+        "name": "fr",
+        "url": "https://pokeapi.co/api/v2/language/5/"
+      },
+      "version_group": {
+        "name": "black-white",
+        "url": "https://pokeapi.co/api/v2/version-group/11/"
+      }
+    },
+    {
+      "flavor_text": "Emp\u00eache le Pok\u00e9mon de\ntomber amoureux.",
+      "language": {
+        "name": "fr",
+        "url": "https://pokeapi.co/api/v2/language/5/"
+      },
+      "version_group": {
+        "name": "black-white",
+        "url": "https://pokeapi.co/api/v2/version-group/11/"
+      }
+    },
+    {
+      "flavor_text": "Prevents it from\nbecoming infatuated.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version_group": {
+        "name": "black-white",
+        "url": "https://pokeapi.co/api/v2/version-group/11/"
+      }
+    },
+    {
+      "flavor_text": "Emp\u00eache le Pok\u00e9mon de tomber amoureux.",
+      "language": {
+        "name": "fr",
+        "url": "https://pokeapi.co/api/v2/language/5/"
+      },
+      "version_group": {
+        "name": "black-2-white-2",
+        "url": "https://pokeapi.co/api/v2/version-group/14/"
+      }
+    },
+    {
+      "flavor_text": "Prevents it from\nbecoming infatuated.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version_group": {
+        "name": "black-2-white-2",
+        "url": "https://pokeapi.co/api/v2/version-group/14/"
+      }
+    },
+    {
+      "flavor_text": "\u30e1\u30ed\u30e1\u30ed\u3084\u3000\u3061\u3087\u3046\u306f\u3064\n\u3058\u3087\u3046\u305f\u3044\u306b\u3000\u306a\u3089\u306a\u3044\u3002",
+      "language": {
+        "name": "ja-Hrkt",
+        "url": "https://pokeapi.co/api/v2/language/1/"
+      },
+      "version_group": {
+        "name": "x-y",
+        "url": "https://pokeapi.co/api/v2/version-group/15/"
+      }
+    },
+    {
+      "flavor_text": "\ud5e4\ub871\ud5e4\ub871\uc774\ub098 \ub3c4\ubc1c \uc0c1\ud0dc\uac00\n\ub418\uc9c0 \uc54a\ub294\ub2e4.",
+      "language": {
+        "name": "ko",
+        "url": "https://pokeapi.co/api/v2/language/3/"
+      },
+      "version_group": {
+        "name": "x-y",
+        "url": "https://pokeapi.co/api/v2/version-group/15/"
+      }
+    },
+    {
+      "flavor_text": "Immunise le Pok\u00e9mon contre l'attraction ou la provocation.",
+      "language": {
+        "name": "fr",
+        "url": "https://pokeapi.co/api/v2/language/5/"
+      },
+      "version_group": {
+        "name": "x-y",
+        "url": "https://pokeapi.co/api/v2/version-group/15/"
+      }
+    },
+    {
+      "flavor_text": "Immunise le Pok\u00e9mon contre\nl\u2019attraction ou la provocation.",
+      "language": {
+        "name": "fr",
+        "url": "https://pokeapi.co/api/v2/language/5/"
+      },
+      "version_group": {
+        "name": "x-y",
+        "url": "https://pokeapi.co/api/v2/version-group/15/"
+      }
+    },
+    {
+      "flavor_text": "Verhindert, dass das Pok\u00e9mon\nbet\u00f6rt oder provoziert wird.",
+      "language": {
+        "name": "de",
+        "url": "https://pokeapi.co/api/v2/language/6/"
+      },
+      "version_group": {
+        "name": "x-y",
+        "url": "https://pokeapi.co/api/v2/version-group/15/"
+      }
+    },
+    {
+      "flavor_text": "Evita que el Pok\u00e9mon sea\natra\u00eddo o provocado.",
+      "language": {
+        "name": "es",
+        "url": "https://pokeapi.co/api/v2/language/7/"
+      },
+      "version_group": {
+        "name": "x-y",
+        "url": "https://pokeapi.co/api/v2/version-group/15/"
+      }
+    },
+    {
+      "flavor_text": "Protegge il Pok\u00e9mon da\ninfatuazioni e provocazioni.",
+      "language": {
+        "name": "it",
+        "url": "https://pokeapi.co/api/v2/language/8/"
+      },
+      "version_group": {
+        "name": "x-y",
+        "url": "https://pokeapi.co/api/v2/version-group/15/"
+      }
+    },
+    {
+      "flavor_text": "Keeps the Pok\u00e9mon from being\ninfatuated or falling for taunts.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version_group": {
+        "name": "x-y",
+        "url": "https://pokeapi.co/api/v2/version-group/15/"
+      }
+    },
+    {
+      "flavor_text": "\u30e1\u30ed\u30e1\u30ed\u3084\u3000\u3061\u3087\u3046\u306f\u3064\n\u72b6\u614b\u306b\u3000\u306a\u3089\u306a\u3044\u3002",
+      "language": {
+        "name": "ja",
+        "url": "https://pokeapi.co/api/v2/language/11/"
+      },
+      "version_group": {
+        "name": "x-y",
+        "url": "https://pokeapi.co/api/v2/version-group/15/"
+      }
+    },
+    {
+      "flavor_text": "\u30e1\u30ed\u30e1\u30ed\u3084\u3000\u3061\u3087\u3046\u306f\u3064\n\u3058\u3087\u3046\u305f\u3044\u306b\u3000\u306a\u3089\u306a\u3044\u3002",
+      "language": {
+        "name": "ja-Hrkt",
+        "url": "https://pokeapi.co/api/v2/language/1/"
+      },
+      "version_group": {
+        "name": "omega-ruby-alpha-sapphire",
+        "url": "https://pokeapi.co/api/v2/version-group/16/"
+      }
+    },
+    {
+      "flavor_text": "\ud5e4\ub871\ud5e4\ub871\uc774\ub098 \ub3c4\ubc1c \uc0c1\ud0dc\uac00\n\ub418\uc9c0 \uc54a\ub294\ub2e4.",
+      "language": {
+        "name": "ko",
+        "url": "https://pokeapi.co/api/v2/language/3/"
+      },
+      "version_group": {
+        "name": "omega-ruby-alpha-sapphire",
+        "url": "https://pokeapi.co/api/v2/version-group/16/"
+      }
+    },
+    {
+      "flavor_text": "Immunise le Pok\u00e9mon contre l'attraction ou la provocation.",
+      "language": {
+        "name": "fr",
+        "url": "https://pokeapi.co/api/v2/language/5/"
+      },
+      "version_group": {
+        "name": "omega-ruby-alpha-sapphire",
+        "url": "https://pokeapi.co/api/v2/version-group/16/"
+      }
+    },
+    {
+      "flavor_text": "Immunise le Pok\u00e9mon contre\nl\u2019attraction ou la provocation.",
+      "language": {
+        "name": "fr",
+        "url": "https://pokeapi.co/api/v2/language/5/"
+      },
+      "version_group": {
+        "name": "omega-ruby-alpha-sapphire",
+        "url": "https://pokeapi.co/api/v2/version-group/16/"
+      }
+    },
+    {
+      "flavor_text": "Verhindert, dass das Pok\u00e9mon\nbet\u00f6rt oder provoziert wird.",
+      "language": {
+        "name": "de",
+        "url": "https://pokeapi.co/api/v2/language/6/"
+      },
+      "version_group": {
+        "name": "omega-ruby-alpha-sapphire",
+        "url": "https://pokeapi.co/api/v2/version-group/16/"
+      }
+    },
+    {
+      "flavor_text": "Evita que el Pok\u00e9mon sea\natra\u00eddo o provocado.",
+      "language": {
+        "name": "es",
+        "url": "https://pokeapi.co/api/v2/language/7/"
+      },
+      "version_group": {
+        "name": "omega-ruby-alpha-sapphire",
+        "url": "https://pokeapi.co/api/v2/version-group/16/"
+      }
+    },
+    {
+      "flavor_text": "Protegge il Pok\u00e9mon da\ninfatuazioni e provocazioni.",
+      "language": {
+        "name": "it",
+        "url": "https://pokeapi.co/api/v2/language/8/"
+      },
+      "version_group": {
+        "name": "omega-ruby-alpha-sapphire",
+        "url": "https://pokeapi.co/api/v2/version-group/16/"
+      }
+    },
+    {
+      "flavor_text": "Keeps the Pok\u00e9mon from being\ninfatuated or falling for taunts.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version_group": {
+        "name": "omega-ruby-alpha-sapphire",
+        "url": "https://pokeapi.co/api/v2/version-group/16/"
+      }
+    },
+    {
+      "flavor_text": "\u30e1\u30ed\u30e1\u30ed\u3084\u3000\u3061\u3087\u3046\u306f\u3064\n\u72b6\u614b\u306b\u3000\u306a\u3089\u306a\u3044\u3002",
+      "language": {
+        "name": "ja",
+        "url": "https://pokeapi.co/api/v2/language/11/"
+      },
+      "version_group": {
+        "name": "omega-ruby-alpha-sapphire",
+        "url": "https://pokeapi.co/api/v2/version-group/16/"
+      }
+    },
+    {
+      "flavor_text": "\u3069\u3093\u304b\u3093\u3000\u306a\u306e\u3067\n\u30e1\u30ed\u30e1\u30ed\u3084\u3000\u3061\u3087\u3046\u306f\u3064\u3000\u3058\u3087\u3046\u305f\u3044\u306b\n\u306a\u3089\u306a\u3044\u3002",
+      "language": {
+        "name": "ja-Hrkt",
+        "url": "https://pokeapi.co/api/v2/language/1/"
+      },
+      "version_group": {
+        "name": "sun-moon",
+        "url": "https://pokeapi.co/api/v2/version-group/17/"
+      }
+    },
+    {
+      "flavor_text": "\ub454\uac10\ud574\uc11c\n\ud5e4\ub871\ud5e4\ub871\uc774\ub098 \ub3c4\ubc1c \uc0c1\ud0dc\uac00\n\ub418\uc9c0 \uc54a\ub294\ub2e4.",
+      "language": {
+        "name": "ko",
+        "url": "https://pokeapi.co/api/v2/language/3/"
+      },
+      "version_group": {
+        "name": "sun-moon",
+        "url": "https://pokeapi.co/api/v2/version-group/17/"
+      }
+    },
+    {
+      "flavor_text": "\u611f\u89ba\u9072\u920d\uff0c\n\u4e0d\u6703\u9677\u5165\u8457\u8ff7\u548c\u88ab\u6311\u91c1\u72c0\u614b\u3002",
+      "language": {
+        "name": "zh-Hant",
+        "url": "https://pokeapi.co/api/v2/language/4/"
+      },
+      "version_group": {
+        "name": "sun-moon",
+        "url": "https://pokeapi.co/api/v2/version-group/17/"
+      }
+    },
+    {
+      "flavor_text": "Le Pok\u00e9mon est un grand ben\u00eat, ce qui l'immunise contre l'attraction ou la provocation.",
+      "language": {
+        "name": "fr",
+        "url": "https://pokeapi.co/api/v2/language/5/"
+      },
+      "version_group": {
+        "name": "sun-moon",
+        "url": "https://pokeapi.co/api/v2/version-group/17/"
+      }
+    },
+    {
+      "flavor_text": "Le Pok\u00e9mon est un grand ben\u00eat, ce qui l\u2019immunise\ncontre l\u2019attraction ou la provocation.",
+      "language": {
+        "name": "fr",
+        "url": "https://pokeapi.co/api/v2/language/5/"
+      },
+      "version_group": {
+        "name": "sun-moon",
+        "url": "https://pokeapi.co/api/v2/version-group/17/"
+      }
+    },
+    {
+      "flavor_text": "Das Pok\u00e9mon ist so apathisch, dass es nicht bet\u00f6rt\noder provoziert werden kann.",
+      "language": {
+        "name": "de",
+        "url": "https://pokeapi.co/api/v2/language/6/"
+      },
+      "version_group": {
+        "name": "sun-moon",
+        "url": "https://pokeapi.co/api/v2/version-group/17/"
+      }
+    },
+    {
+      "flavor_text": "La indiferencia del Pok\u00e9mon evita que sea\natra\u00eddo o provocado.",
+      "language": {
+        "name": "es",
+        "url": "https://pokeapi.co/api/v2/language/7/"
+      },
+      "version_group": {
+        "name": "sun-moon",
+        "url": "https://pokeapi.co/api/v2/version-group/17/"
+      }
+    },
+    {
+      "flavor_text": "L\u2019imperturbabilit\u00e0 del Pok\u00e9mon lo protegge\nda infatuazioni e provocazioni.",
+      "language": {
+        "name": "it",
+        "url": "https://pokeapi.co/api/v2/language/8/"
+      },
+      "version_group": {
+        "name": "sun-moon",
+        "url": "https://pokeapi.co/api/v2/version-group/17/"
+      }
+    },
+    {
+      "flavor_text": "The Pok\u00e9mon is oblivious, and that keeps it from\nbeing infatuated or falling for taunts.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version_group": {
+        "name": "sun-moon",
+        "url": "https://pokeapi.co/api/v2/version-group/17/"
+      }
+    },
+    {
+      "flavor_text": "\u920d\u611f\u306a\u306e\u3067\n\u30e1\u30ed\u30e1\u30ed\u3084\u3000\u3061\u3087\u3046\u306f\u3064\u72b6\u614b\u306b\n\u306a\u3089\u306a\u3044\u3002",
+      "language": {
+        "name": "ja",
+        "url": "https://pokeapi.co/api/v2/language/11/"
+      },
+      "version_group": {
+        "name": "sun-moon",
+        "url": "https://pokeapi.co/api/v2/version-group/17/"
+      }
+    },
+    {
+      "flavor_text": "\u56e0\u4e3a\u611f\u89c9\u8fdf\u949d\uff0c\n\u4e0d\u4f1a\u53d8\u4e3a\u7740\u8ff7\u548c\u88ab\u6311\u8845\u72b6\u6001\u3002",
+      "language": {
+        "name": "zh-Hans",
+        "url": "https://pokeapi.co/api/v2/language/12/"
+      },
+      "version_group": {
+        "name": "sun-moon",
+        "url": "https://pokeapi.co/api/v2/version-group/17/"
+      }
+    },
+    {
+      "flavor_text": "\u3069\u3093\u304b\u3093\u3000\u306a\u306e\u3067\n\u30e1\u30ed\u30e1\u30ed\u3084\u3000\u3061\u3087\u3046\u306f\u3064\u3000\u3058\u3087\u3046\u305f\u3044\u306b\n\u306a\u3089\u306a\u3044\u3002",
+      "language": {
+        "name": "ja-Hrkt",
+        "url": "https://pokeapi.co/api/v2/language/1/"
+      },
+      "version_group": {
+        "name": "ultra-sun-ultra-moon",
+        "url": "https://pokeapi.co/api/v2/version-group/18/"
+      }
+    },
+    {
+      "flavor_text": "\ub454\uac10\ud574\uc11c\n\ud5e4\ub871\ud5e4\ub871\uc774\ub098 \ub3c4\ubc1c \uc0c1\ud0dc\uac00\n\ub418\uc9c0 \uc54a\ub294\ub2e4.",
+      "language": {
+        "name": "ko",
+        "url": "https://pokeapi.co/api/v2/language/3/"
+      },
+      "version_group": {
+        "name": "ultra-sun-ultra-moon",
+        "url": "https://pokeapi.co/api/v2/version-group/18/"
+      }
+    },
+    {
+      "flavor_text": "\u611f\u89ba\u9072\u920d\uff0c\n\u4e0d\u6703\u9677\u5165\u8457\u8ff7\u548c\u88ab\u6311\u91c1\u72c0\u614b\u3002",
+      "language": {
+        "name": "zh-Hant",
+        "url": "https://pokeapi.co/api/v2/language/4/"
+      },
+      "version_group": {
+        "name": "ultra-sun-ultra-moon",
+        "url": "https://pokeapi.co/api/v2/version-group/18/"
+      }
+    },
+    {
+      "flavor_text": "Le Pok\u00e9mon est un grand ben\u00eat, ce qui l'immunise contre l'attraction ou la provocation.",
+      "language": {
+        "name": "fr",
+        "url": "https://pokeapi.co/api/v2/language/5/"
+      },
+      "version_group": {
+        "name": "ultra-sun-ultra-moon",
+        "url": "https://pokeapi.co/api/v2/version-group/18/"
+      }
+    },
+    {
+      "flavor_text": "Le Pok\u00e9mon est un grand ben\u00eat, ce qui l\u2019immunise\ncontre l\u2019attraction ou la provocation.",
+      "language": {
+        "name": "fr",
+        "url": "https://pokeapi.co/api/v2/language/5/"
+      },
+      "version_group": {
+        "name": "ultra-sun-ultra-moon",
+        "url": "https://pokeapi.co/api/v2/version-group/18/"
+      }
+    },
+    {
+      "flavor_text": "Das Pok\u00e9mon ist so apathisch, dass es nicht bet\u00f6rt\noder provoziert werden kann.",
+      "language": {
+        "name": "de",
+        "url": "https://pokeapi.co/api/v2/language/6/"
+      },
+      "version_group": {
+        "name": "ultra-sun-ultra-moon",
+        "url": "https://pokeapi.co/api/v2/version-group/18/"
+      }
+    },
+    {
+      "flavor_text": "La indiferencia del Pok\u00e9mon evita que caiga presa\ndel enamoramiento o sea provocado.",
+      "language": {
+        "name": "es",
+        "url": "https://pokeapi.co/api/v2/language/7/"
+      },
+      "version_group": {
+        "name": "ultra-sun-ultra-moon",
+        "url": "https://pokeapi.co/api/v2/version-group/18/"
+      }
+    },
+    {
+      "flavor_text": "L\u2019imperturbabilit\u00e0 del Pok\u00e9mon lo protegge\nda infatuazioni e provocazioni.",
+      "language": {
+        "name": "it",
+        "url": "https://pokeapi.co/api/v2/language/8/"
+      },
+      "version_group": {
+        "name": "ultra-sun-ultra-moon",
+        "url": "https://pokeapi.co/api/v2/version-group/18/"
+      }
+    },
+    {
+      "flavor_text": "The Pok\u00e9mon is oblivious, and that keeps it from\nbeing infatuated or falling for taunts.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version_group": {
+        "name": "ultra-sun-ultra-moon",
+        "url": "https://pokeapi.co/api/v2/version-group/18/"
+      }
+    },
+    {
+      "flavor_text": "\u920d\u611f\u306a\u306e\u3067\n\u30e1\u30ed\u30e1\u30ed\u3084\u3000\u3061\u3087\u3046\u306f\u3064\u72b6\u614b\u306b\n\u306a\u3089\u306a\u3044\u3002",
+      "language": {
+        "name": "ja",
+        "url": "https://pokeapi.co/api/v2/language/11/"
+      },
+      "version_group": {
+        "name": "ultra-sun-ultra-moon",
+        "url": "https://pokeapi.co/api/v2/version-group/18/"
+      }
+    },
+    {
+      "flavor_text": "\u56e0\u4e3a\u611f\u89c9\u8fdf\u949d\uff0c\n\u4e0d\u4f1a\u53d8\u4e3a\u7740\u8ff7\u548c\u88ab\u6311\u8845\u72b6\u6001\u3002",
+      "language": {
+        "name": "zh-Hans",
+        "url": "https://pokeapi.co/api/v2/language/12/"
+      },
+      "version_group": {
+        "name": "ultra-sun-ultra-moon",
+        "url": "https://pokeapi.co/api/v2/version-group/18/"
+      }
+    },
+    {
+      "flavor_text": "\u3069\u3093\u304b\u3093\u3000\u306a\u306e\u3067\n\u30e1\u30ed\u30e1\u30ed\u3084\u3000\u3061\u3087\u3046\u306f\u3064\u3000\u3058\u3087\u3046\u305f\u3044\u306b\n\u306a\u3089\u306a\u3044\u3002",
+      "language": {
+        "name": "ja-Hrkt",
+        "url": "https://pokeapi.co/api/v2/language/1/"
+      },
+      "version_group": {
+        "name": "lets-go-pikachu-lets-go-eevee",
+        "url": "https://pokeapi.co/api/v2/version-group/19/"
+      }
+    },
+    {
+      "flavor_text": "\ub454\uac10\ud574\uc11c\n\ud5e4\ub871\ud5e4\ub871\uc774\ub098 \ub3c4\ubc1c \uc0c1\ud0dc\uac00\n\ub418\uc9c0 \uc54a\ub294\ub2e4.",
+      "language": {
+        "name": "ko",
+        "url": "https://pokeapi.co/api/v2/language/3/"
+      },
+      "version_group": {
+        "name": "lets-go-pikachu-lets-go-eevee",
+        "url": "https://pokeapi.co/api/v2/version-group/19/"
+      }
+    },
+    {
+      "flavor_text": "\u611f\u89ba\u9072\u920d\uff0c\n\u4e0d\u6703\u9677\u5165\u8457\u8ff7\u548c\u88ab\u6311\u91c1\u72c0\u614b\u3002",
+      "language": {
+        "name": "zh-Hant",
+        "url": "https://pokeapi.co/api/v2/language/4/"
+      },
+      "version_group": {
+        "name": "lets-go-pikachu-lets-go-eevee",
+        "url": "https://pokeapi.co/api/v2/version-group/19/"
+      }
+    },
+    {
+      "flavor_text": "Le Pok\u00e9mon est un grand ben\u00eat, ce qui l\u2019immunise\ncontre l\u2019attraction ou la provocation.",
+      "language": {
+        "name": "fr",
+        "url": "https://pokeapi.co/api/v2/language/5/"
+      },
+      "version_group": {
+        "name": "lets-go-pikachu-lets-go-eevee",
+        "url": "https://pokeapi.co/api/v2/version-group/19/"
+      }
+    },
+    {
+      "flavor_text": "Das Pok\u00e9mon ist so apathisch, dass es nicht bet\u00f6rt\noder provoziert werden kann.",
+      "language": {
+        "name": "de",
+        "url": "https://pokeapi.co/api/v2/language/6/"
+      },
+      "version_group": {
+        "name": "lets-go-pikachu-lets-go-eevee",
+        "url": "https://pokeapi.co/api/v2/version-group/19/"
+      }
+    },
+    {
+      "flavor_text": "La indiferencia del Pok\u00e9mon evita que caiga presa\ndel enamoramiento o sea provocado.",
+      "language": {
+        "name": "es",
+        "url": "https://pokeapi.co/api/v2/language/7/"
+      },
+      "version_group": {
+        "name": "lets-go-pikachu-lets-go-eevee",
+        "url": "https://pokeapi.co/api/v2/version-group/19/"
+      }
+    },
+    {
+      "flavor_text": "L\u2019imperturbabilit\u00e0 del Pok\u00e9mon lo protegge\nda infatuazioni e provocazioni.",
+      "language": {
+        "name": "it",
+        "url": "https://pokeapi.co/api/v2/language/8/"
+      },
+      "version_group": {
+        "name": "lets-go-pikachu-lets-go-eevee",
+        "url": "https://pokeapi.co/api/v2/version-group/19/"
+      }
+    },
+    {
+      "flavor_text": "The Pok\u00e9mon is oblivious, and that keeps it from\nbeing infatuated or falling for taunts.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version_group": {
+        "name": "lets-go-pikachu-lets-go-eevee",
+        "url": "https://pokeapi.co/api/v2/version-group/19/"
+      }
+    },
+    {
+      "flavor_text": "\u920d\u611f\u306a\u306e\u3067\n\u30e1\u30ed\u30e1\u30ed\u3084\u3000\u3061\u3087\u3046\u306f\u3064\u72b6\u614b\u306b\n\u306a\u3089\u306a\u3044\u3002",
+      "language": {
+        "name": "ja",
+        "url": "https://pokeapi.co/api/v2/language/11/"
+      },
+      "version_group": {
+        "name": "lets-go-pikachu-lets-go-eevee",
+        "url": "https://pokeapi.co/api/v2/version-group/19/"
+      }
+    },
+    {
+      "flavor_text": "\u56e0\u4e3a\u611f\u89c9\u8fdf\u949d\uff0c\n\u4e0d\u4f1a\u53d8\u4e3a\u7740\u8ff7\u548c\u88ab\u6311\u8845\u72b6\u6001\u3002",
+      "language": {
+        "name": "zh-Hans",
+        "url": "https://pokeapi.co/api/v2/language/12/"
+      },
+      "version_group": {
+        "name": "lets-go-pikachu-lets-go-eevee",
+        "url": "https://pokeapi.co/api/v2/version-group/19/"
+      }
+    },
+    {
+      "flavor_text": "\u3069\u3093\u304b\u3093\u3000\u306a\u306e\u3067\n\u30e1\u30ed\u30e1\u30ed\u3084\u3000\u3061\u3087\u3046\u306f\u3064\u3000\u3058\u3087\u3046\u305f\u3044\u306b\n\u306a\u3089\u306a\u3044\u3002",
+      "language": {
+        "name": "ja-Hrkt",
+        "url": "https://pokeapi.co/api/v2/language/1/"
+      },
+      "version_group": {
+        "name": "sword-shield",
+        "url": "https://pokeapi.co/api/v2/version-group/20/"
+      }
+    },
+    {
+      "flavor_text": "\ub454\uac10\ud574\uc11c\n\ud5e4\ub871\ud5e4\ub871\uc774\ub098 \ub3c4\ubc1c \uc0c1\ud0dc\uac00\n\ub418\uc9c0 \uc54a\ub294\ub2e4.",
+      "language": {
+        "name": "ko",
+        "url": "https://pokeapi.co/api/v2/language/3/"
+      },
+      "version_group": {
+        "name": "sword-shield",
+        "url": "https://pokeapi.co/api/v2/version-group/20/"
+      }
+    },
+    {
+      "flavor_text": "\u611f\u89ba\u9072\u920d\uff0c\n\u4e0d\u6703\u9677\u5165\u8457\u8ff7\u548c\u88ab\u6311\u91c1\u72c0\u614b\u3002",
+      "language": {
+        "name": "zh-Hant",
+        "url": "https://pokeapi.co/api/v2/language/4/"
+      },
+      "version_group": {
+        "name": "sword-shield",
+        "url": "https://pokeapi.co/api/v2/version-group/20/"
+      }
+    },
+    {
+      "flavor_text": "Le Pok\u00e9mon est un grand ben\u00eat, ce qui l'immunise contre l'attraction ou la provocation.",
+      "language": {
+        "name": "fr",
+        "url": "https://pokeapi.co/api/v2/language/5/"
+      },
+      "version_group": {
+        "name": "sword-shield",
+        "url": "https://pokeapi.co/api/v2/version-group/20/"
+      }
+    },
+    {
+      "flavor_text": "Le Pok\u00e9mon est un grand ben\u00eat, ce qui l\u2019immunise\ncontre l\u2019attraction ou la provocation.",
+      "language": {
+        "name": "fr",
+        "url": "https://pokeapi.co/api/v2/language/5/"
+      },
+      "version_group": {
+        "name": "sword-shield",
+        "url": "https://pokeapi.co/api/v2/version-group/20/"
+      }
+    },
+    {
+      "flavor_text": "Das Pok\u00e9mon ist so apathisch, dass es nicht bet\u00f6rt oder\nprovoziert werden kann.",
+      "language": {
+        "name": "de",
+        "url": "https://pokeapi.co/api/v2/language/6/"
+      },
+      "version_group": {
+        "name": "sword-shield",
+        "url": "https://pokeapi.co/api/v2/version-group/20/"
+      }
+    },
+    {
+      "flavor_text": "Su indiferencia evita que sea provocado o caiga presa\ndel enamoramiento.",
+      "language": {
+        "name": "es",
+        "url": "https://pokeapi.co/api/v2/language/7/"
+      },
+      "version_group": {
+        "name": "sword-shield",
+        "url": "https://pokeapi.co/api/v2/version-group/20/"
+      }
+    },
+    {
+      "flavor_text": "L\u2019imperturbabilit\u00e0 del Pok\u00e9mon lo protegge\nda infatuazioni e provocazioni.",
+      "language": {
+        "name": "it",
+        "url": "https://pokeapi.co/api/v2/language/8/"
+      },
+      "version_group": {
+        "name": "sword-shield",
+        "url": "https://pokeapi.co/api/v2/version-group/20/"
+      }
+    },
+    {
+      "flavor_text": "The Pok\u00e9mon is oblivious, and that keeps it from\nbeing infatuated or falling for taunts.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version_group": {
+        "name": "sword-shield",
+        "url": "https://pokeapi.co/api/v2/version-group/20/"
+      }
+    },
+    {
+      "flavor_text": "\u920d\u611f\u306a\u306e\u3067\n\u30e1\u30ed\u30e1\u30ed\u3084\u3000\u3061\u3087\u3046\u306f\u3064\u72b6\u614b\u306b\n\u306a\u3089\u306a\u3044\u3002",
+      "language": {
+        "name": "ja",
+        "url": "https://pokeapi.co/api/v2/language/11/"
+      },
+      "version_group": {
+        "name": "sword-shield",
+        "url": "https://pokeapi.co/api/v2/version-group/20/"
+      }
+    },
+    {
+      "flavor_text": "\u56e0\u4e3a\u611f\u89c9\u8fdf\u949d\uff0c\n\u4e0d\u4f1a\u53d8\u4e3a\u7740\u8ff7\u548c\u88ab\u6311\u8845\u72b6\u6001\u3002",
+      "language": {
+        "name": "zh-Hans",
+        "url": "https://pokeapi.co/api/v2/language/12/"
+      },
+      "version_group": {
+        "name": "sword-shield",
+        "url": "https://pokeapi.co/api/v2/version-group/20/"
+      }
+    },
+    {
+      "flavor_text": "Le Pok\u00e9mon est un grand ben\u00eat, ce qui l'immunise contre l'attraction, la provocation ou l'intimidation.",
+      "language": {
+        "name": "fr",
+        "url": "https://pokeapi.co/api/v2/language/5/"
+      },
+      "version_group": {
+        "name": "scarlet-violet",
+        "url": "https://pokeapi.co/api/v2/version-group/25/"
+      }
+    },
+    {
+      "flavor_text": "The Pok\u00e9mon is oblivious, keeping it from being infatuated, falling for taunts, or being affected by Intimidate.",
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "version_group": {
+        "name": "scarlet-violet",
+        "url": "https://pokeapi.co/api/v2/version-group/25/"
+      }
+    }
+  ],
+  "generation": {
+    "name": "generation-iii",
+    "url": "https://pokeapi.co/api/v2/generation/3/"
+  },
+  "id": 12,
+  "is_main_series": true,
+  "name": "oblivious",
+  "names": [
+    {
+      "language": {
+        "name": "ja-Hrkt",
+        "url": "https://pokeapi.co/api/v2/language/1/"
+      },
+      "name": "\u3069\u3093\u304b\u3093"
+    },
+    {
+      "language": {
+        "name": "ko",
+        "url": "https://pokeapi.co/api/v2/language/3/"
+      },
+      "name": "\ub454\uac10"
+    },
+    {
+      "language": {
+        "name": "zh-Hant",
+        "url": "https://pokeapi.co/api/v2/language/4/"
+      },
+      "name": "\u9072\u920d"
+    },
+    {
+      "language": {
+        "name": "fr",
+        "url": "https://pokeapi.co/api/v2/language/5/"
+      },
+      "name": "Ben\u00eat"
+    },
+    {
+      "language": {
+        "name": "de",
+        "url": "https://pokeapi.co/api/v2/language/6/"
+      },
+      "name": "D\u00f6sigkeit"
+    },
+    {
+      "language": {
+        "name": "es",
+        "url": "https://pokeapi.co/api/v2/language/7/"
+      },
+      "name": "Despiste"
+    },
+    {
+      "language": {
+        "name": "it",
+        "url": "https://pokeapi.co/api/v2/language/8/"
+      },
+      "name": "Indifferenza"
+    },
+    {
+      "language": {
+        "name": "en",
+        "url": "https://pokeapi.co/api/v2/language/9/"
+      },
+      "name": "Oblivious"
+    },
+    {
+      "language": {
+        "name": "ja",
+        "url": "https://pokeapi.co/api/v2/language/11/"
+      },
+      "name": "\u3069\u3093\u304b\u3093"
+    },
+    {
+      "language": {
+        "name": "zh-Hans",
+        "url": "https://pokeapi.co/api/v2/language/12/"
+      },
+      "name": "\u8fdf\u949d"
+    }
+  ],
+  "pokemon": [
+    {
+      "is_hidden": false,
+      "pokemon": {
+        "name": "slowpoke",
+        "url": "https://pokeapi.co/api/v2/pokemon/79/"
+      },
+      "slot": 1
+    },
+    {
+      "is_hidden": false,
+      "pokemon": {
+        "name": "slowbro",
+        "url": "https://pokeapi.co/api/v2/pokemon/80/"
+      },
+      "slot": 1
+    },
+    {
+      "is_hidden": false,
+      "pokemon": {
+        "name": "lickitung",
+        "url": "https://pokeapi.co/api/v2/pokemon/108/"
+      },
+      "slot": 2
+    },
+    {
+      "is_hidden": false,
+      "pokemon": {
+        "name": "jynx",
+        "url": "https://pokeapi.co/api/v2/pokemon/124/"
+      },
+      "slot": 1
+    },
+    {
+      "is_hidden": false,
+      "pokemon": {
+        "name": "slowking",
+        "url": "https://pokeapi.co/api/v2/pokemon/199/"
+      },
+      "slot": 1
+    },
+    {
+      "is_hidden": false,
+      "pokemon": {
+        "name": "swinub",
+        "url": "https://pokeapi.co/api/v2/pokemon/220/"
+      },
+      "slot": 1
+    },
+    {
+      "is_hidden": false,
+      "pokemon": {
+        "name": "piloswine",
+        "url": "https://pokeapi.co/api/v2/pokemon/221/"
+      },
+      "slot": 1
+    },
+    {
+      "is_hidden": false,
+      "pokemon": {
+        "name": "smoochum",
+        "url": "https://pokeapi.co/api/v2/pokemon/238/"
+      },
+      "slot": 1
+    },
+    {
+      "is_hidden": false,
+      "pokemon": {
+        "name": "illumise",
+        "url": "https://pokeapi.co/api/v2/pokemon/314/"
+      },
+      "slot": 1
+    },
+    {
+      "is_hidden": false,
+      "pokemon": {
+        "name": "wailmer",
+        "url": "https://pokeapi.co/api/v2/pokemon/320/"
+      },
+      "slot": 2
+    },
+    {
+      "is_hidden": false,
+      "pokemon": {
+        "name": "wailord",
+        "url": "https://pokeapi.co/api/v2/pokemon/321/"
+      },
+      "slot": 2
+    },
+    {
+      "is_hidden": false,
+      "pokemon": {
+        "name": "numel",
+        "url": "https://pokeapi.co/api/v2/pokemon/322/"
+      },
+      "slot": 1
+    },
+    {
+      "is_hidden": false,
+      "pokemon": {
+        "name": "barboach",
+        "url": "https://pokeapi.co/api/v2/pokemon/339/"
+      },
+      "slot": 1
+    },
+    {
+      "is_hidden": false,
+      "pokemon": {
+        "name": "whiscash",
+        "url": "https://pokeapi.co/api/v2/pokemon/340/"
+      },
+      "slot": 1
+    },
+    {
+      "is_hidden": false,
+      "pokemon": {
+        "name": "feebas",
+        "url": "https://pokeapi.co/api/v2/pokemon/349/"
+      },
+      "slot": 2
+    },
+    {
+      "is_hidden": true,
+      "pokemon": {
+        "name": "spheal",
+        "url": "https://pokeapi.co/api/v2/pokemon/363/"
+      },
+      "slot": 3
+    },
+    {
+      "is_hidden": true,
+      "pokemon": {
+        "name": "sealeo",
+        "url": "https://pokeapi.co/api/v2/pokemon/364/"
+      },
+      "slot": 3
+    },
+    {
+      "is_hidden": true,
+      "pokemon": {
+        "name": "walrein",
+        "url": "https://pokeapi.co/api/v2/pokemon/365/"
+      },
+      "slot": 3
+    },
+    {
+      "is_hidden": false,
+      "pokemon": {
+        "name": "lickilicky",
+        "url": "https://pokeapi.co/api/v2/pokemon/463/"
+      },
+      "slot": 2
+    },
+    {
+      "is_hidden": false,
+      "pokemon": {
+        "name": "mamoswine",
+        "url": "https://pokeapi.co/api/v2/pokemon/473/"
+      },
+      "slot": 1
+    },
+    {
+      "is_hidden": true,
+      "pokemon": {
+        "name": "salandit",
+        "url": "https://pokeapi.co/api/v2/pokemon/757/"
+      },
+      "slot": 3
+    },
+    {
+      "is_hidden": true,
+      "pokemon": {
+        "name": "salazzle",
+        "url": "https://pokeapi.co/api/v2/pokemon/758/"
+      },
+      "slot": 3
+    },
+    {
+      "is_hidden": false,
+      "pokemon": {
+        "name": "bounsweet",
+        "url": "https://pokeapi.co/api/v2/pokemon/761/"
+      },
+      "slot": 2
+    },
+    {
+      "is_hidden": false,
+      "pokemon": {
+        "name": "steenee",
+        "url": "https://pokeapi.co/api/v2/pokemon/762/"
+      },
+      "slot": 2
+    },
+    {
+      "is_hidden": false,
+      "pokemon": {
+        "name": "dondozo",
+        "url": "https://pokeapi.co/api/v2/pokemon/977/"
+      },
+      "slot": 2
+    },
+    {
+      "is_hidden": true,
+      "pokemon": {
+        "name": "salazzle-totem",
+        "url": "https://pokeapi.co/api/v2/pokemon/10129/"
+      },
+      "slot": 3
+    }
+  ]
+}

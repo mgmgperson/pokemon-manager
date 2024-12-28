@@ -77,8 +77,8 @@ const TrainerPokemon: React.FC = () => {
         };
     
         return (Object.keys(stats) as StatKey[]).map((stat) => {
-            const percentage = (stats[stat] / 255) * 100;
-            const hue = (stats[stat] / 255) * 180;
+            const percentage = (stats[stat] / 500) * 100;
+            const hue = (stats[stat] / 500) * 180;
             const color = `hsl(${hue}, 100%, 50%)`;
     
             return (

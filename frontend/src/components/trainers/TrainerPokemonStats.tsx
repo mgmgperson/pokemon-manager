@@ -66,8 +66,8 @@ const TrainerPokemonStats: React.FC<TrainerPokemonStatsProps> = ({ pokemon }) =>
             const ev = getStatValue(statName, 'ev_');
             const iv = getStatValue(statName, 'iv_');
 
-            const percentage = (actualStat / 255) * 100;
-            const hue = (actualStat / 255) * 180;
+            const percentage = (actualStat / 500) * 100;
+            const hue = (actualStat / 500) * 180;
             const color = `hsl(${hue}, 100%, 50%)`;
 
             return (
