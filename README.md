@@ -4,12 +4,6 @@ In-progress of making a Pokemon game based off of Football Manager. Currently us
 
 npm start
 
-**backend:**
-
-make ..
-
-./PokemonSimBackend
-
 **server:**
 
-node app.js
+npm run dev

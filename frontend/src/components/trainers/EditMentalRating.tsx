@@ -40,7 +40,7 @@ const updateMentalRating = async ({ id, updatedMentalRatings }: { id: string; up
 };
 
 const generateMentalRatings = async (id: number) => {
-    const { data } = await axios.get(`http://localhost:18080/generate-mental-ratings/${id}`);
+    const { data } = await axios.get(`http://localhost:5000/randomize/generate-mental-ratings/${id}`);
     return data; // Expecting the API to return the generated mental ratings
 };
 

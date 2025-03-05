@@ -15,6 +15,7 @@ node_modules/
 
 # Ignore cache files
 .cache/
+database/migrators/cache
 
 # Ignore old json
 database/oldjson/
@@ -24,3 +25,12 @@ backend/Crow/
 
 # Ignore build folder
 backend/build/
+
+# Ignore dist
+dist/
+
+# Ignore env
+.env
+
+# Ignore archived folders
+archive/

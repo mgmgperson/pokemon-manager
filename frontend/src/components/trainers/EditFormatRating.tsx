@@ -31,7 +31,7 @@ const updateFormatRating = async ({ id, updatedFormatRatings }: { id: string; up
 };
 
 const generateFormatRatings = async (id: number) => {
-    const { data } = await axios.get(`http://localhost:18080/generate-format-ratings/${id}`);
+    const { data } = await axios.get(`http://localhost:5000/randomize/generate-format-ratings/${id}`);
     return data; 
 };
 
