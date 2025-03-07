@@ -1,0 +1,18 @@
+export enum Pokeballs {
+    MASTER_BALL=1,
+    POKE_BALL,
+    GREAT_BALL,
+    ULTRA_BALL,
+    SAFARI_BALL,
+    NET_BALL,
+    DIVE_BALL,
+    NEST_BALL,
+    REPEAT_BALL,
+    TIMER_BALL,
+    LUXURY_BALL,
+    PREMIER_BALL,
+    DUSK_BALL,
+    HEAL_BALL,
+    QUICK_BALL,
+    CHERRISH_BALL,
+}

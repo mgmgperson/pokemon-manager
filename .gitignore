@@ -37,3 +37,6 @@ archive/
 
 # Ignore debug folder
 debug/
+
+# Ignore import folder
+importers/
