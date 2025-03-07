@@ -1,8 +1,8 @@
 // src/battling/BattleSimulator.ts
 
-import { PokemonRow, TrainerRow } from '../types/database';
-import { computeFieldAdv } from './TeamPicker';
-import { fetchTrainer } from '../services/dbService';
+import { PokemonRow, TrainerRow } from "../types/database";
+import { pickBest6PokemonForField } from "./TeamPicker";
+import { fetchTrainer } from "../services/dbService";
 
 export interface BattleResult {
   log: string[];
@@ -12,63 +12,117 @@ export interface BattleResult {
 }
 
 /**
- * Simulate a naive 6v6 singles battle. 
- * We'll do:
- *  - Each side starts with the first Pokemon in the array
- *  - Turn-based damage based on "fieldAdv" difference
- *  - Random chance of switching if losing, max 7 switches
+ * Weighted random selection helper.
+ * Given an array of objects and a weight function, returns one object.
  */
+function weightedRandom<T>(items: T[], weightFn: (item: T) => number): T {
+  const weights = items.map(weightFn);
+  const total = weights.reduce((acc, w) => acc + w, 0);
+  const rand = Math.random() * total;
+  let sum = 0;
+  for (let i = 0; i < items.length; i++) {
+    sum += weights[i];
+    if (rand < sum) {
+      return items[i];
+    }
+  }
+  return items[items.length - 1];
+}
+
+/**
+ * Compute a switching probability for a Pokémon.
+ * Lower HP and lower field advantage yield a higher chance.
+ * Adjust constants as needed.
+ */
+function computeSwitchProbability(hp: number, maxHP: number, fieldAdv: number, avgAdv: number): number {
+  // Normalize HP factor: if hp is very low, factor approaches 1.
+  const hpFactor = 1 - (hp / maxHP); // 0 when at full HP, 1 when at 0
+  // Field advantage factor: if fieldAdv is below average, factor approaches 1.
+  const advFactor = avgAdv > 0 ? Math.max(0, (avgAdv - fieldAdv) / avgAdv) : 0;
+  // Combine factors (weights can be tuned)
+  return Math.min(1, 0.5 * hpFactor + 0.5 * advFactor);
+}
+
+/**
+ * Returns the weighted random index from a roster.
+ * Lower HP and lower field advantage make an entry more likely to be chosen.
+ */
+function findNextHealthyIndexWeighted(roster: ActiveMon[], currentIdx: number): number | null {
+  const candidates = roster
+    .map((mon, idx) => ({ mon, idx }))
+    .filter(item => !item.mon.fainted && item.idx !== currentIdx);
+  if (candidates.length === 0) return null;
+  
+  // For simplicity, assume max HP is 100 for weighting.
+  const maxHP = 100;
+  // Calculate average fieldAdv among candidates.
+  const avgAdv = candidates.reduce((sum, item) => sum + item.mon.fieldAdv, 0) / candidates.length;
+  
+  const selected = weightedRandom(candidates, item => {
+    const hpFactor = 1 - (item.mon.hp / maxHP);
+    const advFactor = avgAdv > 0 ? Math.max(0, (avgAdv - item.mon.fieldAdv) / avgAdv) : 0;
+    // Combine factors (adjust weights as needed)
+    return hpFactor * 0.5 + advFactor * 0.5;
+  });
+  return selected.idx;
+}
+
+/**
+ * Selects an initial active index from the team using weighted random selection.
+ * Lower fieldAdv means a higher chance of being sent out first.
+ */
+function selectInitialIndex(roster: ActiveMon[]): number {
+  const selected = weightedRandom(roster.map((mon, idx) => ({ mon, idx })), item => {
+    // Invert advantage: lower advantage gets higher weight.
+    return 1 / (item.mon.fieldAdv + 1);
+  });
+  return selected.idx;
+}
+
+// Define the type for an active Pokémon in battle.
+interface ActiveMon {
+  nickname: string;
+  hp: number;
+  fieldAdv: number;
+  fainted: boolean;
+}
+
 export async function simulateSingles6v6Battle(
   field: string,
   trainer1Id: number,
   trainer2Id: number,
-  team1: PokemonRow[],
-  team2: PokemonRow[]
+  team1Data: Array<{ poke: PokemonRow; adv: number; suffix: string }>,
+  team2Data: Array<{ poke: PokemonRow; adv: number; suffix: string }>
 ): Promise<BattleResult> {
 
   const battleLog: string[] = [];
-  // fetch trainer names
+  // Fetch trainer names
   const t1 = await fetchTrainer(trainer1Id);
   const t2 = await fetchTrainer(trainer2Id);
   const t1Name = t1 ? `${t1.fname} ${t1.lname}` : `Trainer ${trainer1Id}`;
   const t2Name = t2 ? `${t2.fname} ${t2.lname}` : `Trainer ${trainer2Id}`;
 
-  battleLog.push(`** ${t1Name} selected: ${team1.map(p => p.nickname).join(', ')} **`);
-  battleLog.push(`** ${t2Name} selected: ${team2.map(p => p.nickname).join(', ')} **`);
+  battleLog.push(`** ${t1Name} selected: ${team1Data.map(p => p.poke.nickname + p.suffix).join(', ')} **`);
+  battleLog.push(`** ${t2Name} selected: ${team2Data.map(p => p.poke.nickname + p.suffix).join(', ')} **`);
 
-  // Build "active" roster objects with HP and precomputed fieldAdv
-  interface ActiveMon {
-    nickname: string;
-    hp: number;
-    fieldAdv: number;
-    fainted: boolean;
-  }
+  // Build active rosters
+  const t1ActiveRoster: ActiveMon[] = team1Data.map(item => ({
+    nickname: item.poke.nickname + item.suffix,
+    hp: item.poke.current_hp ?? 50,
+    fieldAdv: item.adv,
+    fainted: false,
+  }));
+  const t2ActiveRoster: ActiveMon[] = team2Data.map(item => ({
+    nickname: item.poke.nickname + item.suffix,
+    hp: item.poke.current_hp ?? 50,
+    fieldAdv: item.adv,
+    fainted: false,
+  }));
 
-  // Precompute advantage for each mon
-  const t1ActiveRoster: ActiveMon[] = [];
-  for (const p of team1) {
-    const adv = await computeFieldAdv(p, field, trainer1Id);
-    t1ActiveRoster.push({
-      nickname: p.nickname || 'NoName',
-      hp: p.current_hp ?? 50, // default
-      fieldAdv: adv,
-      fainted: false,
-    });
-  }
+  // Select initial active Pokémon using weighted random selection
+  let t1Index = selectInitialIndex(t1ActiveRoster);
+  let t2Index = selectInitialIndex(t2ActiveRoster);
 
-  const t2ActiveRoster: ActiveMon[] = [];
-  for (const p of team2) {
-    const adv = await computeFieldAdv(p, field, trainer2Id);
-    t2ActiveRoster.push({
-      nickname: p.nickname || 'NoName',
-      hp: p.current_hp ?? 50, 
-      fieldAdv: adv,
-      fainted: false,
-    });
-  }
-
-  let t1Index = 0;
-  let t2Index = 0;
   let t1Switches = 0;
   let t2Switches = 0;
   
@@ -79,28 +133,31 @@ export async function simulateSingles6v6Battle(
   let turn = 0;
 
   function allFainted(roster: ActiveMon[]): boolean {
-    return roster.every(m => m.fainted);
-  }
-
-  function findNextHealthyIndex(roster: ActiveMon[], currentIdx: number): number | null {
-    for (let i = 0; i < roster.length; i++) {
-      if (!roster[i].fainted && i !== currentIdx) {
-        return i;
-      }
-    }
-    return null;
+    return roster.every(mon => mon.fainted);
   }
 
   while (turn < MAX_TURNS) {
     turn++;
 
+    // Check if both teams are out simultaneously: draw.
+    if (allFainted(t1ActiveRoster) && allFainted(t2ActiveRoster)) {
+      battleLog.push(`Both trainers have no more usable Pokémon. It's a draw!`);
+      return {
+        log: battleLog,
+        winner: "Draw",
+        trainer1Team: team1Data.map(item => item.poke.nickname + item.suffix),
+        trainer2Team: team2Data.map(item => item.poke.nickname + item.suffix),
+      };
+    }
+    
+    // Check each team: if one team is completely fainted, declare winner.
     if (allFainted(t1ActiveRoster)) {
       battleLog.push(`${t1Name} is out of usable Pokémon! ${t2Name} wins!`);
       return {
         log: battleLog,
         winner: t2Name,
-        trainer1Team: team1.map(p => p.nickname || 'NoName'),
-        trainer2Team: team2.map(p => p.nickname || 'NoName'),
+        trainer1Team: team1Data.map(item => item.poke.nickname + item.suffix),
+        trainer2Team: team2Data.map(item => item.poke.nickname + item.suffix),
       };
     }
     if (allFainted(t2ActiveRoster)) {
@@ -108,91 +165,78 @@ export async function simulateSingles6v6Battle(
       return {
         log: battleLog,
         winner: t1Name,
-        trainer1Team: team1.map(p => p.nickname || 'NoName'),
-        trainer2Team: team2.map(p => p.nickname || 'NoName'),
+        trainer1Team: team1Data.map(item => item.poke.nickname + item.suffix),
+        trainer2Team: team2Data.map(item => item.poke.nickname + item.suffix),
       };
     }
 
-    // If active mon is fainted, switch automatically
+    // Switching logic: before each turn, consider switching if low HP & low fieldAdv.
+    const currentT1 = t1ActiveRoster[t1Index];
+    const currentT2 = t2ActiveRoster[t2Index];
+    const maxHP = 100; // assume 100 is full HP for weighting purposes
+    const avgT1Adv = t1ActiveRoster.reduce((sum, m) => sum + m.fieldAdv, 0) / t1ActiveRoster.length;
+    const avgT2Adv = t2ActiveRoster.reduce((sum, m) => sum + m.fieldAdv, 0) / t2ActiveRoster.length;
+    
+    const switchProbT1 = computeSwitchProbability(currentT1.hp, maxHP, currentT1.fieldAdv, avgT1Adv);
+    const switchProbT2 = computeSwitchProbability(currentT2.hp, maxHP, currentT2.fieldAdv, avgT2Adv);
+    
+    if (Math.random() < switchProbT1 && t1Switches < 7) {
+      const nextIdx = findNextHealthyIndexWeighted(t1ActiveRoster, t1Index);
+      if (nextIdx !== null) {
+        t1Index = nextIdx;
+        t1Switches++;
+        battleLog.push(`${t1Name} switches to ${t1ActiveRoster[t1Index].nickname} (switch #${t1Switches})`);
+      }
+    }
+    if (Math.random() < switchProbT2 && t2Switches < 7) {
+      const nextIdx = findNextHealthyIndexWeighted(t2ActiveRoster, t2Index);
+      if (nextIdx !== null) {
+        t2Index = nextIdx;
+        t2Switches++;
+        battleLog.push(`${t2Name} switches to ${t2ActiveRoster[t2Index].nickname} (switch #${t2Switches})`);
+      }
+    }
+
+    // Ensure active Pokémon are healthy; if not, force a switch.
     if (t1ActiveRoster[t1Index].fainted) {
-      const nextIdx = findNextHealthyIndex(t1ActiveRoster, t1Index);
+      const nextIdx = findNextHealthyIndexWeighted(t1ActiveRoster, t1Index);
       if (nextIdx === null) {
-        // no more healthy mons
         battleLog.push(`${t1Name} has no more Pokémon to send! ${t2Name} wins!`);
         return {
           log: battleLog,
           winner: t2Name,
-          trainer1Team: team1.map(p => p.nickname || 'NoName'),
-          trainer2Team: team2.map(p => p.nickname || 'NoName'),
+          trainer1Team: team1Data.map(item => item.poke.nickname + item.suffix),
+          trainer2Team: team2Data.map(item => item.poke.nickname + item.suffix),
         };
       }
       t1Index = nextIdx;
       battleLog.push(`${t1Name} sends in ${t1ActiveRoster[t1Index].nickname}!`);
     }
     if (t2ActiveRoster[t2Index].fainted) {
-      const nextIdx = findNextHealthyIndex(t2ActiveRoster, t2Index);
+      const nextIdx = findNextHealthyIndexWeighted(t2ActiveRoster, t2Index);
       if (nextIdx === null) {
         battleLog.push(`${t2Name} has no more Pokémon to send! ${t1Name} wins!`);
         return {
           log: battleLog,
           winner: t1Name,
-          trainer1Team: team1.map(p => p.nickname || 'NoName'),
-          trainer2Team: team2.map(p => p.nickname || 'NoName'),
+          trainer1Team: team1Data.map(item => item.poke.nickname + item.suffix),
+          trainer2Team: team2Data.map(item => item.poke.nickname + item.suffix),
         };
       }
       t2Index = nextIdx;
       battleLog.push(`${t2Name} sends in ${t2ActiveRoster[t2Index].nickname}!`);
     }
 
-    const t1Mon = t1ActiveRoster[t1Index];
-    const t2Mon = t2ActiveRoster[t2Index];
-
-    // Maybe do random switching if losing
-    if (Math.random() < 0.25 && t1Mon.hp < 20 && t1Switches < 7) {
-      const altIdx = findNextHealthyIndex(t1ActiveRoster, t1Index);
-      if (altIdx !== null) {
-        t1Index = altIdx;
-        t1Switches++;
-        battleLog.push(`${t1Name} switches to ${t1ActiveRoster[t1Index].nickname} (switch #${t1Switches})`);
-      }
-    }
-    if (Math.random() < 0.25 && t2Mon.hp < 20 && t2Switches < 7) {
-      const altIdx = findNextHealthyIndex(t2ActiveRoster, t2Index);
-      if (altIdx !== null) {
-        t2Index = altIdx;
-        t2Switches++;
-        battleLog.push(`${t2Name} switches to ${t2ActiveRoster[t2Index].nickname} (switch #${t2Switches})`);
-      }
-    }
-
-    // Re-reference after any switch
+    // Get current attackers
     const attacker1 = t1ActiveRoster[t1Index];
     const attacker2 = t2ActiveRoster[t2Index];
-    const healthFactor1 = Math.max(0, attacker1.hp) / 100;
-    const healthFactor2 = Math.max(0, attacker2.hp) / 100;
 
-    const dmgFrom1to2 = Math.max(
-      0,
-      Math.floor(Math.random() * (attacker1.fieldAdv)/10 * healthFactor1)
-    );
-    const dmgFrom2to1 = Math.max(
-      0,
-      Math.floor(Math.random() * (attacker2.fieldAdv)/10 * healthFactor2)
-    );
+    // Simple damage calculation based on field advantage.
+    const dmgFrom1to2 = Math.max(0, Math.floor(Math.random() * attacker1.fieldAdv / 10));
+    const dmgFrom2to1 = Math.max(0, Math.floor(Math.random() * attacker2.fieldAdv / 10));
 
     attacker2.hp -= dmgFrom1to2;
     attacker1.hp -= dmgFrom2to1;
-
-    // battleLog.push(
-    //   `Turn ${turn}: ${t1Name}'s ${attacker1.nickname} does ${dmgFrom1to2} dmg to ${attacker2.nickname} (HP: ${Math.max(
-    //     0,
-    //     attacker2.hp
-    //   )}), ` +
-    //   `${t2Name}'s ${attacker2.nickname} does ${dmgFrom2to1} dmg to ${attacker1.nickname} (HP: ${Math.max(
-    //     0,
-    //     attacker1.hp
-    //   )})`
-    // );
 
     if (attacker1.hp <= 0) {
       attacker1.fainted = true;
@@ -204,12 +248,11 @@ export async function simulateSingles6v6Battle(
     }
   }
 
-  // If we reach here, we reached MAX_TURNS => draw
   battleLog.push(`Reached ${MAX_TURNS} turns, calling it a draw!`);
   return {
     log: battleLog,
-    winner: 'Draw',
-    trainer1Team: team1.map(p => p.nickname || 'NoName'),
-    trainer2Team: team2.map(p => p.nickname || 'NoName'),
+    winner: "Draw",
+    trainer1Team: team1Data.map(item => item.poke.nickname + item.suffix),
+    trainer2Team: team2Data.map(item => item.poke.nickname + item.suffix),
   };
 }

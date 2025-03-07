@@ -9,7 +9,7 @@ router.get('/singles6v6', async (req: Request, res: Response) => {
 
     if (!field || !trainer1 || !trainer2) {
       res.status(400).json({ 
-        error: 'Missing query parameters. Usage: ?field=windy&trainer1=1&trainer2=2' 
+        error: 'Missing query parameters. Usage: ?field=WINDY&trainer1=1&trainer2=2' 
       });
       return;
     }

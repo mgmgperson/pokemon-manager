@@ -41,7 +41,7 @@ export function fetchTrainerFieldRating(
   fieldName: string
 ): Promise<number> {
   return new Promise((resolve, reject) => {
-    const colName = fieldName + '_field_rating'; // e.g. "windy_field_rating"
+    const colName = fieldName.toLowerCase().replace(/_/g, '') + '_field_rating'; // e.g. "windyfieldrating"
     const sqlQuery = `
       SELECT fr.${colName} as ratingVal
       FROM field_rating fr
