@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import sqlite3 from 'sqlite3';
-import { generateFormatRatingsFixed } from '../helpers/formatRatingGenerator';
+import { generateFormatRatingsFixed } from '../generators/formatRatingGenerator';
 const { Database } = sqlite3.verbose();
 
 const router: Router = Router();

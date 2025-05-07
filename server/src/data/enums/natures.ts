@@ -1,5 +1,5 @@
 export enum Natures {
-    HARDY,
+    HARDY=1,
     BOLD,
     MODEST,
     CALM,

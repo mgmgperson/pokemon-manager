@@ -9,7 +9,7 @@ cursor = conn.cursor()
 # Check for trainers without associated ratings
 cursor.execute("""
     SELECT id FROM trainer
-    WHERE id NOT IN (SELECT DISTINCT trainer_id FROM rating)
+    WHERE active_status = 1 AND id NOT IN (SELECT DISTINCT trainer_id FROM rating)
 """)
 trainers_without_ratings = cursor.fetchall()
 

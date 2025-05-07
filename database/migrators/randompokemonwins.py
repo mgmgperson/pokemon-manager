@@ -286,7 +286,7 @@ def main():
                p.deaths
         FROM pokemon p
         JOIN trainer t ON p.trainer_id = t.id
-        WHERE t.active_status=1
+        WHERE t.active_status=1 AND p.kills IS NULL AND p.deaths IS NULL
         ORDER BY p.trainer_id, p.level DESC
     """)
     from collections import defaultdict
@@ -395,7 +395,7 @@ def main():
                     battles_lost = ?,
                     kills = ?,
                     deaths = ?
-                WHERE id = ?
+                WHERE id = ? AND kills IS NULL AND deaths IS NULL
             """, (wins, losses, kills_, deaths_, pk_id))
             updates_count += 1
 

@@ -17,6 +17,52 @@ RANK_BREAKPOINTS = [
     (250, 3775),
     (300, 3750),
     (350, 3725),
+    (400, 3700),
+    (450, 3680),
+    (500, 3660),
+    (600, 3630),
+    (700, 3600),
+    (800, 3570),
+    (900, 3540),
+    (1000, 3510),
+    (1200, 3480),
+    (1500, 3450),
+    (1800, 3420),
+    (2000, 3400),
+    (2986, 3300),
+    (4457, 3200),
+    (6652, 3100),
+    (9929, 3000),
+    (14820, 2900),
+    (22118, 2800),
+    (33006, 2700),
+    (49245, 2600),
+    (73454, 2500),
+    (109521, 2400),
+    (163199, 2300),
+    (242973, 2200),
+    (361269, 2100),
+    (536122, 2000),
+    (793339, 1900),
+    (1169063, 1800),
+    (1712299, 1700),
+    (2486194, 1600),
+    (3565773, 1500),
+    (5028459, 1400),
+    (6933763, 1300),
+    (9292351, 1200),
+    (12034644, 1100),
+    (15000000, 1000),
+    (17965356, 900),
+    (20707649, 800),
+    (23066237, 700),
+    (24971541, 600),
+    (26434227, 500),
+    (27513806, 400),
+    (28287701, 300),
+    (28830937, 200),
+    (29206661, 100),
+    (29463878, 0),
 ]
 
 def interpolate_rating_from_rank(rank_val: int) -> float:
@@ -91,9 +137,6 @@ def estimate_peak_rating(peak_rank: int, current_rank: int, age: int, current_ra
     else:
         final_rating = base - age_factor - rank_factor + noise_decimal
 
-    if final_rating < 3000:
-        final_rating = 3000 + random.uniform(0, 50)
-
     if final_rating > 4500:
         final_rating = 4500
 
@@ -111,7 +154,6 @@ def main():
     cursor.execute("""
         SELECT id, fname, lname, birthdate, peak_rank, peak_rating, pwtr_rating
         FROM trainer
-        WHERE active_status = 1
         ORDER BY pwtr_rating DESC
     """)
     trainers_data = cursor.fetchall()
@@ -128,7 +170,7 @@ def main():
         birthdate = row["birthdate"]
         peak_rank = row["peak_rank"]       
         peak_rating = row["peak_rating"]   
-        current_rating = row["pwtr_rating"]
+        current_rating = row["pwtr_rating"] if row["pwtr_rating"] is not None else 0.0
         current_rank = trainer_current_rank[trainer_id]
 
         if peak_rating is not None:

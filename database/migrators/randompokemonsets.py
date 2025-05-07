@@ -339,7 +339,7 @@ def main():
     cursor.execute("""
         SELECT p.id, p.pokemon_id, p.nickname, p.level, p.date_met_at
         FROM pokemon p
-        WHERE p.ability_id = 0
+        WHERE p.ability_id IS NULL AND p.nature_id IS NULL
         ORDER BY p.id
     """)
     all_pokemon = cursor.fetchall()

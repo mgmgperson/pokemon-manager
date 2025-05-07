@@ -187,6 +187,7 @@ def main():
                t.fname, t.birthdate
         FROM pokemon p
         JOIN trainer t ON p.trainer_id = t.id
+        WHERE p.nickname IS NULL
     """)
     all_pokemon = cursor.fetchall()
 

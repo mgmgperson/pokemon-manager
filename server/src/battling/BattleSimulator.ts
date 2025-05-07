@@ -40,7 +40,7 @@ function computeSwitchProbability(hp: number, maxHP: number, fieldAdv: number, a
   // Field advantage factor: if fieldAdv is below average, factor approaches 1.
   const advFactor = avgAdv > 0 ? Math.max(0, (avgAdv - fieldAdv) / avgAdv) : 0;
   // Combine factors (weights can be tuned)
-  return Math.min(1, 0.5 * hpFactor + 0.5 * advFactor);
+  return Math.min(1, 0.25 * hpFactor + 0.25 * advFactor);
 }
 
 /**
@@ -238,13 +238,29 @@ export async function simulateSingles6v6Battle(
     attacker2.hp -= dmgFrom1to2;
     attacker1.hp -= dmgFrom2to1;
 
-    if (attacker1.hp <= 0) {
-      attacker1.fainted = true;
-      battleLog.push(`${t1Name}'s ${attacker1.nickname} fainted!`);
-    }
-    if (attacker2.hp <= 0) {
-      attacker2.fainted = true;
-      battleLog.push(`${t2Name}'s ${attacker2.nickname} fainted!`);
+    if (attacker1.hp <= 0 && attacker2.hp <= 0) {
+      if (attacker1.hp === attacker2.hp) {
+        battleLog.push(`Both ${t1Name}'s ${attacker1.nickname} and ${t2Name}'s ${attacker2.nickname} fainted simultaneously!`);
+        attacker1.fainted = true;
+        attacker2.fainted = true;
+      } else if (attacker1.hp > attacker2.hp) {
+        attacker1.hp = 1;
+        attacker2.fainted = true;
+        battleLog.push(`${t2Name}'s ${attacker2.nickname} fainted!`);
+      } else {
+        attacker2.hp = 1;
+        attacker1.fainted = true;
+        battleLog.push(`${t1Name}'s ${attacker1.nickname} fainted!`);
+      }
+    } else {
+      if (attacker1.hp <= 0) {
+        attacker1.fainted = true;
+        battleLog.push(`${t1Name}'s ${attacker1.nickname} fainted!`);
+      }
+      if (attacker2.hp <= 0) {
+        attacker2.fainted = true;
+        battleLog.push(`${t2Name}'s ${attacker2.nickname} fainted!`);
+      }
     }
   }
 
