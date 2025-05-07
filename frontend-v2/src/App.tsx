@@ -4,6 +4,7 @@ import { ThemeProvider, createTheme } from '@mui/material';
 import CssBaseline from '@mui/material/CssBaseline';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
+import League from './components/league/League';
 
 const theme = createTheme({
   palette: {
@@ -23,6 +24,7 @@ const App: React.FC = () => {
             <div className="content flex-1 ml-[200px] mt-[80px] p-6">
               <Routes>
                 <Route path="/" element={<div className="text-white">Welcome to Pokemon Manager!</div>} />
+                <Route path="/league" element={<League />} />
                 {/* Add more routes here */}
               </Routes>
             </div>
