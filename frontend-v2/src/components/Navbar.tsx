@@ -4,7 +4,7 @@ import { Menu as MenuIcon, Save as SaveIcon, CalendarToday as CalendarIcon, Sear
 
 const Navbar: React.FC = () => {
   return (
-    <AppBar position="fixed" className="bg-blue-600">
+    <AppBar position="fixed">
       <Toolbar>
         <IconButton
           edge="start"
@@ -25,7 +25,7 @@ const Navbar: React.FC = () => {
             fullWidth
             slotProps={{
               htmlInput: {
-                className: 'bg-white rounded',
+                className: 'rounded',
               },
               input: {
                 startAdornment: (
@@ -42,7 +42,6 @@ const Navbar: React.FC = () => {
             variant="contained"
             color="success"
             startIcon={<SaveIcon />}
-            className="bg-green-500 hover:bg-green-600"
           >
             Save
           </Button>
@@ -50,14 +49,12 @@ const Navbar: React.FC = () => {
             variant="contained"
             color="secondary"
             startIcon={<CalendarIcon />}
-            className="bg-purple-500 hover:bg-purple-600"
           >
             Calendar
           </Button>
           <Button
             variant="contained"
             color="primary"
-            className="bg-blue-500 hover:bg-blue-600"
           >
             Next
           </Button>

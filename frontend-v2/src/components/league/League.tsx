@@ -37,17 +37,17 @@ const League: React.FC = () => {
     return (
         <Box className="p-6">
             {/* Grand Champion Section */}
-            <Paper className="p-6 mb-6 bg-gray-800">
+            <Paper className="p-6 mb-6">
                 <Typography variant="h4" className="text-center mb-2 text-white">
                     Grand Champion
                 </Typography>
-                <Typography variant="h5" className="text-center text-blue-400">
+                <Typography variant="h5" className="text-center text-white">
                     {leagueData.grandChampion.name}
                 </Typography>
             </Paper>
 
             {/* League Table */}
-            <TableContainer component={Paper} className="bg-gray-800">
+            <TableContainer component={Paper}>
                 <Table>
                     <TableHead>
                         <TableRow>
@@ -64,8 +64,8 @@ const League: React.FC = () => {
                         {/* Champions Row */}
                         <TableRow>
                             {leagueData.champions.map((champion) => (
-                                <TableCell key={champion.id} className="text-center border-b border-gray-700">
-                                    <Typography className="text-yellow-400 font-bold">
+                                <TableCell key={champion.id} className="!text-center !border-b !border-gray-700">
+                                    <Typography className="text-white font-bold">
                                         {getFirstName(champion.name)}
                                     </Typography>
                                 </TableCell>
@@ -75,8 +75,8 @@ const League: React.FC = () => {
                         {/* Elite Four Row */}
                         <TableRow>
                             {leagueData.eliteFour.map((eliteGroup) => (
-                                <TableCell key={eliteGroup.region} className="text-center">
-                                    <Box className="space-y-1">
+                                <TableCell key={eliteGroup.region} className="!text-center">
+                                    <Box className="!space-y-1">
                                         {eliteGroup.eliteFour.map((member) => (
                                             <Typography key={member.id} className="text-white">
                                                 {getFirstName(member.name)}

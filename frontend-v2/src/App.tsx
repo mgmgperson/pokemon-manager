@@ -5,10 +5,16 @@ import CssBaseline from '@mui/material/CssBaseline';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import League from './components/league/League';
+import RegionList from './components/regions/RegionList';
+import RegionDetail from './components/regions/RegionDetail';
 
 const theme = createTheme({
   palette: {
     mode: 'dark',
+    background: {
+      default: '#121212',
+      paper: '#1e1e1e',
+    },
   },
 });
 
@@ -17,14 +23,16 @@ const App: React.FC = () => {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Router>
-        <div className="app-wrapper h-screen flex flex-col">
+        <div className="min-h-screen bg-[#121212]">
           <Navbar />
-          <div className="main-content flex-1 flex relative">
+          <div className="main-content flex relative">
             <Sidebar />
-            <div className="content flex-1 ml-[200px] mt-[80px] p-6">
+            <div className="content flex-1 mt-[60px] ml-[185px] min-h-[calc(100vh-60px)] bg-[#121212]">
               <Routes>
                 <Route path="/" element={<div className="text-white">Welcome to Pokemon Manager!</div>} />
                 <Route path="/league" element={<League />} />
+                <Route path="/regions" element={<RegionList />} />
+                <Route path="/regions/:id" element={<RegionDetail />} />
                 {/* Add more routes here */}
               </Routes>
             </div>

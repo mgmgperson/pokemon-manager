@@ -33,9 +33,8 @@ const Sidebar: React.FC = () => {
   return (
     <Drawer
       variant="permanent"
-      className="w-64"
       classes={{
-        paper: 'w-64 bg-gray-800 text-white',
+        paper: 'bg-gray-800 text-white',
       }}
       sx={{
         '& .MuiDrawer-paper': {
@@ -55,7 +54,7 @@ const Sidebar: React.FC = () => {
               <ListItemIcon className="text-white">
                 {item.icon}
               </ListItemIcon>
-              <ListItemText primary={item.text} />
+              <ListItemText className="text-white" primary={item.text} />
             </ListItemButton>
           </ListItem>
         ))}
