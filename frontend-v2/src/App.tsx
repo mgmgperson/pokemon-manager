@@ -14,6 +14,10 @@ import EditTrainer from './components/trainers/edit/EditTrainer';
 import EditFieldRating from './components/trainers/edit/EditFieldRating';
 import EditMentalRating from './components/trainers/edit/EditMentalRating';
 import EditFormatRating from './components/trainers/edit/EditFormatRating';
+import TrainerPokemon from './components/trainers/pokemon/TrainerPokemon';
+import TrainerPokemonDetail from './components/trainers/pokemon/TrainerPokemonDetail';
+import AddTrainerPokemon from './components/trainers/pokemon/AddTrainerPokemon';
+import EditTrainerPokemon from './components/trainers/pokemon/EditTrainerPokemon';
 
 const theme = createTheme({
   palette: {
@@ -42,14 +46,16 @@ const App: React.FC = () => {
                 <Route path="/regions/:id" element={<RegionDetail />} />
                 <Route path="/trainers" element={<TrainerList />} />
                 <Route path="/trainers/:id" element={<TrainerDetail />} />
-                <Route path="/trainers/:id/pokemon" element={<TrainerDetail />} />
+                <Route path="/trainers/:id/pokemon" element={<TrainerPokemon />} />
+                <Route path="/trainers/:id/pokemon/:pokemonId" element={<TrainerPokemonDetail />} />
+                <Route path="/trainers/:id/add_pokemon" element={<AddTrainerPokemon />} />
+                <Route path="/trainers/:id/edit_pokemon/:pokemonId" element={<EditTrainerPokemon />} />
                 <Route path="/trainers/:id/ratings" element={<TrainerDetail />} />
                 <Route path="/add_trainer" element={<AddTrainer />} />
                 <Route path="/edit_trainer/:id" element={<EditTrainer />} />
                 <Route path="/edit_trainer/:id/field_ratings" element={<EditFieldRating />} />
                 <Route path="/edit_trainer/:id/mental_ratings" element={<EditMentalRating />} />
                 <Route path="/edit_trainer/:id/format_ratings" element={<EditFormatRating />} />
-                {/* Add more routes here */}
               </Routes>
             </div>
           </div>
