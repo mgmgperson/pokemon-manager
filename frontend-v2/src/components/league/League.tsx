@@ -52,8 +52,8 @@ const League: React.FC = () => {
                     <TableHead>
                         <TableRow>
                             {leagueData.champions.map((champion) => (
-                                <TableCell key={champion.region} className="text-center border-b border-gray-700">
-                                    <Typography variant="h6" className="text-white">
+                                <TableCell key={champion.region} className="!text-center border-b border-gray-700">
+                                    <Typography variant="h6" className="!text-white">
                                         {champion.region}
                                     </Typography>
                                 </TableCell>

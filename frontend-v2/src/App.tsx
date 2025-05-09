@@ -7,6 +7,8 @@ import Sidebar from './components/Sidebar';
 import League from './components/league/League';
 import RegionList from './components/regions/RegionList';
 import RegionDetail from './components/regions/RegionDetail';
+import TrainerList from './components/trainers/TrainerList';
+import TrainerDetail from './components/trainers/TrainerDetail';
 
 const theme = createTheme({
   palette: {
@@ -33,6 +35,8 @@ const App: React.FC = () => {
                 <Route path="/league" element={<League />} />
                 <Route path="/regions" element={<RegionList />} />
                 <Route path="/regions/:id" element={<RegionDetail />} />
+                <Route path="/trainers" element={<TrainerList />} />
+                <Route path="/trainers/:id" element={<TrainerDetail />} />
                 {/* Add more routes here */}
               </Routes>
             </div>
