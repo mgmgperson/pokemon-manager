@@ -118,7 +118,7 @@ const EditTrainer: React.FC = () => {
                             component={Link}
                             to={`/trainers/${id}`}
                             variant="contained"
-                            className="!bg-sky-500 hover:!bg-sky-600"
+                            className="!bg-sky-300 hover:!bg-sky-400"
                         >
                             Overview
                         </Button>
@@ -126,7 +126,7 @@ const EditTrainer: React.FC = () => {
                             component={Link}
                             to={`/trainers/${id}/pokemon`}
                             variant="contained"
-                            className="!bg-sky-500 hover:!bg-sky-600"
+                            className="!bg-sky-300 hover:!bg-sky-400"
                         >
                             Pokemon
                         </Button>
@@ -134,7 +134,7 @@ const EditTrainer: React.FC = () => {
                             component={Link}
                             to={`/trainers/${id}/ratings`}
                             variant="contained"
-                            className="!bg-sky-500 hover:!bg-sky-600"
+                            className="!bg-sky-300 hover:!bg-sky-400"
                         >
                             Past Ratings
                         </Button>
@@ -142,7 +142,7 @@ const EditTrainer: React.FC = () => {
                             component={Link}
                             to={`/edit_trainer/${id}`}
                             variant="contained"
-                            className="!bg-sky-500 hover:!bg-sky-600"
+                            className="!bg-sky-300 hover:!bg-sky-400"
                         >
                             Edit
                         </Button>
@@ -263,7 +263,7 @@ const EditTrainer: React.FC = () => {
                                 component={Link}
                                 to={`/edit_trainer/${id}/field_ratings`}
                                 variant="contained"
-                                className="!bg-sky-500 hover:!bg-sky-600"
+                                className="!bg-sky-300 hover:!bg-sky-400"
                             >
                                 Edit Field Ratings
                             </Button>
@@ -271,7 +271,7 @@ const EditTrainer: React.FC = () => {
                                 component={Link}
                                 to={`/edit_trainer/${id}/mental_ratings`}
                                 variant="contained"
-                                className="!bg-sky-500 hover:!bg-sky-600"
+                                className="!bg-sky-300 hover:!bg-sky-400"
                             >
                                 Edit Mental Ratings
                             </Button>
@@ -279,18 +279,20 @@ const EditTrainer: React.FC = () => {
                                 component={Link}
                                 to={`/edit_trainer/${id}/format_ratings`}
                                 variant="contained"
-                                className="!bg-sky-500 hover:!bg-sky-600"
+                                className="!bg-sky-300 hover:!bg-sky-400"
                             >
                                 Edit Format Ratings
                             </Button>
                         </Box>
-                        <Button
-                            type="submit"
-                            variant="contained"
-                            className="!bg-sky-500 hover:!bg-sky-600"
-                        >
-                            Save Changes
-                        </Button>
+                        <Box className="!flex !gap-2">
+                            <Button
+                                type="submit"
+                                variant="contained"
+                                className="!bg-sky-300 hover:!bg-sky-400"
+                            >
+                                Save Changes
+                            </Button>
+                        </Box>
                     </Box>
                 </form>
             </Paper>

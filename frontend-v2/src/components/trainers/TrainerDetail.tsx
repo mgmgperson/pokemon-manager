@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Box, Typography, Paper, CircularProgress, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TableSortLabel, Tooltip, Button } from '@mui/material';
 import { TrainerData, RatingData, fieldNamesMap } from '../../types/trainer';
 import axios from 'axios';
+import InactiveTrainerDetail from './InactiveTrainerDetail';
 
 const fetchTrainer = async (id: string): Promise<TrainerData> => {
     const { data } = await axios.get(`http://localhost:5000/trainers/${id}`);
@@ -134,9 +135,15 @@ const TrainerDetail: React.FC = () => {
     if (error || !trainerData) {
         return (
             <Box className="!flex !justify-center !items-center !h-full">
-                <Typography color="error">Error loading trainer data.</Typography>
+                <Typography variant="h6" className="!text-white">
+                    Trainer not found
+                </Typography>
             </Box>
         );
+    }
+
+    if (!trainerData.trainer.active_status) {
+        return <InactiveTrainerDetail trainerData={trainerData} />;
     }
 
     const { trainer, rating, field_rating, mental_rating, format_rating, hometowns } = trainerData;
@@ -242,7 +249,7 @@ const TrainerDetail: React.FC = () => {
                             component={Link}
                             to={`/trainers/${id}`}
                             variant="contained"
-                            className="!bg-sky-500 hover:!bg-sky-600"
+                            className="!bg-sky-300 hover:!bg-sky-400"
                         >
                             Overview
                         </Button>
@@ -250,7 +257,7 @@ const TrainerDetail: React.FC = () => {
                             component={Link}
                             to={`/trainers/${id}/pokemon`}
                             variant="contained"
-                            className="!bg-sky-500 hover:!bg-sky-600"
+                            className="!bg-sky-300 hover:!bg-sky-400"
                         >
                             Pokemon
                         </Button>
@@ -258,7 +265,7 @@ const TrainerDetail: React.FC = () => {
                             component={Link}
                             to={`/trainers/${id}/ratings`}
                             variant="contained"
-                            className="!bg-sky-500 hover:!bg-sky-600"
+                            className="!bg-sky-300 hover:!bg-sky-400"
                         >
                             Past Ratings
                         </Button>
@@ -266,7 +273,7 @@ const TrainerDetail: React.FC = () => {
                             component={Link}
                             to={`/edit_trainer/${id}`}
                             variant="contained"
-                            className="!bg-sky-500 hover:!bg-sky-600"
+                            className="!bg-sky-300 hover:!bg-sky-400"
                         >
                             Edit
                         </Button>
@@ -352,7 +359,7 @@ const TrainerDetail: React.FC = () => {
                 </Box>
             </Paper>
 
-            <Typography variant="h5" className="!text-white !mb-4">
+            <Typography variant="h5" className="!text-white !mb-4 !mt-4">
                 Ratings
             </Typography>
             <Typography variant="h6" className="!text-white !mb-6">

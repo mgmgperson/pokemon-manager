@@ -90,7 +90,7 @@ const EditMentalRating: React.FC = () => {
                             component={Link}
                             to={`/trainers/${id}`}
                             variant="contained"
-                            className="!bg-sky-500 hover:!bg-sky-600"
+                            className="!bg-sky-300 hover:!bg-sky-400"
                         >
                             Overview
                         </Button>
@@ -98,7 +98,7 @@ const EditMentalRating: React.FC = () => {
                             component={Link}
                             to={`/trainers/${id}/pokemon`}
                             variant="contained"
-                            className="!bg-sky-500 hover:!bg-sky-600"
+                            className="!bg-sky-300 hover:!bg-sky-400"
                         >
                             Pokemon
                         </Button>
@@ -106,7 +106,7 @@ const EditMentalRating: React.FC = () => {
                             component={Link}
                             to={`/trainers/${id}/ratings`}
                             variant="contained"
-                            className="!bg-sky-500 hover:!bg-sky-600"
+                            className="!bg-sky-300 hover:!bg-sky-400"
                         >
                             Past Ratings
                         </Button>
@@ -114,7 +114,7 @@ const EditMentalRating: React.FC = () => {
                             component={Link}
                             to={`/edit_trainer/${id}`}
                             variant="contained"
-                            className="!bg-sky-500 hover:!bg-sky-600"
+                            className="!bg-sky-300 hover:!bg-sky-400"
                         >
                             Edit
                         </Button>
@@ -152,7 +152,7 @@ const EditMentalRating: React.FC = () => {
                                 component={Link}
                                 to={`/edit_trainer/${id}`}
                                 variant="contained"
-                                className="!bg-sky-500 hover:!bg-sky-600"
+                                className="!bg-sky-300 hover:!bg-sky-400"
                             >
                                 Edit Trainer
                             </Button>
@@ -160,7 +160,7 @@ const EditMentalRating: React.FC = () => {
                                 component={Link}
                                 to={`/edit_trainer/${id}/field_ratings`}
                                 variant="contained"
-                                className="!bg-sky-500 hover:!bg-sky-600"
+                                className="!bg-sky-300 hover:!bg-sky-400"
                             >
                                 Edit Field Ratings
                             </Button>
@@ -168,7 +168,7 @@ const EditMentalRating: React.FC = () => {
                                 component={Link}
                                 to={`/edit_trainer/${id}/format_ratings`}
                                 variant="contained"
-                                className="!bg-sky-500 hover:!bg-sky-600"
+                                className="!bg-sky-300 hover:!bg-sky-400"
                             >
                                 Edit Format Ratings
                             </Button>
@@ -178,14 +178,14 @@ const EditMentalRating: React.FC = () => {
                                 type="button"
                                 variant="contained"
                                 onClick={handleRandomize}
-                                className="!bg-sky-500 hover:!bg-sky-600"
+                                className="!bg-sky-300 hover:!bg-sky-400"
                             >
                                 Randomize Ratings
                             </Button>
                             <Button
                                 type="submit"
                                 variant="contained"
-                                className="!bg-sky-500 hover:!bg-sky-600"
+                                className="!bg-sky-300 hover:!bg-sky-400"
                             >
                                 Save Changes
                             </Button>
