@@ -1,7 +1,7 @@
 import React from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Box, Typography, Paper, CircularProgress, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TableSortLabel, Tooltip } from '@mui/material';
+import { Box, Typography, Paper, CircularProgress, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TableSortLabel, Tooltip, Button } from '@mui/material';
 import { TrainerData, RatingData, fieldNamesMap } from '../../types/trainer';
 import axios from 'axios';
 
@@ -121,6 +121,7 @@ const TrainerDetail: React.FC = () => {
         queryFn: () => fetchTrainer(id!),
         enabled: !!id,
     });
+    const location = useLocation();
 
     if (isLoading) {
         return (
@@ -231,10 +232,46 @@ const TrainerDetail: React.FC = () => {
 
     return (
         <Box className="!p-6">
-            <Paper className="!p-6 !mb-6 !bg-gray-800">
-                <Typography variant="h4" className="!text-white !mb-6">
-                    {trainer.fname} {trainer.lname}
-                </Typography>
+            <Paper className="!p-6 !bg-gray-800">
+                <Box className="!flex !justify-between !items-center !mb-6">
+                    <Typography variant="h4" className="!text-white">
+                        {trainer.fname} {trainer.lname}
+                    </Typography>
+                    <Box className="!flex !gap-2">
+                        <Button
+                            component={Link}
+                            to={`/trainers/${id}`}
+                            variant="contained"
+                            className="!bg-sky-500 hover:!bg-sky-600"
+                        >
+                            Overview
+                        </Button>
+                        <Button
+                            component={Link}
+                            to={`/trainers/${id}/pokemon`}
+                            variant="contained"
+                            className="!bg-sky-500 hover:!bg-sky-600"
+                        >
+                            Pokemon
+                        </Button>
+                        <Button
+                            component={Link}
+                            to={`/trainers/${id}/ratings`}
+                            variant="contained"
+                            className="!bg-sky-500 hover:!bg-sky-600"
+                        >
+                            Past Ratings
+                        </Button>
+                        <Button
+                            component={Link}
+                            to={`/edit_trainer/${id}`}
+                            variant="contained"
+                            className="!bg-sky-500 hover:!bg-sky-600"
+                        >
+                            Edit
+                        </Button>
+                    </Box>
+                </Box>
                 <Box className="!flex !flex-wrap">
                     <Box className="!w-full md:!w-1/3 !pr-4">
                         <Box className="!flex !flex-wrap">
@@ -360,6 +397,18 @@ const TrainerDetail: React.FC = () => {
                     />
                 </Box>
             </Box>
+
+            {location.pathname === `/trainers/${id}` && (
+                <>
+                    {/* Existing overview content */}
+                </>
+            )}
+            {location.pathname === `/trainers/${id}/pokemon` && (
+                <Typography className="!text-white">Pokemon view coming soon...</Typography>
+            )}
+            {location.pathname === `/trainers/${id}/ratings` && (
+                <Typography className="!text-white">Past ratings view coming soon...</Typography>
+            )}
         </Box>
     );
 };
