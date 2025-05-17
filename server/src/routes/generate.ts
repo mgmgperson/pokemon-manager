@@ -1,6 +1,8 @@
 import { Router, Request, Response } from 'express';
 import sqlite3 from 'sqlite3';
 import { generateFormatRatingsFixed } from '../generators/formatRatingGenerator';
+import { generateName } from '../generators/nameGenerator';
+import { generateRandomTrainer } from '../generators/trainerGenerator';
 const { Database } = sqlite3.verbose();
 
 const router: Router = Router();
@@ -8,6 +10,68 @@ const db = new Database('../database/db.sqlite', (err: Error | null) => {
   if (err) {
     console.error('Error opening database:', err.message);
   }
+});
+
+router.get('/generate-trainer', (req: Request, res: Response): void => {
+  const { regionId, gender, age, pwtr_rating } = req.query;
+  
+  // Parse optional parameters
+  let regionIdNum: number | undefined = undefined;
+  let ageNum: number | undefined = undefined;
+  let pwtrRatingNum: number | undefined = undefined;
+  
+  if (regionId) {
+    regionIdNum = parseInt(regionId as string);
+    if (isNaN(regionIdNum)) {
+      res.status(400).json({ error: 'regionId must be a number' });
+      return;
+    }
+  }
+  
+  if (age) {
+    ageNum = parseInt(age as string);
+    if (isNaN(ageNum)) {
+      res.status(400).json({ error: 'age must be a number' });
+      return;
+    }
+    
+    if (ageNum < 14 || ageNum > 80) {
+      res.status(400).json({ error: 'age must be between 14 and 80' });
+      return;
+    }
+  }
+  
+  if (pwtr_rating) {
+    pwtrRatingNum = parseFloat(pwtr_rating as string);
+    if (isNaN(pwtrRatingNum)) {
+      res.status(400).json({ error: 'pwtr_rating must be a number' });
+      return;
+    }
+    
+    if (pwtrRatingNum < 1000 || pwtrRatingNum > 4500) {
+      res.status(400).json({ error: 'pwtr_rating must be between 1000 and 4500' });
+      return;
+    }
+  }
+  
+  // Validate gender if provided
+  let genderVal: 'M' | 'F' | undefined = undefined;
+  if (gender) {
+    if (gender === 'M' || gender === 'F') {
+      genderVal = gender as 'M' | 'F';
+    } else {
+      res.status(400).json({ error: 'gender must be either M or F' });
+      return;
+    }
+  }
+  
+  // Generate random trainer
+  generateRandomTrainer(regionIdNum, genderVal, ageNum, pwtrRatingNum)
+    .then(result => res.json(result))
+    .catch(error => {
+      console.error('Error generating trainer:', error);
+      res.status(500).json({ error: 'Failed to generate trainer' });
+    });
 });
 
 /**
@@ -126,5 +190,49 @@ router.get('/generate-format-ratings/:trainerId', (req: Request, res: Response) 
       });
     });
   });
+
+router.get('/generate-name', (req: Request, res: Response): void => {
+  const { regionId, gender } = req.query;
+
+  // Validate parameters exist
+  if (!regionId || !gender) {
+    res.status(400).json({ error: 'Both regionId and gender are required' });
+    return;
+  }
+
+  // Validate gender
+  if (gender !== 'M' && gender !== 'F') {
+    res.status(400).json({ error: 'Gender must be either M or F' });
+    return;
+  }
+
+  // Validate regionId is a number
+  const regionIdNum = parseInt(regionId as string);
+  if (isNaN(regionIdNum)) {
+    res.status(400).json({ error: 'regionId must be a number' });
+    return;
+  }
+
+  // Validate region exists
+  const sqlRegion = `SELECT id FROM region WHERE id = ?`;
+  db.get(sqlRegion, [regionIdNum], (err: Error | null, regionRow: any) => {
+    if (err) {
+      res.status(400).json({ error: err.message });
+      return;
+    }
+    if (!regionRow) {
+      res.status(404).json({ error: `No region found with ID ${regionId}` });
+      return;
+    }
+
+    // Generate name
+    generateName(regionIdNum, gender as 'M' | 'F')
+      .then(name => res.json(name))
+      .catch(error => {
+        console.error('Error generating name:', error);
+        res.status(500).json({ error: 'Failed to generate name' });
+      });
+  });
+});
 
 export default router;

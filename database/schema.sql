@@ -26,6 +26,16 @@ CREATE TABLE stadium (
     FOREIGN KEY (city_id) REFERENCES city(id)
 );
 
+-- Name frequencies by region
+CREATE TABLE region_name_frequency (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    region_id INTEGER NOT NULL,
+    frequency INTEGER NOT NULL,
+    country TEXT NOT NULL,
+    type TEXT NOT NULL CHECK(type IN ('F', 'S')),
+    FOREIGN KEY (region_id) REFERENCES region(id)
+);
+
 -- League
 
 CREATE TABLE gym_leader (

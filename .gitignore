@@ -7,6 +7,9 @@
 # Ignore all .sqlite files
 *.sqlite
 
+# Ignore all .csv files
+*.csv
+
 # Ignore the database/backups folder
 database/backups/
 
