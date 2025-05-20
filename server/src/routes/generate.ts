@@ -3,6 +3,7 @@ import sqlite3 from 'sqlite3';
 import { generateFormatRatingsFixed } from '../generators/formatRatingGenerator';
 import { generateName } from '../generators/nameGenerator';
 import { generateRandomTrainer } from '../generators/trainerGenerator';
+import { generateGeneralRatings } from '../generators/generalRatingGenerator';
 const { Database } = sqlite3.verbose();
 
 const router: Router = Router();
@@ -190,6 +191,34 @@ router.get('/generate-format-ratings/:trainerId', (req: Request, res: Response) 
       });
     });
   });
+
+/**
+ * GET /generate-general-ratings/:trainerId
+ * 
+ * 1. Fetch the trainer row from DB
+ * 2. Generate general ratings based on pwtr_rating
+ * 3. Return generated rating object
+ */
+router.get('/generate-general-ratings/:trainerId', (req: Request, res: Response) => {
+  const { trainerId } = req.params;
+
+  // Fetch trainer data to get pwtr_rating
+  const sqlTrainer = `SELECT * FROM trainer WHERE id = ?`;
+  db.get(sqlTrainer, [trainerId], (err: Error | null, trainerRow: any) => {
+    if (err) {
+      return res.status(400).json({ error: err.message });
+    }
+    if (!trainerRow) {
+      return res.status(404).json({ error: `No trainer found with ID ${trainerId}` });
+    }
+
+    // Generate ratings based on the trainer's pwtr_rating
+    const pwtrRating = trainerRow.pwtr_rating;
+    const generatedRatings = generateGeneralRatings(parseInt(trainerId), pwtrRating);
+    
+    return res.json(generatedRatings);
+  });
+});
 
 router.get('/generate-name', (req: Request, res: Response): void => {
   const { regionId, gender } = req.query;
