@@ -1,7 +1,9 @@
 import React from 'react';
 import { OverlayTrigger, Tooltip } from 'react-bootstrap';
+import { Link } from 'react-router-dom';
 
 interface City {
+    id: number;
     name: string;
     population: number;
     x_coordinate: number;
@@ -28,23 +30,28 @@ const RegionMap: React.FC<RegionMapProps> = ({ regionName, cities }) => {
                         overlay={
                             <Tooltip id={`tooltip-${index}`}>
                                 <strong>{city.name}</strong><br />
-                                Population: {city.population.toLocaleString()}
+                                Population: {city.population.toLocaleString()}<br />
+                                <small>Click to view details</small>
                             </Tooltip>
                         }
                     >
-                        <div
-                            className="position-absolute"
-                            style={{
-                                bottom: `${city.y_coordinate * 100}%`,
-                                left: `${city.x_coordinate * 100}%`,
-                                transform: 'translate(-50%, -50%)',
-                                width: '10px',
-                                height: '10px',
-                                backgroundColor: 'red',
-                                borderRadius: '50%',
-                                cursor: 'pointer',
-                            }}
-                        ></div>
+                        <Link to={`/cities/${city.id}`}>
+                            <div
+                                className="position-absolute"
+                                style={{
+                                    bottom: `${city.y_coordinate * 100}%`,
+                                    left: `${city.x_coordinate * 100}%`,
+                                    transform: 'translate(-50%, -50%)',
+                                    width: '10px',
+                                    height: '10px',
+                                    backgroundColor: 'red',
+                                    borderRadius: '50%',
+                                    cursor: 'pointer',
+                                    border: '1px solid white',
+                                    boxShadow: '0 0 5px rgba(0,0,0,0.3)'
+                                }}
+                            ></div>
+                        </Link>
                     </OverlayTrigger>
                 );
             })}

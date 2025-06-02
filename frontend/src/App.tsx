@@ -7,6 +7,7 @@ import InactiveTrainers from './routes/InactiveTrainers';
 import Sidebar from './components/Sidebar';
 import Navbar from './components/Navbar';
 import RegionDetail from './components/regions/RegionDetail';
+import CityDetail from './components/cities/CityDetail';
 import Pokedex from './components/pokedex/Pokedex';
 import League from './components/league/League';
 import PokemonDetail from './components/pokedex/PokemonDetail';
@@ -42,6 +43,7 @@ const App: React.FC = () => {
                           <Route path="/trainers" element={<Trainers />} />
                           <Route path="/regions" element={<Regions />} />
                           <Route path="/regions/:id" element={<RegionDetail />} />
+                          <Route path="/cities/:id" element={<CityDetail />} />
                           <Route path="/dex" element={<Pokedex />} />
                           <Route path="/dex/pokemon/:id" element={<PokemonDetail />} />
                           <Route path="/league" element={<League />} />

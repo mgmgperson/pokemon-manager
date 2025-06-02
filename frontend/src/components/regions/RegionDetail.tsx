@@ -1,5 +1,5 @@
 import React from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Tab, Nav, Container } from 'react-bootstrap';
 import SortableTable from '../SortableTable';
@@ -31,7 +31,13 @@ const RegionDetail: React.FC = () => {
     }
 
     const cityColumns: Array<{ key: keyof City, label: string, render?: (item: City) => React.ReactNode }> = [
-        { key: 'name', label: 'City' },
+        { 
+            key: 'name', 
+            label: 'City',
+            render: (city: City) => (
+                <Link to={`/cities/${city.id}`}>{city.name}</Link>
+            ) 
+        },
         { key: 'population', label: 'Population' },
     ];
 

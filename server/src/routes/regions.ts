@@ -30,7 +30,7 @@ router.get('/:id', (req: Request, res: Response) => {
 
   const sqlRegion = `
     SELECT r.name as region_name, r.population as region_population, 
-           c.name as city_name, c.population as city_population, 
+           c.id as city_id, c.name as city_name, c.population as city_population, 
            c.x_coordinate as x_coordinate, c.y_coordinate as y_coordinate
     FROM region r
     LEFT JOIN city c ON r.id = c.region_id
@@ -81,6 +81,7 @@ router.get('/:id', (req: Request, res: Response) => {
             name: regionRows[0].region_name,
             population: regionRows[0].region_population,
             cities: regionRows.map((row) => ({
+              id: row.city_id,
               name: row.city_name,
               population: row.city_population,
               x_coordinate: row.x_coordinate,

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TableSortLabel, TablePagination } from '@mui/material';
+import { Link } from 'react-router-dom';
 import { City } from '../../types/region';
 
 type Order = 'asc' | 'desc';
@@ -31,7 +32,7 @@ const RegionCities: React.FC<RegionCitiesProps> = ({ cities }) => {
         setOrderBy(property);
     };
 
-    const handleChangePage = (event: unknown, newPage: number) => {
+    const handleChangePage = (_event: unknown, newPage: number) => {
         setPage(newPage);
     };
 
@@ -90,7 +91,9 @@ const RegionCities: React.FC<RegionCitiesProps> = ({ cities }) => {
                                     className="hover:!bg-gray-700"
                                 >
                                     <TableCell className="!text-white">
-                                        {city.name}
+                                        <Link to={`/cities/${city.id}`} className="!text-blue-400 hover:!text-blue-300">
+                                            {city.name}
+                                        </Link>
                                     </TableCell>
                                     <TableCell className="!text-white">
                                         {(city.population ?? 0).toLocaleString()}

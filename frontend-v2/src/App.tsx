@@ -18,6 +18,8 @@ import TrainerPokemon from './components/trainers/pokemon/TrainerPokemon';
 import TrainerPokemonDetail from './components/trainers/pokemon/TrainerPokemonDetail';
 import AddTrainerPokemon from './components/trainers/pokemon/AddTrainerPokemon';
 import EditTrainerPokemon from './components/trainers/pokemon/EditTrainerPokemon';
+import CityDetail from './components/cities/CityDetail';
+import EditCity from './components/cities/edit/EditCity';
 
 const theme = createTheme({
   palette: {
@@ -56,6 +58,8 @@ const App: React.FC = () => {
                 <Route path="/edit_trainer/:id/field_ratings" element={<EditFieldRating />} />
                 <Route path="/edit_trainer/:id/mental_ratings" element={<EditMentalRating />} />
                 <Route path="/edit_trainer/:id/format_ratings" element={<EditFormatRating />} />
+                <Route path="/cities/:id" element={<CityDetail />} />
+                <Route path="/edit_city/:id" element={<EditCity />} />
               </Routes>
             </div>
           </div>

@@ -1,4 +1,5 @@
 export interface City {
+    id: number;
     name: string;
     population: number;
     x_coordinate: number;

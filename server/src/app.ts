@@ -5,6 +5,7 @@ dotenv.config();
 
 import trainerRoutes from './routes/trainers';
 import regionRoutes from './routes/regions';
+import cityRoutes from './routes/cities';
 import leagueRoutes from './routes/league';
 import pokemonRoutes from './routes/pokemon';
 import apiRoutes from './routes/api';
@@ -20,6 +21,7 @@ app.use(express.json());
 // Routes
 app.use('/trainers', trainerRoutes);
 app.use('/regions', regionRoutes);
+app.use('/cities', cityRoutes);
 app.use('/league', leagueRoutes);
 app.use('/pokemon', pokemonRoutes);
 app.use('/api', apiRoutes);
