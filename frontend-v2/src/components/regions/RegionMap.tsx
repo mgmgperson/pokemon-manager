@@ -68,7 +68,7 @@ const RegionMap: React.FC<RegionMapProps> = ({ regionName, cities }) => {
                     >
                         <Link to={`/cities/${city.id}`}>
                             <Box
-                                className="w-4 h-4 bg-red-500 rounded-full cursor-pointer hover:scale-125 transition-transform duration-200 hover:bg-red-400"
+                                className="w-4 h-4 bg-red-500 border-2 border-white rounded-full cursor-pointer hover:scale-125 transition-transform duration-200 hover:bg-red-400"
                             />
                         </Link>
                     </Tooltip>

@@ -645,7 +645,7 @@ const EditCity: React.FC = () => {
                                 className="w-full"
                             />
                             <Box
-                                className="absolute w-5 h-5 bg-red-500 rounded-full transform -translate-x-1/2 -translate-y-1/2"
+                                className="absolute w-5 h-5 bg-red-500 border-2 border-white rounded-full transform -translate-x-1/2 -translate-y-1/2"
                                 style={{
                                     top: `${(1-formData.y_coordinate) * 100}%`,
                                     left: `${formData.x_coordinate * 100}%`

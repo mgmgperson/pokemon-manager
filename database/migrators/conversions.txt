@@ -1,0 +1,25 @@
+darmanitan-standard -> Darmanitan
+sirfetchd -> Sirfetch’d
+greninja-ash -> Greninja
+luvdisc -> Luvdisc
+watchog -> Watchog
+wormadam-plant -> Wormadam
+kommo-o -> Kommo-o
+minior-red-meteor -> Minior
+eiscue-ice -> Eiscue
+ursaluna-bloodmoon -> Ursaluna
+dudunsparce-two-segment -> Dudunsparce
+meowstic-male -> Meowstic
+indeedee-male -> Indeedee
+palafin-zero -> Palafin
+wishiwashi-solo -> Wishiwashi
+tapu-bulu -> Tapu Bulu
+meloetta-aria -> Meloetta
+tatsugiri-curly -> Tatsugiri
+basculegion-male -> Basculegion
+oricorio-baile -> Oricorio-Baile
+tauros-paldea-blaze-breed -> Tauros-Paldea-Blaze
+squawkabilly-green-plumage -> Squawkabilly
+pikachu-libre -> Pikachu
+oinkologne-male -> Oinkologne
+pikachu-belle -> Pikachu

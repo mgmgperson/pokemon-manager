@@ -11,6 +11,7 @@ import pokemonRoutes from './routes/pokemon';
 import apiRoutes from './routes/api';
 import generateRoutes from './routes/generate';
 import battleRoutes from './routes/battle';
+import messageRoutes from './routes/messages';
 
 const app: Application = express();
 const PORT = process.env.PORT || 5000;
@@ -27,6 +28,7 @@ app.use('/pokemon', pokemonRoutes);
 app.use('/api', apiRoutes);
 app.use('/randomize', generateRoutes);
 app.use('/battle', battleRoutes);
+app.use('/messages', messageRoutes);
 
 // Start the server
 app.listen(PORT, () => {

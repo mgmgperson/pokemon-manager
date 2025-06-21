@@ -1,0 +1,676 @@
+-- Locations
+CREATE TABLE location (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    region_id INTEGER NOT NULL,
+    field_id INTEGER, -- For field spawns
+    terrain_id INTEGER, -- For general terrain
+    description TEXT,
+
+
+    -- Maybe change from rectangle to polygon?
+    x_coordinate FLOAT,
+    y_coordinate FLOAT,
+    height FLOAT,
+    width FLOAT, 
+
+    travel_time INTEGER, -- rating for how long it takes to travel across the location
+
+    parent_location_id INTEGER, -- For sub-zones or nested areas
+    accessibility INTEGER DEFAULT 1, -- How accessible the location is (1-5 scale)
+    FOREIGN KEY (region_id) REFERENCES region(id),
+    FOREIGN KEY (parent_location_id) REFERENCES location(id)
+);
+
+CREATE TABLE location_pokemon {
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    location_id INTEGER NOT NULL,
+    pokemon_id INTEGER NOT NULL,
+    rate INTEGER NOT NULL, -- relative spawn rate or weight
+    time_of_day TEXT CHECK (time_of_day IN ('day', 'night', 'dawn', 'dusk', 'any')) DEFAULT 'any',
+    season TEXT CHECK (season IN ('spring', 'summer', 'autumn', 'winter', 'any')) DEFAULT 'any',
+    min_level INTEGER DEFAULT 1,
+    max_level INTEGER DEFAULT 100,
+    start_date TEXT,
+    end_date TEXT,
+    encounter_type TEXT CHECK(encounter_type IN ('grass', 'water', 'cave', 'sky', 'fishing', 'event')) DEFAULT 'grass',
+    FOREIGN KEY (location_id) REFERENCES location(id)
+}
+
+const fields = [
+    'Pumped Field',
+    'Windy Field',
+    'Corrosive Field',
+    'Desert Field',
+    'Cliffs Field',
+    'Swarm Field',
+    'Haunted Field',
+    'Factory Field',
+    'Infernal Field',
+    'Water Surface Field',
+    'Grassy Field',
+    'Electirized Field',
+    'Psychic Field',
+    'Icy Field',
+    'Draconid Den Field',
+    'Dark Cavern Field',
+    'Misty Field',
+    'City Field',
+    'Mirror Field',
+    'Concert Venue Field',
+    'Crystal Cavern Field',
+    'Waterfall Field',
+    'Volcanic Field',
+    'Forest Field',
+    'Flower Garden Field',
+    'Swamp Field',
+    'Bewitched Woods Field',
+    'Murkwater Surface Field',
+    'Smoky Field',
+    'Frozen Dimensional Field',
+    'Valley of Winds Field',
+    'Lost Hotel Field',
+    'Taiga Field',
+    'Ashen Beach Field',
+    'Underwater Field',
+    'Starlight Arena Field',
+    'Snowy Mountain Field',
+    'Big Top Field',
+    'Back Alley Field',
+    'Neutral Field',
+    'Chess Field',
+    'Deep Earth Field',
+    'Inverse Field',
+    'Glitch Field',
+    'Dimensional Field',
+    'Colosseum Field',
+    'Trickster Field',
+    'Fantasy Field',
+    'Rainbow Field',
+    'New World Field'
+]
+
+forest
+plains
+hills
+frozen mountains
+mountains
+meadow
+beach
+urban
+swamp
+desert
+cave
+dark cavern
+crystal cavern
+lake
+river
+shore
+ocean
+ice cave
+ice
+tundra
+taiga
+volcano
+cliffs
+warm ocean
+badlands
+cold ocean
+jungle
+savanna
+frozen river
+riverside
+valley
+
+
+FORMAT:
+name - region
+field - terrain
+travel_time - parent_location - accessibility
+population
+pokemon encounters (list)
+
+
+
+Mount Hideaway - Kanto
+Cliffs - mountains
+2 - Pallet Peninsula - 4
+0.3
+onix, sandslash
+
+Greater Pallet - Kanto
+Forest - forest
+1 - Pallet Peninsula - 1
+1.5
+dodrio, doduo, pidgey, rattata, spearow, sandshrew, mankey, magikarp, poliwag, hoothoot, pineco, wurmple, ledyba, spinarak
+
+Route 1 - Kanto
+Grassy - plains
+2 - Pallet Peninsula - 1
+0.4
+pidgey, rattata, pikachu, raticate, sentret, furret, hoothoot, pineco, wurmple, spinarak, poochyena, plusle, minun, shinx, oddish, bellsprout, magikarp, mankey, diglett, poliwag, sandshrew
+
+Terracotta Shore - Kanto
+Cliffs - shore
+1 - Pallet Peninsula - 2
+1.2
+staryu, nidoran_f, voltorb, rhyhorn, wooper, horsea, magikarp
+
+Route 26 - Kanto
+Cliffs - hills
+4 - Far West Kanto - 5
+0.3
+raticate, arbok, sandslash, ponyta, doduo, dodrio, noctowl, quagsire, tentacool, tentacruel, magikarp, shellder, chinchou, caterpie, weedle, ekans, exeggcute, metapod, butterfree, beedrill, kakuna, hoothoot, pineco, linoone, whismur, bidoof, buizel
+
+Route 27 - Kanto
+Cliffs - shore
+3 - Far West Kanto - 4
+0.7
+raticate, arbok, sandslash, ponyta, doduo, dodrio, noctowl, quagsire, tentacool, tentacruel, magikarp, shellder, chinchou, caterpie, weedle, ekans, exeggcute, metapod, butterfree, kakuna, beedrill, hoothoot, pineco, luvdisc, linoone, whismur, bidoof, buizel
+
+Tohjo Falls - Kanto
+Waterfall - mountains
+2 - Far West Kanto - 5
+1.3
+raticate, zubat, golbat, slowpoke, rattata, goldeen, seaking, magikarp, makuhita, absol, chingling, bronzor
+
+Route 28 - Kanto
+Cliffs - mountains
+2 - Far West Kanto - 5
+0.2
+ponyta, tangela, ursaring, donphan, rapidash, arbok, doduo, sneasel, poliwhirl, golbat, magikarp, poliwag, natu, aipom, heracross, linoone, whismur, bidoof, buizel
+
+
+Victory Road - Kanto
+Cave - cave
+4 - Far West Kanto - 5
+0.1
+zubat, golbat, machop, machoke, geodude, graveler, onix, marowak, venomoth, donphan, ursaring, rhyhorn, sandslash, arbok, makuhita, absol, chingling, bronzor, chansey, rhydon, hitmonlee, hitmonchan
+
+
+Indigo Plateau - Kanto
+Cliffs - mountains
+4 - Far West Kanto - 4
+1.2
+magikarp, goldeen, poliwag
+
+
+Fennel Valley - Kanto
+Valley of Winds - valley
+5 - Northwest Kanto - 5
+0.4
+diglett, electrode, gloom, butterfree, fearow, carvanha
+
+Route 22 - Kanto
+Grassy - plains
+4 - Pallet Peninsula - 4
+1.1
+rattata, spearow, nidoran_f, nidoran_m, mankey, magikarp, poliwag, goldeen, poliwhirl, doduo, fearow, psyduck, slowpoke, gyarados, hoothoot, pineco, wurmple, ledyba, spinarak, linoone, whismur, bidoof, buizel
+
+
+Greater Viridian - Kanto
+Grassy - plains
+3 - Pallet Peninsula - 1
+4.5
+magikarp, poliwag, goldeen, tentacool, psyduck, slowpoke, gyarados, hoothoot, pineco, wurmple, spinarak
+
+
+Viridian Central - Kanto
+City - urban
+2 - Pallet Peninsula - 1
+3.0
+rattata, raticate, fearow
+
+
+Route 2 South - Kanto
+Grassy - plains
+3 - Northwest Kanto - 1
+1.1
+caterpie, rattata, nidoran_m, nidoran_f, metapod, butterfree, weedle, kakuna, beedrill, pidgey, pidgeotto, pikachu, hoothoot, noctowl, ledyba, ledian, spinarak, ariados, wurmple, pineco, minun, plusle, shinx, oddish, bellsprout
+
+
+Diglett Hills - Kanto
+Cliffs - hills
+5 - Northwest Kanto - 3
+0.7
+diglett, dugtrio, rhyhorn, makuhita, absol, chingling, bronzor, zubat, chansey
+
+Viridian Forest - Kanto
+Forest - forest
+4 - Northwest Kanto - 2
+0.8
+caterpie, weedle, metapod, kakuna, pidgey, pidgeotto, pikachu, butterfree, beedrill, hoothoot, noctowl, seedot, ledyba, spinarak, shroomish, ledian, ariados, kricketot, numel, spoink, budew, carnivine, oddish, bellsprout, bulbasaur, spearow, fearow
+
+Route 2 North - Kanto
+Grassy - plains
+3 - Northwest Kanto - 1
+1.1
+caterpie, rattata, nidoran_m, nidoran_f, metapod, butterfree, weedle, kakuna, beedrill, pidgey, pidgeotto, pikachu, hoothoot, noctowl, ledyba, ledian, spinarak, ariados, wurmple, pineco, minun, plusle, shinx, oddish, bellsprout
+
+
+Pewter Basin - Kanto
+Cliffs - valley
+4 - Northwest Kanto - 2
+3.9
+hoothoot, pineco, wurmple, starly
+
+Hollow Mountains West - Kanto
+Cliffs - mountains
+5 - Northwest Kanto - 5
+0.2
+geodude, graveler, onix
+
+Route 3 - Kanto
+Cliffs - hills
+3 - Northwest Kanto - 2
+0.6
+pidgey, rattata, spearow, sandshrew, jigglypuff, mankey, raticate, ekans, arbok, clefairy, zubat, nidoran_f, nidoran_m, hoothoot, pineco, wurmple, baltoy, gulpin, plusle, minun, shinx, charmander, paras
+
+
+Mount Moon - Kanto
+Cliffs - mountains
+5 - Northwest Kanto - 3
+1.8
+poliwag, magikarp, sandshrew, clefairy, zubat, paras, geodude, makuhita, absol, chingling, bronzor, onix, chansey, clefable
+
+
+Route 4 - Kanto
+Grassy - plains
+5 - Northern Heartlands - 1
+1.1
+rattata, spearow, ekans, sandshrew, mankey, magikarp, poliwag, goldeen, seaking, raticate, arbok, zubat, clefairy, jigglypuff, tentacool, krabby, horsea, psyduck, slowpoke, gyarados, hoothoot, pineco, wurmple, linoone, whismur, bidoof, buizel, charmander, tentacruel, fearow
+
+
+
+Hollow Mountains East - Kanto
+Cliffs - mountains
+5 - Northern Heartlands - 5
+0.3
+geodude, graveler, onix
+
+
+Cerulean Cave - Kanto
+Cave - cave
+1 - Northern Heartlands - 5
+0.2
+arbok, raichu, sandslash, golbat, gloom, parasect, venomoth, kadabra, weepinbell, graveler, magneton, dodrio, hypno, ditto, magikarp, poliwag, slowbro, kingler, goldeen, seaking, seadra, wigglytuff, electrode, rhyhorn, marowak, rhydon, chansey, lickitung, primeape, machoke, wobbuffet, psyduck, geodude, persian, makuhita, chingling, absol, bronzor, snorlax, poliwrath
+
+Cerulean Plains - Kanto
+Grassy - plains
+5 - Northern Heartlands - 1
+4.8
+magikarp, poliwag, goldeen, psyduck, krabby, seaking, staryu, corsola, kingler, tentacool, horsea, gyarados, hoothoot, pineco, combee
+
+
+
+Route 24 - Kanto
+Grassy - plains
+2 - Northern Heartlands - 2
+0.6
+caterpie, metapod, weedle, kakuna, pidgey, pidgeotto, oddish, venonat, abra, bellsprout, magikarp, poliwag, goldeen, psyduck, krabby, seaking, weepinbell, venonat, bellsprout, butterfree, sunkern, oddish, venomoth, gloom, linoone, whismur, buizel, bidoof, meowth, squirtle, tentacruel, dratini
+
+
+Frodo Lake - Kanto
+Ashen Beach - lake
+3 - Northern Heartlands - 1
+1.1
+goldeen, magikarp, staryu
+
+
+Central Kantonian Range - Kanto
+Cliffs - mountains
+5 - Northern Heartlands - 4
+0.4
+geodude, onix, graveler, zubat
+
+Route 25 - Kanto
+Forest - forest
+4 - Northeast Kanto - 2
+0.3
+caterpie, metapod, weedle, kakuna, pidgey, pidgeotto, oddish, venonat, abra, bellsprout, magikarp, goldeen, poliwag, psyduck, krabby, kingler, butterfree, venomoth, weepinbell, abra, hoothoot, noctowl, hoothoot, pineco, combee, slakoth, buneary, linoone, whismur, bidoof, buizel, meowth, squirtle
+
+
+Crimson City Shore - Kanto
+Ashen Beach - shore
+2 - Northeast Kanto - 1
+1.4
+mawile, sableye, tentacool, tentacruel, seel, dewgong, cloyster, shellder, goldeen, seaking, gyarados, magikarp, poliwag, geodude, qwilfish, octillery, mareanie, bruxish, klefki, trubbish, feebas, carvanha, dhelmise, sharpedo
+
+
+Cerulean Cape - Kanto
+Cliffs - shore
+2 - Northeast Kanto - 3
+1.2
+psyduck, slowpoke, poliwag, magikarp, gyarados, poliwhirl
+
+Route 9 - Kanto
+Cliffs - valley
+4 - Northeast Kanto - 2
+1.1
+rattata, raticate, spearow, fearow, ekans, sandshrew, nidoran_f, nidoran_m, nidorina, nidorino, zubat, venonat, venomoth, mankey, primeape, marowak, goldeen, seaking, magikarp, sableye, mawile, linoone, whismur, bidoof, buizel, chansey
+
+
+Rifure Range - Kanto
+Cliffs - mountains
+5 - Northeast Kanto - 5
+0.2
+onix, geodude, graveler
+
+
+Kanto Power Plant - Kanto
+Factory - forest
+1 - Northeast Kanto - 3
+0.4
+pikachu, raichu, magnemite, magneton, grimer, muk, voltorb, electabuzz, koffing, weezing, chansey
+
+
+Route 10 - Kanto
+Cliffs - shore
+3 - Northeast Kanto - 4
+0.5
+rattata, raticate, spearow, ekans, sandshrew, nidoran_f, nidoran_m, machop, magnemite, voltorb, magikarp, poliwag, goldeen, poliwhirl, slowpoke, krabby, kingler, horsea, fearow, zubat, venonat, venomoth, marowak, electabuzz, quagsire, tentacool, linoone, whismur, bidoof, buizel, chansey, dratini, dragonair
+
+
+Greater Lavender - Kanto
+Haunted - urban
+2 - Northeast Kanto - 2
+2.9
+diglett, gastly, haunter, gengar, cubone, golbat, zubat, chansey
+
+
+Route 8 - Kanto
+Grassy - valley
+4 - Northeast Kanto - 2
+1.4
+pidgey, pidgeotto, rattata, ekans, sandshrew, vulpix, jigglypuff, meowth, mankey, growlithe, abra, kadabra, haunter, noctowl, snubbull, hoothoot, pineco, combee, plusle, minun, shinx, ninetales, arcanine
+
+
+Route 5 - Kanto
+Grassy - plains
+4 - Central Kanto - 1
+0.4
+pidgey, pidgeotto, rattata, jigglypuff, oddish, meowth, mankey, abra, bellsprout, gloom, hoothoot, noctowl, snubbull, pineco, combee, plusle, minun, shinx, vulpix, growlithe, chansey, paras, staryu, weepinbell, magikarp, bulbasaur
+
+
+Greater Saffron - Kanto
+Grassy - urban
+4 - Central Kanto - 2
+6.2
+abra, rattata, raticate, pidgey
+
+
+Saffron Central - Kanto
+City - urban
+2 - Central Kanto - 1
+6.7
+porygon, pikachu, abra, hitmonlee, mime_jr
+
+Leaf Forest - Kanto
+Forest - forest
+4 - Central Kanto - 2
+0.4
+exeggcute, beedrill, butterfree
+
+Route 7 - Kanto
+Forest - hills
+3 - Central Kanto - 1
+0.3
+pidgey, pidgeotto, rattata, vulpix, jigglypuff, oddish, meowth, mankey, growlithe, abra, bellsprout, persian, murkrow, snubbull, houndour, spearow, heracross, combee, plusle, minun, shinx, arcanine, kadabra, porygon
+
+North Vermilion Forest - Kanto
+Forest - forest
+4 - Central Kanto - 3
+0.6
+pidgey, pidgeotto, diglett, dugtrio, kakuna, beedrill, pidgeot, weedle, nidoran_f, venonat, parasect, ekans, caterpie, metapod, venomoth, paras, butterfree, weedle, pinsir, scyther
+
+
+Celadon Outskirts - Kanto
+Grassy - plains
+3 - Northern Bay Area - 2
+3.1
+butterfree, pidgey, diglett, rattata
+
+Celadon Central - Kanto
+City - urban
+2 - Northern Bay Area - 1
+1.8
+magikarp, poliwag, goldeen, poliwhirl, slowpoke, grimer, muk, psyduck, koffing, spearow, heracross, combee
+
+Greater Hop City - Kanto
+Grassy - hills
+2 - Northern Bay Area - 2
+2.1
+drowzee, hypno, charmander, oddish, magikarp, psyduck, cubone
+
+Gardenia Hills - Kanto
+Forest - hills
+2 - Northern Bay Area - 2
+0.6
+drowzee, exeggcute, oddish
+
+Gringey Shore - Kanto
+Corrosive - shore
+3 - Northern Bay Area - 3
+1.7
+chansey, grimer, magnemite, magneton, muk
+
+
+Route 16 - Kanto
+Grassy - plains
+1 - Northern Bay Area - 1
+0.9
+rattata, raticate, spearow, fearow, doduo, grimer, muk, murkrow, slugma, heracross, combee, plusle, minun, shinx, chansey, snorlax
+
+
+Cycling Road (Route 17) - Kanto
+Water Surface - shore
+5 - Vermilion Bay - 2
+0.1
+raticate, spearow, fearow, ponyta, doduo, dodrio, magikarp, poliwag, goldeen, tentacool, shellder, krabby, grimer, muk, slugma, plusle, minun, shinx, psyduck, ponyta, rapidash, eevee, chansey
+
+
+
+Foca Island - Kanto
+Cliffs - hills
+1 - Vermilion Bay - 3
+0.2
+abra, tentacool, magikarp
+
+
+Vermilion Bay - Kanto
+Water Surface - ocean
+5 - Vermilion Bay - 4
+0.1
+magikarp, tentacool, staryu
+
+
+Route 6 - Kanto
+Grassy - valley
+3 - Eastern Bay Area - 2
+0.4
+pidgey, pidgeotto, rattata, jigglypuff, oddish, meowth, mankey, abra, bellsprout, psyduck, golduck, magikarp, poliwag, goldeen, krabby, magnemite, drowzee, snubbull, granbull, gyarados, hoothoot, pineco, combee, linoone, whismur, bidoof, buizel, vulpix, growlithe, chansey
+
+
+Greater Vermilion - Kanto
+Grassy - plains
+3 - Eastern Bay Area - 1
+2.0
+pidgey, pidgeotto, rattata, jigglypuff, oddish, meowth, mankey, abra, bellsprout, psyduck, golduck, magikarp, poliwag, goldeen, krabby, magnemite, drowzee, snubbull, granbull, gyarados, hoothoot, pineco, combee, linoone, whismur, bidoof, buizel, vulpix, growlithe, chansey
+
+Vermilion Central - Kanto
+City - urban
+1 - Eastern Bay Area - 1
+1.5
+magikarp, poliwag, goldeen, farfetchd, tentacool, krabby, horsea, chinchou, lanturn, staryu, diglett, shuckle, spearow, heracross, combee, snorlax
+
+Greater Porta Vista - Kanto
+City - shore
+2 - Eastern Bay Area - 2
+2.1
+tentacool, tentacruel, horsea
+
+North Safari Coast - Kanto
+Ashen Beach - shore
+4 - Eastern Bay Area - 3
+0.3
+magikarp, nidoran_f, nidoran_m, paras, venonat, psyduck, poliwag, slowpoke, doduo, goldeen, dratini, chansey, kangaskhan, scyther, pinsir, tauros, dragonair, exeggcute, rhyhorn, tangela, marowak, cubone, gyarados, rhydon, omanyte, omastar, aerodactyl, kabuto, kabutops, ditto
+
+Route 11 - Kanto
+Grassy - valley
+4 - Southeast Kanto - 3
+0.5
+pidgey, pidgeotto, rattata, raticate, spearow, ekans, sandshrew, drowzee, magikarp, poliwag, goldeen, tentacool, shellder, krabby, magnemite, noctowl, hoppip, spearow, heracross, combee, plusle, minun, shinx, mr_mime, chansey, snorlax
+
+
+South Diglett Hills - Kanto
+Cliffs - hills
+3 - Southeast Kanto - 3
+0.3
+dugtrio, diglett
+
+Greater Gold Coast - Kanto
+Grassy - plains
+4 - Southeast Kanto - 2
+4.5
+pidgey, pidgeotto, rattata, abra
+
+Gold Coast Central - Kanto
+City - urban
+2 - Southeast Kanto - 1
+2.3
+pidgey, pidgeotto, tentacool
+
+Old Shore - Kanto
+Grassy - shore
+5 - Southeast Kanto - 2
+1.1
+tentacool, tentacruel
+
+Route 12 - Kanto
+Grassy - shore
+4 - Southeast Kanto - 3
+0.5
+pidgey, pidgeotto, oddish, gloom, venonat, bellsprout, weepinbell, farfetchd, slowpoke, slowbro, magikarp, goldeen, poliwag, tentacool, krabby, horsea, seadra, quagsire, qwilfish, gyarados, hoothoot, ledyba, spinarak, wurmple, tangela, relicanth, kingler, chansey
+
+
+Route 13 - Kanto
+Grassy - shore
+4 - Southeast Kanto - 2
+0.7
+pidgey, pidgeotto, oddish, gloom, venonat, bellsprout, weepinbell, farfetchd, ditto, slowpoke, slowbro, magikarp, poliwag, goldeen, tentacool, krabby, horsea, seadra, nidorina, nidorino, chansey, hoppip, quagsire, hoothoot, ledyba, spinarak, wurmple, tangela, bidoof, buizel, linoone, whismur
+
+
+Bulbasaur Island - Kanto
+Grassy - shore
+1 - Southeast Kanto - 3
+0.2
+bulbasaur
+
+Route 14 - Kanto
+Grassy - hills
+3 - Fuchsia Peninsula - 1
+0.5
+pidgey, pidgeotto, oddish, gloom, venonat, bellsprout, weepinbell, ditto, magikarp, poliwag, goldeen, nidorina, nidorino, chansey, noctowl, hoppip, skiploom, quagsire, krabby, magikarp, staryu, plusle, minun, shinx, scyther, tauros, pinsir
+
+Route 15 - Kanto
+Grassy - plains
+4 - Fuchsia Peninsula - 2
+1.2
+pidgey, pidgeotto, oddish, gloom, venonat, venomoth, bellsprout, weepinbell, ditto, nidorina, nidorino, chansey, noctowl, hoppip, quagsire, tangela, wurmple, ledyba, hoothoot, spinarak, plusle, minun, shinx, scyther, pinsir, tauros, chansey
+
+Laramie Canyon - Kanto
+Cliffs - valley
+4 - Fuchsia Peninsula - 4
+0.9
+tauros, rhyhorn, sandslash, nidorina, nidorino, raticate, dodrio, rapidash, growlithe, mankey, venomoth, victreebel, vileplume, bellsprout, tangela, weedle, kangaskhan, omanyte, omastar, kabuto, kabutops, aerodactyl
+
+South Neon Shore - Kanto
+Cliffs - valley
+4 - Fuchsia Peninsula - 3
+1.3
+meowth, persian
+
+Fuchsia Central - Kanto
+City - urban
+2 - Fuchsia Peninsula - 1
+1.7
+magikarp, krabby, goldeen, poliwag, gyarados, psyduck, slowpoke, hoothoot, ledyba, spinarak, wurmple, tangela
+
+Stone Shore - Kanto
+Ashen beach - shore
+2 - Fuchsia Peninsula - 2
+1.2
+exeggcute, eevee, pikachu, vulpix, poliwag, shellder, oddish, staryu, bellsprout
+
+Matcha Shore - Kanto
+Ashen beach - shore
+2 - Fuchsia Peninsula - 2
+2.1
+porygon, pidgeotto
+
+Route 18 - Kanto
+Grassy - plains
+2 - Fuchsia Peninsula - 1
+0.7
+rattata, raticate, spearow, fearow, doduo, magikarp, poliwag, goldeen, tentacool, shellder, krabby, lickitung, grimer, muk, slugma, hoothoot, ledyba, spinarak, wurmple, tangela, plusle, minun, shinx, dodrio, chansey, starmie
+
+Route 19 - Kanto
+Water surface - ocean
+5 - Seafoam Islands - 4
+0.8
+tentacool, magikarp, poliwag, goldeen, tentacruel, shellder, horsea, staryu, krabby, corsola, kingler, slowpoke, psyduck, gyarados, clamperl, lapras
+
+Route 20 - Kanto
+Water surface - ocean
+5 - Seafoam Islands - 4
+0.6
+tentacool, magikarp, poliwag, goldeen, tentacruel, shellder, horsea, staryu, krabby, corsola, kingler, slowpoke, psyduck, gyarados, clamperl, lanturn, chinchou, lapras
+
+Storm Isle - Kanto
+Waterfall - shore
+2 - Seafoam Islands - 3
+0.7
+zubat, golbat, psyduck, golduck, slowpoke, slowbro, seel, krabby, shellder, horsea, staryu, magikarp, poliwag, goldeen, dewgong, makuhita, absol, chingling, bronzor, jynx, squirtle
+
+
+Cinnabar-Waiko Islands - Kanto
+Waterfall - shore
+2 - Seafoam Islands - 3
+0.6
+magikarp, poliwag, goldeen, tentacool, shellder, horsea, staryu, chinchou, lanturn, tentacruel, magmar
+
+Route 21 - Kanto
+Water surface - ocean
+5 - Seafoam Islands - 4
+0.2
+tentacool, magikarp, poliwag, goldeen, tentacruel, shellder, horsea, staryu, krabby, corsola, kingler, slowpoke, psyduck, gyarados, clamperl, lanturn, chinchou, lapras, tangela, mr_mime, gloom, bellsprout, oddish, chansey
+
+Sevii Islands - Kanto
+Waterfall - shore
+5 - Orange Archipelago - 5
+0.1
+tentacool, tentacruel, magikarp, horsea, krabby, shellder, staryu, kingler, slowpoke, marill, wooper, hoppip, meowth, fearow, spearow, tangela, ponyta, rapidash, geodude, persian, graveler, oddish, bellsprout, dunsparce, qwilfish, remoraid, sentret, natu, wobbuffet, phanpy, cubone, marowak, skarmory, larvitar, machop, slugma, magcargo, misdreavus, mareep, smeargle, houndour, teddiursa, stantler, shuckle, pineco, unown
+
+Mandarin Island - Kanto
+Waterfall - shore
+5 - Orange Archipelago - 5
+0.7
+nidorina, nidorino, magnemite, magneton, tauros, bulbasaur, wartortle, gastly, vulpix, mankey, primeape, growlithe, ponyta, grimer, drowzee, voltorb, hitmonchan, seaking, staryu, electabuzz, eevee
+
+East Orange - Kanto
+Waterfall - shore
+5 - Orange Archipelago - 5
+0.2
+magikarp
+
+West Orange - Kanto
+Waterfall - shore
+5 - Orange Archipelago - 5
+0.4
+magikarp
+
+North Orange - Kanto
+Waterfall - shore
+5 - Orange Archipelago - 5
+0.5
+magikarp

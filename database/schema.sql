@@ -140,7 +140,7 @@ CREATE TABLE pokemon (
 
     -- stats
     current_hp INTEGER,
-    current_strength INTEGER,
+    current_strength INTEGER, -- includes fatigue from training
     status_id INTEGER,
     battles_won INTEGER,
     battles_lost INTEGER,
@@ -152,29 +152,6 @@ CREATE TABLE pokemon (
 
 
     FOREIGN KEY (trainer_id) REFERENCES trainer(id)
-);
-
--- TODO: moves table linking with pokemon
-
--- new pokemon tables
-
-CREATE TABLE pokemon_species (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    species TEXT,
-    type1 TEXT,
-    type2 TEXT,
-    ability1 TEXT,
-    ability2 TEXT,
-    ability3 TEXT,
-    hidden_ability TEXT,
-    base_hp INTEGER,
-    base_attack INTEGER,
-    base_defense INTEGER,
-    base_special_attack INTEGER,
-    base_special_defense INTEGER,
-    base_speed INTEGER,
-    base_total INTEGER,
-    image TEXT
 );
 
 
@@ -312,3 +289,169 @@ CREATE TABLE trainer_hometown (
     FOREIGN KEY (city_id) REFERENCES city(id)
 );
 
+-- TODO: More trainer infos, game functionality
+
+
+CREATE TABLE game_state (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    save_name TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    last_played_at TEXT NOT NULL DEFAULT (datetime('now')),
+
+    -- in-world clock
+    current_date TEXT NOT NULL,         
+    current_time TEXT NOT NULL,
+
+    active_trainer_id INTEGER NOT NULL, -- The trainer currently being played
+    active_location_id INTEGER NOT NULL, -- The current location of the active trainer
+
+    FOREIGN KEY (active_trainer_id) REFERENCES trainer(id),
+    FOREIGN KEY (active_location_id) REFERENCES location(id)
+);
+
+
+CREATE TABLE trainer_finance (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    trainer_id INTEGER NOT NULL,
+    balance INTEGER DEFAULT 0, 
+    debt INTEGER DEFAULT 0, 
+    FOREIGN KEY (trainer_id) REFERENCES trainer(id)
+);
+
+CREATE TABLE financial_transaction (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    trainer_id INTEGER NOT NULL,
+    amount INTEGER NOT NULL,
+    description TEXT,
+    date TEXT NOT NULL,
+    category TEXT CHECK(category IN (
+        'prize', 'wages', 'sponsor', 'training', 'travel',
+        'item_purchase', 'sale', 'taxes', 'misc'
+    )),
+    FOREIGN KEY (trainer_id) REFERENCES trainer(id)
+);
+
+CREATE TABLE inventory (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    trainer_id INTEGER NOT NULL,
+    item_id INTEGER NOT NULL,
+    quantity INTEGER DEFAULT 1, 
+    FOREIGN KEY (trainer_id) REFERENCES trainer(id),
+    FOREIGN KEY (item_id) REFERENCES item(id)
+);
+
+CREATE TABLE training_program (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    focus_stat TEXT CHECK(focus_stat IN (
+        'hp', 'attack', 'defense', 'special_attack',
+        'special_defense', 'speed', 'happiness', 'bond', 'move'
+    )),
+    base_duration INTEGER NOT NULL,
+    fatigue_cost INTEGER NOT NULL DEFAULT 5,
+    cost INTEGER NOT NULL DEFAULT 100, -- cost in in-game currency
+    description TEXT
+);
+
+CREATE TABLE training_session (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    trainer_id INTEGER NOT NULL,
+    pokemon_id INTEGER NOT NULL,
+    program_id INTEGER NOT NULL,
+    start_time TEXT NOT NULL,
+    end_time TEXT,
+    success BOOLEAN,
+    fatigue INTEGER DEFAULT 0, -- fatigue accumulated during the session
+    notes TEXT,
+    FOREIGN KEY (trainer_id) REFERENCES trainer(id),
+    FOREIGN KEY (pokemon_id) REFERENCES pokemon(id),
+    FOREIGN KEY (program_id) REFERENCES training_program(id)
+);
+
+CREATE TABLE injury (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    approximate_healing_time INTEGER NOT NULL, -- days
+    description TEXT,
+    FOREIGN KEY (pokemon_id) REFERENCES pokemon(id)  
+);
+
+CREATE TABLE pokemon_injury (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    pokemon_id INTEGER NOT NULL,
+    injury_id INTEGER NOT NULL,
+    healing_time INTEGER NOT NULL, -- days
+    FOREIGN KEY (pokemon_id) REFERENCES pokemon(id),
+    FOREIGN KEY (injury_id) REFERENCES injury(id)
+);
+
+CREATE TABLE message (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    sent_at TEXT NOT NULL DEFAULT (datetime('now')),
+    sender TEXT,
+    subject TEXT NOT NULL,
+    body TEXT NOT NULL,
+    is_read BOOLEAN DEFAULT FALSE,
+    message_type TEXT CHECK(message_type IN (
+        'battle_result', 'offer', 'news', 'tutorial', 'alert', 'finance'
+    )),
+);
+
+-- Locations
+CREATE TABLE location (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    region_id INTEGER NOT NULL,
+    description TEXT,
+    population INTEGER,
+
+
+    -- polygonal area for more complex locations
+    area_coordinates TEXT, -- JSON array of coordinate pairs (latitude, longitude)
+
+    travel_time INTEGER, -- rating for how long it takes to travel across the location, 1 very quick, 5 very long (might be due to change into travel time in days)
+
+    parent_location_id INTEGER, -- For sub-zones or nested areas
+    accessibility INTEGER DEFAULT 1, -- How accessible the location is (1-5 scale), 1 accessible, 5 very inaccessible (might be due to change into HM compatibility)
+    FOREIGN KEY (region_id) REFERENCES region(id),
+    FOREIGN KEY (parent_location_id) REFERENCES location(id)
+);
+
+CREATE TABLE terrain_spawn {
+    terrain_id INTEGER NOT NULL,
+    pokemon_id INTEGER NOT NULL,
+    rate INTEGER NOT NULL, -- relative spawn rate or weight
+    time_of_day TEXT CHECK (time_of_day IN ('day', 'night', 'dawn', 'dusk', 'any')) DEFAULT 'any',
+    season TEXT CHECK (season IN ('spring', 'summer', 'autumn', 'winter', 'any')) DEFAULT 'any',
+    min_level INTEGER DEFAULT 1,
+    max_level INTEGER DEFAULT 100,
+    encounter_type TEXT CHECK(encounter_type IN ('grass', 'water', 'cave', 'sky', 'fishing', 'event')) DEFAULT 'grass',
+    PRIMARY KEY (terrain_id, pokemon_id, time_of_day, season, encounter_type),
+    FOREIGN KEY (terrain_id) REFERENCES terrain(id)
+}
+
+CREATE TABLE terrain (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    code TEXT UNIQUE NOT NULL, -- short code for referencing
+    name TEXT NOT NULL,
+    default_field_id INTEGER, -- use with field effects
+    description TEXT,
+);
+
+CREATE TABLE location_terrain (
+    location_id INTEGER NOT NULL,
+    terrain_id  INTEGER NOT NULL,
+    rate INTEGER NOT NULL, -- relative frequency of this terrain in the location
+    field_id INTEGER, -- use with field effects
+    PRIMARY KEY (location_id, terrain_id),
+    FOREIGN KEY (location_id) REFERENCES location(id),
+    FOREIGN KEY (terrain_id)  REFERENCES terrain(id)
+);
+
+CREATE TABLE region_generation_spawn ( -- corresponding a pokemon's generation to a dynamic region
+    region_id INTEGER NOT NULL,
+    generation INTEGER NOT NULL,
+    rate INTEGER NOT NULL, -- relative spawn rate or weight
+    PRIMARY KEY (region_id, generation),
+    FOREIGN KEY (region_id) REFERENCES region(id),
+);

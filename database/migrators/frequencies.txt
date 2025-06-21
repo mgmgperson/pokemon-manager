@@ -1,0 +1,310 @@
+export const defaultNameFrequencies: RegionNameFrequency[] = [
+    {
+        id: 2,
+        regionId: 1,
+        frequency: 75,
+        country: "US",
+        type: "F"
+    },
+    {
+        id: 1,
+        regionId: 1,
+        frequency: 24,
+        country: "JP",
+        type: "F"
+    },
+    {
+        id: 3,
+        regionId: 1,
+        frequency: 1,
+        country: "KR",
+        type: "F"
+    },
+    {
+        id: 4,
+        regionId: 1,
+        frequency: 90,
+        country: "JP",
+        type: "S"
+    },
+    {
+        id: 5,
+        regionId: 1,
+        frequency: 10,
+        country: "US",
+        type: "S"
+    },
+    {
+        id: 7,
+        regionId: 2,
+        frequency: 72,
+        country: "US",
+        type: "F"
+    },
+    {
+        id: 6,
+        regionId: 2,
+        frequency: 25,
+        country: "JP",
+        type: "F"
+    },
+    {
+        id: 8,
+        regionId: 2,
+        frequency: 2,
+        country: "KR",
+        type: "F"
+    },
+    {
+        id: 9,
+        regionId: 2,
+        frequency: 1,
+        country: "IT",
+        type: "F"
+    },
+    {
+        id: 10,
+        regionId: 2,
+        frequency: 85,
+        country: "JP",
+        type: "S"
+    },
+    {
+        id: 11,
+        regionId: 2,
+        frequency: 10,
+        country: "US",
+        type: "S"
+    },
+    {
+        id: 12,
+        regionId: 2,
+        frequency: 4,
+        country: "KR",
+        type: "S"
+    },
+    {
+        id: 13,
+        regionId: 2,
+        frequency: 1,
+        country: "IT",
+        type: "S"
+    },
+    {
+        id: 15,
+        regionId: 3,
+        frequency: 75,
+        country: "US",
+        type: "F"
+    },
+    {
+        id: 14,
+        regionId: 3,
+        frequency: 24,
+        country: "JP",
+        type: "F"
+    },
+    {
+        id: 16,
+        regionId: 3,
+        frequency: 1,
+        country: "ES",
+        type: "F"
+    },
+    {
+        id: 17,
+        regionId: 3,
+        frequency: 85,
+        country: "JP",
+        type: "S"
+    },
+    {
+        id: 18,
+        regionId: 3,
+        frequency: 12,
+        country: "US",
+        type: "S"
+    },
+    {
+        id: 19,
+        regionId: 3,
+        frequency: 3,
+        country: "ES",
+        type: "S"
+    },
+    {
+        id: 21,
+        regionId: 4,
+        frequency: 75,
+        country: "US",
+        type: "F"
+    },
+    {
+        id: 20,
+        regionId: 4,
+        frequency: 25,
+        country: "JP",
+        type: "F"
+    },
+    {
+        id: 22,
+        regionId: 4,
+        frequency: 90,
+        country: "JP",
+        type: "S"
+    },
+    {
+        id: 23,
+        regionId: 4,
+        frequency: 10,
+        country: "US",
+        type: "S"
+    },
+    {
+        id: 25,
+        regionId: 5,
+        frequency: 85,
+        country: "US",
+        type: "F"
+    },
+    {
+        id: 24,
+        regionId: 5,
+        frequency: 15,
+        country: "JP",
+        type: "F"
+    },
+    {
+        id: 26,
+        regionId: 5,
+        frequency: 50,
+        country: "JP",
+        type: "S"
+    },
+    {
+        id: 27,
+        regionId: 5,
+        frequency: 49,
+        country: "US",
+        type: "S"
+    },
+    {
+        id: 28,
+        regionId: 5,
+        frequency: 1,
+        country: "FR",
+        type: "S"
+    },
+    {
+        id: 29,
+        regionId: 6,
+        frequency: 60,
+        country: "FR",
+        type: "F"
+    },
+    {
+        id: 30,
+        regionId: 6,
+        frequency: 25,
+        country: "US",
+        type: "F"
+    },
+    {
+        id: 31,
+        regionId: 6,
+        frequency: 15,
+        country: "JP",
+        type: "F"
+    },
+    {
+        id: 32,
+        regionId: 6,
+        frequency: 60,
+        country: "FR",
+        type: "S"
+    },
+    {
+        id: 33,
+        regionId: 6,
+        frequency: 35,
+        country: "JP",
+        type: "S"
+    },
+    {
+        id: 34,
+        regionId: 6,
+        frequency: 5,
+        country: "US",
+        type: "S"
+    },
+    {
+        id: 35,
+        regionId: 7,
+        frequency: 65,
+        country: "US",
+        type: "F"
+    },
+    {
+        id: 36,
+        regionId: 7,
+        frequency: 35,
+        country: "JP",
+        type: "F"
+    },
+    {
+        id: 37,
+        regionId: 7,
+        frequency: 50,
+        country: "US",
+        type: "S"
+    },
+    {
+        id: 38,
+        regionId: 7,
+        frequency: 50,
+        country: "JP",
+        type: "S"
+    },
+    {
+        id: 57,
+        regionId: 8,
+        frequency: 60,
+        country: "GB",
+        type: "F"
+    },
+    {
+        id: 58,
+        regionId: 8,
+        frequency: 25,
+        country: "US",
+        type: "F"
+    },
+    {
+        id: 59,
+        regionId: 8,
+        frequency: 15,
+        country: "JP",
+        type: "F"
+    },
+    {
+        id: 60,
+        regionId: 8,
+        frequency: 60,
+        country: "GB",
+        type: "S"
+    },
+    {
+        id: 61,
+        regionId: 8,
+        frequency: 35,
+        country: "JP",
+        type: "S"
+    },
+    {
+        id: 62,
+        regionId: 8,
+        frequency: 5,
+        country: "US",
+        type: "S"
+    },
+];
