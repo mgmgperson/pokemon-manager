@@ -336,8 +336,7 @@ CREATE TABLE inventory (
     trainer_id INTEGER NOT NULL,
     item_id INTEGER NOT NULL,
     quantity INTEGER DEFAULT 1, 
-    FOREIGN KEY (trainer_id) REFERENCES trainer(id),
-    FOREIGN KEY (item_id) REFERENCES item(id)
+    FOREIGN KEY (trainer_id) REFERENCES trainer(id)
 );
 
 CREATE TABLE training_program (
@@ -435,7 +434,7 @@ CREATE TABLE terrain (
     code TEXT UNIQUE NOT NULL, -- short code for referencing
     name TEXT NOT NULL,
     default_field_id INTEGER, -- use with field effects
-    description TEXT,
+    description TEXT
 );
 
 CREATE TABLE location_terrain (
@@ -454,4 +453,34 @@ CREATE TABLE region_generation_spawn ( -- corresponding a pokemon's generation t
     rate INTEGER NOT NULL, -- relative spawn rate or weight
     PRIMARY KEY (region_id, generation),
     FOREIGN KEY (region_id) REFERENCES region(id),
+);
+
+CREATE TABLE shop (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    -- 'regional' means “applies to all locations tagged with X terrain OR region”
+    -- 'special'  means “only at the specific location below”
+    scope TEXT NOT NULL CHECK(scope IN ('regional', 'special')),
+    region_id   INTEGER,
+    terrain_id  INTEGER,
+    location_id INTEGER,
+    description TEXT,
+    markup REAL DEFAULT 1.00,
+
+    FOREIGN KEY (region_id)  REFERENCES region(id),
+    FOREIGN KEY (terrain_id) REFERENCES terrain(id),
+    FOREIGN KEY (location_id)REFERENCES location(id)
+);
+
+CREATE TABLE shop_item (
+    shop_id  INTEGER NOT NULL,
+    item_id  INTEGER NOT NULL,
+    price    INTEGER NOT NULL,
+    stock    INTEGER,            -- NULL = infinite stock
+    PRIMARY KEY (shop_id, item_id),
+    FOREIGN KEY (shop_id) REFERENCES shop(id)
+);
+
+CREATE TABLE travel_log (
+    
 );

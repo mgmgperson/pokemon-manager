@@ -18,7 +18,7 @@ node_modules/
 
 # Ignore cache files
 .cache/
-database/migrators/cache
+database/migrators/
 
 # Ignore old json
 database/oldjson/

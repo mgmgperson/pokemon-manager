@@ -12,6 +12,9 @@ import apiRoutes from './routes/api';
 import generateRoutes from './routes/generate';
 import battleRoutes from './routes/battle';
 import messageRoutes from './routes/messages';
+import itemRoutes from './routes/items';
+import financeRoutes from './routes/finances';
+import shopRoutes from './routes/shops';
 
 const app: Application = express();
 const PORT = process.env.PORT || 5000;
@@ -29,8 +32,11 @@ app.use('/api', apiRoutes);
 app.use('/randomize', generateRoutes);
 app.use('/battle', battleRoutes);
 app.use('/messages', messageRoutes);
+app.use('/items', itemRoutes);
+app.use('/finances', financeRoutes);
+app.use('/shops', shopRoutes);
 
 // Start the server
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+    console.log(`Server is running on port ${PORT}`);
 });

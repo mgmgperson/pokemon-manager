@@ -1,0 +1,69 @@
+export enum Items {
+    // Poke Balls
+    MASTER_BALL=1,
+    POKE_BALL,
+    GREAT_BALL,
+    ULTRA_BALL,
+    SAFARI_BALL,
+    NET_BALL,
+    DIVE_BALL,
+    NEST_BALL,
+    REPEAT_BALL,
+    TIMER_BALL,
+    LUXURY_BALL,
+    PREMIER_BALL,
+    DUSK_BALL,
+    HEAL_BALL,
+    QUICK_BALL,
+    CHERRISH_BALL,
+
+    // Healing Items
+    POTION = 100,
+    SUPER_POTION,
+    HYPER_POTION,
+    MAX_POTION,
+    FULL_RESTORE,
+    REVIVE,
+    MAX_REVIVE,
+    FULL_HEAL,
+    ANTIDOTE,
+    BURN_HEAL,
+    ICE_HEAL,
+    AWAKENING,
+    PARALYZE_HEAL,
+    X_ATTACK,
+    X_DEFEND,
+    X_SPEED,
+    X_ACCURACY,
+    X_SPECIAL_ATTACK,
+    X_SPECIAL_DEFENSE,
+    RARE_CANDY,
+
+    // Stones
+    FIRE_STONE = 200,
+    WATER_STONE,
+    THUNDER_STONE,
+    LEAF_STONE,
+    MOON_STONE,
+    SUN_STONE,
+    SHINY_STONE,
+    DUSK_STONE,
+    DAWN_STONE,
+    ICE_STONE,
+
+    // Berries
+    ORAN_BERRY = 300,
+    SITRUS_BERRY,
+    PECHA_BERRY,
+    RAWST_BERRY,
+    ASPEAR_BERRY,
+    LEPPA_BERRY,
+    POMEG_BERRY,
+
+    // Held Items
+    AMULET_COIN = 400,
+
+
+    // Key Items
+    BICYCLE = 9000,
+}

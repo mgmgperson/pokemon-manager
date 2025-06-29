@@ -155,7 +155,7 @@ export const defaultInventory: InventoryItem[] = [
     {
         id: 2,
         trainerId: 1,
-        itemId: 2,        // Potion
+        itemId: 100,        // Potion
         quantity: 3
     }
 ];

@@ -11,7 +11,8 @@ import {
   Map as MapIcon,
   EmojiEvents as LeagueIcon,
   SportsEsports as TournamentIcon,
-  History as HistoryIcon
+  History as HistoryIcon,
+  Inventory as InventoryIcon
 } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
 
@@ -20,6 +21,7 @@ const menuItems = [
   { text: 'Inbox', icon: <InboxIcon />, path: '/inbox' },
   { text: 'Squad', icon: <GroupIcon />, path: '/squad' },
   { text: 'Training', icon: <TrainingIcon />, path: '/training' },
+  { text: 'Item Bag', icon: <InventoryIcon />, path: '/items' },
   { text: 'Finances', icon: <FinanceIcon />, path: '/finances' },
   { text: 'PWTR', icon: <PersonIcon />, path: '/trainers' },
   { text: 'Pokedex', icon: <PokedexIcon />, path: '/dex' },

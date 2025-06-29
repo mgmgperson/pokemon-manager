@@ -21,6 +21,10 @@ import EditTrainerPokemon from './components/trainers/pokemon/EditTrainerPokemon
 import CityDetail from './components/cities/CityDetail';
 import EditCity from './components/cities/edit/EditCity';
 import MessageBox from './components/messages/MessageBox';
+import Items from './components/items/Items';
+import FinanceList from './components/finances/FinanceList';
+import ShopDetail from './components/shops/ShopDetail';
+import ShopSell from './components/shops/ShopSell';
 
 const theme = createTheme({
   palette: {
@@ -62,6 +66,10 @@ const App: React.FC = () => {
                 <Route path="/cities/:id" element={<CityDetail />} />
                 <Route path="/edit_city/:id" element={<EditCity />} />
                 <Route path="/inbox" element={<MessageBox />} />
+                <Route path="/items" element={<Items />} />
+                <Route path="/finances" element={<FinanceList />} />
+                <Route path="/shops/:id" element={<ShopDetail />} />
+                <Route path="/shops/:id/sell" element={<ShopSell />} />
               </Routes>
             </div>
           </div>
