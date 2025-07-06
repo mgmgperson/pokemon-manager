@@ -25,6 +25,11 @@ import Items from './components/items/Items';
 import FinanceList from './components/finances/FinanceList';
 import ShopDetail from './components/shops/ShopDetail';
 import ShopSell from './components/shops/ShopSell';
+import LocationDetail from './components/locations/LocationDetail';
+import EditLocation from './components/locations/edit/EditLocation';
+import AddCity from './components/cities/edit/AddCity';
+import AddLocation from './components/locations/edit/AddLocation';
+import EditShop from './components/shops/edit/EditShop';
 
 const theme = createTheme({
   palette: {
@@ -65,11 +70,16 @@ const App: React.FC = () => {
                 <Route path="/edit_trainer/:id/format_ratings" element={<EditFormatRating />} />
                 <Route path="/cities/:id" element={<CityDetail />} />
                 <Route path="/edit_city/:id" element={<EditCity />} />
+                <Route path="/add_city" element={<AddCity />} />
                 <Route path="/inbox" element={<MessageBox />} />
                 <Route path="/items" element={<Items />} />
                 <Route path="/finances" element={<FinanceList />} />
                 <Route path="/shops/:id" element={<ShopDetail />} />
                 <Route path="/shops/:id/sell" element={<ShopSell />} />
+                <Route path="/locations/:id" element={<LocationDetail />} />
+                <Route path="/edit_location/:id" element={<EditLocation />} />
+                <Route path="/add_location" element={<AddLocation />} />
+                <Route path="/edit_shop/:id" element={<EditShop />} />
               </Routes>
             </div>
           </div>

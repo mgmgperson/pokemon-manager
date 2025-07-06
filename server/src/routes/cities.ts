@@ -24,6 +24,49 @@ router.get('/', (req: Request, res: Response) => {
   });
 });
 
+// Define the POST /cities route for creating a new city
+router.post('/', (req: Request, res: Response): void => {
+  const { name, region_id, population, description, x_coordinate, y_coordinate } = req.body;
+
+  // Validate required fields
+  if (!name || !region_id) {
+    res.status(400).json({ error: 'Name and region_id are required' });
+    return;
+  }
+
+  const insertCitySQL = `
+    INSERT INTO city (name, region_id, population, description, x_coordinate, y_coordinate)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `;
+
+  db.run(insertCitySQL, [
+    name,
+    region_id,
+    population || null,
+    description || null,
+    x_coordinate || 0.5,
+    y_coordinate || 0.5
+  ], function(err: Error | null) {
+    if (err) {
+      res.status(400).json({ error: err.message });
+      return;
+    }
+    
+    res.json({
+      message: 'City created successfully',
+      data: { 
+        id: this.lastID,
+        name,
+        region_id,
+        population,
+        description,
+        x_coordinate: x_coordinate || 0.5,
+        y_coordinate: y_coordinate || 0.5
+      }
+    });
+  });
+});
+
 // Route to get a specific city and its details by city ID
 router.get('/:id', (req: Request, res: Response) => {
   const cityId = req.params.id;

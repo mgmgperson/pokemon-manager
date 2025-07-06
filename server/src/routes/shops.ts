@@ -252,7 +252,9 @@ router.post('/:id/buy', (req: Request, res: Response) => {
                                 trainer_id, amount, description, date, category
                             ) VALUES (
                                 (SELECT active_trainer_id FROM game_state),
-                                ?, ?, datetime('now'), 'item_purchase'
+                                ?, ?, 
+                                (SELECT current_date || ' ' || current_time FROM game_state), 
+                                'item_purchase'
                             )
                         `;
 
@@ -298,6 +300,243 @@ router.post('/:id/buy', (req: Request, res: Response) => {
                         });
                     });
                 });
+            });
+        });
+    });
+});
+
+// Get all shops
+router.get('/', (req: Request, res: Response) => {
+    const sql = `
+        SELECT 
+            s.*,
+            r.name as region_name,
+            t.name as terrain_name,
+            l.name as location_name
+        FROM shop s
+        LEFT JOIN region r ON s.region_id = r.id
+        LEFT JOIN terrain t ON s.terrain_id = t.id
+        LEFT JOIN location l ON s.location_id = l.id
+        ORDER BY s.name
+    `;
+    
+    db.all(sql, [], (err: Error | null, rows: any[]) => {
+        if (err) {
+            return res.status(400).json({ error: err.message });
+        }
+        return res.json({
+            message: 'success',
+            data: rows
+        });
+    });
+});
+
+// Update a shop
+router.put('/:id', (req: Request, res: Response): void => {
+    const shopId = req.params.id;
+    const {
+        name,
+        scope,
+        region_id,
+        terrain_id,
+        location_id,
+        description,
+        markup,
+        items
+    } = req.body;
+
+    // Validate required fields
+    if (!name || !scope) {
+        res.status(400).json({ error: 'Name and scope are required' });
+        return;
+    }
+
+    // Validate scope-specific requirements
+    if (scope === 'regional' && (!region_id || !terrain_id)) {
+        res.status(400).json({ error: 'Regional shops require both region_id and terrain_id' });
+        return;
+    }
+    if (scope === 'special' && !location_id) {
+        res.status(400).json({ error: 'Special shops require location_id' });
+        return;
+    }
+
+    db.serialize(() => {
+        db.run('BEGIN TRANSACTION');
+
+        // Update shop data
+        const updateShopSQL = `
+            UPDATE shop
+            SET name = ?,
+                scope = ?,
+                region_id = ?,
+                terrain_id = ?,
+                location_id = ?,
+                description = ?,
+                markup = ?
+            WHERE id = ?
+        `;
+
+        db.run(updateShopSQL, [
+            name,
+            scope,
+            scope === 'regional' ? region_id : null,
+            scope === 'regional' ? terrain_id : null,
+            scope === 'special' ? location_id : null,
+            description,
+            markup || 1.0,
+            shopId
+        ], function(err: Error | null) {
+            if (err) {
+                db.run('ROLLBACK');
+                res.status(400).json({ error: err.message });
+                return;
+            }
+
+            // Handle shop items
+            if (items && Array.isArray(items)) {
+                // First, delete existing items for this shop
+                db.run('DELETE FROM shop_item WHERE shop_id = ?', [shopId], function(err: Error | null) {
+                    if (err) {
+                        db.run('ROLLBACK');
+                        res.status(400).json({ error: err.message });
+                        return;
+                    }
+
+                    // Insert new items
+                    const insertItemSQL = 'INSERT INTO shop_item (shop_id, item_id, price, stock) VALUES (?, ?, ?, ?)';
+                    
+                    let completed = 0;
+                    if (items.length === 0) {
+                        // No items to insert, commit transaction
+                        db.run('COMMIT', function(err: Error | null) {
+                            if (err) {
+                                db.run('ROLLBACK');
+                                res.status(400).json({ error: err.message });
+                                return;
+                            }
+                            res.json({
+                                message: 'Shop updated successfully',
+                                data: { id: shopId }
+                            });
+                        });
+                    } else {
+                        for (const item of items) {
+                            db.run(insertItemSQL, [
+                                shopId,
+                                item.item_id,
+                                item.price,
+                                item.stock || null
+                            ], function(err: Error | null) {
+                                if (err) {
+                                    db.run('ROLLBACK');
+                                    res.status(400).json({ error: err.message });
+                                    return;
+                                }
+
+                                completed++;
+                                if (completed === items.length) {
+                                    // Commit transaction
+                                    db.run('COMMIT', function(err: Error | null) {
+                                        if (err) {
+                                            db.run('ROLLBACK');
+                                            res.status(400).json({ error: err.message });
+                                            return;
+                                        }
+                                        res.json({
+                                            message: 'Shop updated successfully',
+                                            data: { id: shopId }
+                                        });
+                                    });
+                                }
+                            });
+                        }
+                    }
+                });
+            } else {
+                // No items to update, just commit
+                db.run('COMMIT', function(err: Error | null) {
+                    if (err) {
+                        db.run('ROLLBACK');
+                        res.status(400).json({ error: err.message });
+                        return;
+                    }
+                    res.json({
+                        message: 'Shop updated successfully',
+                        data: { id: shopId }
+                    });
+                });
+            }
+        });
+    });
+});
+
+// Get shop details for editing (bypasses accessibility check)
+router.get('/:id/edit', (req: Request, res: Response): void => {
+    const shopId = req.params.id;
+
+    const shopDetailsSql = `
+        SELECT 
+            s.*,
+            r.name as region_name,
+            t.name as terrain_name,
+            l.name as location_name
+        FROM shop s
+        LEFT JOIN region r ON s.region_id = r.id
+        LEFT JOIN terrain t ON s.terrain_id = t.id
+        LEFT JOIN location l ON s.location_id = l.id
+        WHERE s.id = ?
+    `;
+
+    db.get(shopDetailsSql, [shopId], (err: Error | null, shop: any) => {
+        if (err) {
+            res.status(400).json({ error: err.message });
+            return;
+        }
+
+        if (!shop) {
+            res.status(404).json({ error: 'Shop not found' });
+            return;
+        }
+
+        // Get shop items
+        const itemsSql = `
+            SELECT 
+                si.item_id,
+                si.price,
+                si.stock
+            FROM shop_item si
+            WHERE si.shop_id = ?
+        `;
+
+        db.all(itemsSql, [shopId], (err: Error | null, items: any[]) => {
+            if (err) {
+                res.status(400).json({ error: err.message });
+                return;
+            }
+
+            // Enrich items with details from allItems
+            const enrichedItems = items.map(item => {
+                const itemDetails = allItems.find(i => i.id === item.item_id);
+                if (!itemDetails) return null;
+
+                return {
+                    id: item.item_id,
+                    name: itemDetails.name,
+                    description: itemDetails.description,
+                    category: itemDetails.category,
+                    basePrice: itemDetails.buyPrice,
+                    price: item.price,
+                    stock: item.stock,
+                };
+            }).filter(item => item !== null);
+
+            res.json({
+                message: 'success',
+                data: {
+                    ...shop,
+                    items: enrichedItems
+                }
             });
         });
     });

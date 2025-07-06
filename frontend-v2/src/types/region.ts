@@ -1,3 +1,5 @@
+import { Location } from './location';
+
 export interface City {
     id: number;
     name: string;
@@ -12,6 +14,13 @@ export interface GymLeader {
     city_name: string;
 }
 
+// Basic region type used in location editing
+export interface BasicRegion {
+    id: number;
+    name: string;
+}
+
+// Full region type with all details
 export interface Region {
     id: number;
     name: string;
@@ -20,4 +29,5 @@ export interface Region {
     champion: string | null;
     eliteFour: string[];
     gymLeaders: GymLeader[];
-} 
+    locations: Location[];
+}

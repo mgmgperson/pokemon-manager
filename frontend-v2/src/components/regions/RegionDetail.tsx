@@ -7,6 +7,7 @@ import axios from 'axios';
 import RegionLeague from './RegionLeague';
 import RegionMap from './RegionMap';
 import RegionCities from './RegionCities';
+import RegionLocations from './RegionLocations';
 
 const fetchRegion = async (id: string): Promise<Region> => {
     const { data } = await axios.get(`http://localhost:5000/regions/${id}`);
@@ -39,7 +40,7 @@ const RegionDetail: React.FC = () => {
         );
     }
 
-    const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
         setActiveTab(newValue);
     };
 
@@ -63,6 +64,7 @@ const RegionDetail: React.FC = () => {
                     className="text-white"
                 >
                     <Tab label="Cities" className="text-white" />
+                    <Tab label="Locations" className="text-white" />
                     <Tab label="League" className="text-white" />
                     <Tab label="Map" className="text-white" />
                 </Tabs>
@@ -70,19 +72,24 @@ const RegionDetail: React.FC = () => {
 
             <Box className="mt-4">
                 {activeTab === 0 && region && <RegionCities cities={region.cities} />}
-                {activeTab === 1 && region && (
+                {activeTab === 1 && region && <RegionLocations locations={region.locations} />}
+                {activeTab === 2 && region && (
                     <RegionLeague
                         champion={region.champion}
                         eliteFour={region.eliteFour}
                         gymLeaders={region.gymLeaders}
                     />
                 )}
-                {activeTab === 2 && region && (
-                    <RegionMap regionName={region.name} cities={region.cities} />
+                {activeTab === 3 && region && (
+                    <RegionMap 
+                        regionName={region.name} 
+                        cities={region.cities} 
+                        locations={region.locations} 
+                    />
                 )}
             </Box>
         </Box>
     );
 };
 
-export default RegionDetail; 
+export default RegionDetail;

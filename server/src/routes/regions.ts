@@ -37,6 +37,15 @@ router.get('/:id', (req: Request, res: Response) => {
     WHERE r.id = ?
     ORDER BY c.population DESC
   `;
+  const sqlLocations = `
+    SELECT l.*,
+           GROUP_CONCAT(DISTINCT t.name) as terrain_types
+    FROM location l
+    LEFT JOIN location_terrain lt ON l.id = lt.location_id
+    LEFT JOIN terrain t ON lt.terrain_id = t.id
+    WHERE l.region_id = ?
+    GROUP BY l.id
+  `;
   const sqlChampion = `
     SELECT t.fname, t.lname
     FROM champion ch
@@ -64,45 +73,60 @@ router.get('/:id', (req: Request, res: Response) => {
     if (!regionRows || regionRows.length === 0) {
       return res.status(404).json({ message: 'Region not found' });
     }
-    db.get(sqlChampion, [regionId], (err2: Error | null, championRow: any) => {
+    
+    db.all(sqlLocations, [regionId], (err2: Error | null, locationRows: any[]) => {
       if (err2) {
         return res.status(400).json({ error: err2.message });
       }
-      db.all(sqlEliteFour, [regionId], (err3: Error | null, eliteFourRows: any[]) => {
+
+      // Process locations data
+      const processedLocations = locationRows.map(loc => ({
+        ...loc,
+        terrain_types: loc.terrain_types ? loc.terrain_types.split(',') : [],
+        area_coordinates: loc.area_coordinates ? JSON.parse(loc.area_coordinates) : null
+      }));
+
+      db.get(sqlChampion, [regionId], (err3: Error | null, championRow: any) => {
         if (err3) {
           return res.status(400).json({ error: err3.message });
         }
-        db.all(sqlGymLeaders, [regionId], (err4: Error | null, gymLeaderRows: any[]) => {
+        db.all(sqlEliteFour, [regionId], (err4: Error | null, eliteFourRows: any[]) => {
           if (err4) {
             return res.status(400).json({ error: err4.message });
           }
+          db.all(sqlGymLeaders, [regionId], (err5: Error | null, gymLeaderRows: any[]) => {
+            if (err5) {
+              return res.status(400).json({ error: err5.message });
+            }
 
-          const region = {
-            name: regionRows[0].region_name,
-            population: regionRows[0].region_population,
-            cities: regionRows.map((row) => ({
-              id: row.city_id,
-              name: row.city_name,
-              population: row.city_population,
-              x_coordinate: row.x_coordinate,
-              y_coordinate: row.y_coordinate
-            })),
-            champion: championRow
-              ? `${championRow.fname} ${championRow.lname || ''}`
-              : null,
-            eliteFour: eliteFourRows.map(
-              (row) => `${row.fname} ${row.lname || ''}`
-            ),
-            gymLeaders: gymLeaderRows.map((row) => ({
-              name: `${row.fname} ${row.lname || ''}`,
-              type: row.type,
-              city_name: row.city_name
-            })),
-          };
+            const region = {
+              name: regionRows[0].region_name,
+              population: regionRows[0].region_population,
+              cities: regionRows.map((row) => ({
+                id: row.city_id,
+                name: row.city_name,
+                population: row.city_population,
+                x_coordinate: row.x_coordinate,
+                y_coordinate: row.y_coordinate
+              })),
+              locations: processedLocations,
+              champion: championRow
+                ? `${championRow.fname} ${championRow.lname || ''}`
+                : null,
+              eliteFour: eliteFourRows.map(
+                (row) => `${row.fname} ${row.lname || ''}`
+              ),
+              gymLeaders: gymLeaderRows.map((row) => ({
+                name: `${row.fname} ${row.lname || ''}`,
+                type: row.type,
+                city_name: row.city_name
+              })),
+            };
 
-          return res.json({
-            message: 'success',
-            data: region,
+            return res.json({
+              message: 'success',
+              data: region,
+            });
           });
         });
       });

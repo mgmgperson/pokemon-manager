@@ -135,6 +135,14 @@ const ShopDetail: React.FC = () => {
                     </Typography>
                 </Box>
                 <Box className="flex items-center gap-4">
+                    <Button
+                        variant="outlined"
+                        onClick={() => navigate(`/edit_shop/${id}`)}
+                        className="text-white border-gray-600 hover:border-gray-400"
+                        size="small"
+                    >
+                        Edit Shop
+                    </Button>
                     <Typography variant="h6" className="text-white">
                         Balance: <span className="text-green-400">₽{financeData?.balance.toLocaleString() ?? 0}</span>
                     </Typography>

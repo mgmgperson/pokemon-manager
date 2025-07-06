@@ -6,6 +6,7 @@ dotenv.config();
 import trainerRoutes from './routes/trainers';
 import regionRoutes from './routes/regions';
 import cityRoutes from './routes/cities';
+import locationRoutes from './routes/locations';
 import leagueRoutes from './routes/league';
 import pokemonRoutes from './routes/pokemon';
 import apiRoutes from './routes/api';
@@ -15,6 +16,7 @@ import messageRoutes from './routes/messages';
 import itemRoutes from './routes/items';
 import financeRoutes from './routes/finances';
 import shopRoutes from './routes/shops';
+import terrainRoutes from './routes/terrains';
 
 const app: Application = express();
 const PORT = process.env.PORT || 5000;
@@ -26,6 +28,7 @@ app.use(express.json());
 app.use('/trainers', trainerRoutes);
 app.use('/regions', regionRoutes);
 app.use('/cities', cityRoutes);
+app.use('/locations', locationRoutes);
 app.use('/league', leagueRoutes);
 app.use('/pokemon', pokemonRoutes);
 app.use('/api', apiRoutes);
@@ -35,6 +38,7 @@ app.use('/messages', messageRoutes);
 app.use('/items', itemRoutes);
 app.use('/finances', financeRoutes);
 app.use('/shops', shopRoutes);
+app.use('/terrains', terrainRoutes);
 
 // Start the server
 app.listen(PORT, () => {

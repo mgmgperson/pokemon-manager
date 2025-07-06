@@ -130,7 +130,9 @@ router.post('/sell', (req: Request, res: Response) => {
                         trainer_id, amount, description, date, category
                     ) VALUES (
                         (SELECT active_trainer_id FROM game_state),
-                        ?, ?, datetime('now'), 'sale'
+                        ?, ?, 
+                        (SELECT current_date || ' ' || current_time FROM game_state), 
+                        'sale'
                     )
                 `;
 
@@ -184,6 +186,24 @@ router.post('/sell', (req: Request, res: Response) => {
                 });
             });
         });
+    });
+});
+
+// Get all available items
+router.get('/all', (req: Request, res: Response): void => {
+    // Return all items from the imported data
+    const items = allItems.map(item => ({
+        id: item.id,
+        name: item.name,
+        description: item.description,
+        category: item.category,
+        buyPrice: item.buyPrice,
+        sellPrice: item.sellPrice
+    }));
+
+    res.json({
+        message: 'success',
+        data: items
     });
 });
 

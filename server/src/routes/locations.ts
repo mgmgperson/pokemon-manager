@@ -1,0 +1,453 @@
+import { Router, Request, Response } from 'express';
+import sqlite3 from 'sqlite3';
+const { Database } = sqlite3.verbose();
+
+const router: Router = Router();
+
+const db = new Database('../database/db.sqlite', (err: Error | null) => {
+    if (err) {
+        console.error('Error opening database:', err.message);
+    }
+});
+
+// Get all locations (optionally filtered by region)
+router.get('/', (req: Request, res: Response) => {
+    const regionId = req.query.region_id;
+    
+    let sql = `
+        SELECT l.*,
+               r.name as region_name,
+               pl.name as parent_location_name,
+               GROUP_CONCAT(DISTINCT t.name) as terrain_types
+        FROM location l
+        LEFT JOIN region r ON l.region_id = r.id
+        LEFT JOIN location pl ON l.parent_location_id = pl.id
+        LEFT JOIN location_terrain lt ON l.id = lt.location_id
+        LEFT JOIN terrain t ON lt.terrain_id = t.id
+    `;
+
+    const params: any[] = [];
+    if (regionId) {
+        sql += ' WHERE l.region_id = ?';
+        params.push(regionId);
+    }
+
+    sql += ' GROUP BY l.id';
+
+    db.all(sql, params, (err: Error | null, rows: any[]) => {
+        if (err) {
+            return res.status(400).json({ error: err.message });
+        }
+
+        // Process terrain_types into arrays
+        const processedRows = rows.map(row => ({
+            ...row,
+            terrain_types: row.terrain_types ? row.terrain_types.split(',') : [],
+            area_coordinates: row.area_coordinates ? JSON.parse(row.area_coordinates) : null
+        }));
+
+        return res.json({
+            message: 'success',
+            data: processedRows
+        });
+    });
+});
+
+// Create a new location
+router.post('/', (req: Request, res: Response): void => {
+    const {
+        name,
+        region_id,
+        description,
+        population,
+        area_coordinates,
+        travel_time,
+        parent_location_id,
+        accessibility
+    } = req.body;
+
+    // Validate required fields
+    if (!name || !region_id) {
+        res.status(400).json({ error: 'Name and region_id are required' });
+        return;
+    }
+
+    const insertLocationSQL = `
+        INSERT INTO location (
+            name,
+            region_id,
+            description,
+            population,
+            area_coordinates,
+            travel_time,
+            parent_location_id,
+            accessibility
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+
+    db.run(insertLocationSQL, [
+        name,
+        region_id,
+        description || null,
+        population || null,
+        JSON.stringify(area_coordinates) || '[]',
+        travel_time || 1,
+        parent_location_id || null,
+        accessibility || 1
+    ], function(err: Error | null) {
+        if (err) {
+            res.status(400).json({ error: err.message });
+            return;
+        }
+        
+        res.json({
+            message: 'Location created successfully',
+            data: { 
+                id: this.lastID,
+                name,
+                region_id,
+                description,
+                population,
+                area_coordinates,
+                travel_time: travel_time || 1,
+                parent_location_id,
+                accessibility: accessibility || 1
+            }
+        });
+    });
+});
+
+// Get a specific location by ID
+router.get('/:id', (req: Request, res: Response) => {
+    const locationId = req.params.id;
+
+    const sqlLocation = `
+        SELECT l.*,
+               r.name as region_name,
+               pl.name as parent_location_name,
+               GROUP_CONCAT(DISTINCT t.name) as terrain_types,
+               (
+                   SELECT GROUP_CONCAT(sl.name)
+                   FROM location sl
+                   WHERE sl.parent_location_id = l.id
+               ) as sub_locations
+        FROM location l
+        LEFT JOIN region r ON l.region_id = r.id
+        LEFT JOIN location pl ON l.parent_location_id = pl.id
+        LEFT JOIN location_terrain lt ON l.id = lt.location_id
+        LEFT JOIN terrain t ON lt.terrain_id = t.id
+        WHERE l.id = ?
+        GROUP BY l.id
+    `;
+
+    const terrainsSql = `
+        SELECT 
+            t.id as terrain_id,
+            t.name,
+            t.code,
+            t.description,
+            lt.rate,
+            lt.field_id
+        FROM location_terrain lt
+        JOIN terrain t ON lt.terrain_id = t.id
+        WHERE lt.location_id = ?
+    `;
+
+    const shopsSql = `
+        WITH location_info AS (
+            SELECT 
+                l.id as location_id,
+                l.region_id,
+                COALESCE(
+                    json_group_array(DISTINCT lt.terrain_id),
+                    '[]'
+                ) as terrain_ids
+            FROM location l
+            LEFT JOIN location_terrain lt ON l.id = lt.location_id
+            WHERE l.id = ?
+            GROUP BY l.id
+        )
+        SELECT DISTINCT
+            s.*,
+            CASE 
+                WHEN s.scope = 'special' THEN 'Location-specific'
+                WHEN s.scope = 'regional' THEN 'Regional'
+            END as shop_type
+        FROM shop s
+        JOIN location_info li
+        WHERE 
+            (s.scope = 'special' AND s.location_id = li.location_id)
+            OR
+            (s.scope = 'regional' AND s.region_id = li.region_id AND s.terrain_id IN (
+                SELECT value 
+                FROM json_each(li.terrain_ids)
+                WHERE value IS NOT NULL
+            ))
+    `;
+
+    db.get(sqlLocation, [locationId], (err: Error | null, location: any) => {
+        if (err) {
+            return res.status(400).json({ error: err.message });
+        }
+
+        if (!location) {
+            return res.status(404).json({ message: 'Location not found' });
+        }
+
+        // Process arrays and JSON fields
+        location.terrain_types = location.terrain_types ? location.terrain_types.split(',') : [];
+        location.sub_locations = location.sub_locations ? location.sub_locations.split(',') : [];
+        location.area_coordinates = location.area_coordinates ? JSON.parse(location.area_coordinates) : [];
+
+        // Get terrains for this location
+        db.all(terrainsSql, [locationId], (err: Error | null, terrains: any[]) => {
+            if (err) {
+                return res.status(400).json({ error: err.message });
+            }
+
+            location.terrains = terrains;
+
+            // Get shops in this location
+            db.all(shopsSql, [locationId], (err: Error | null, shops: any[]) => {
+                if (err) {
+                    return res.status(400).json({ error: err.message });
+                }
+
+                location.shops = shops;
+
+                return res.json({
+                    message: 'success',
+                    data: location
+                });
+            });
+        });
+    });
+});
+
+// Get all sub-locations for a location
+router.get('/:id/sub-locations', (req: Request, res: Response) => {
+    const locationId = req.params.id;
+
+    const sql = `
+        SELECT l.*,
+               GROUP_CONCAT(DISTINCT t.name) as terrain_types
+        FROM location l
+        LEFT JOIN location_terrain lt ON l.id = lt.location_id
+        LEFT JOIN terrain t ON lt.terrain_id = t.id
+        WHERE l.parent_location_id = ?
+        GROUP BY l.id
+    `;
+
+    db.all(sql, [locationId], (err: Error | null, rows: any[]) => {
+        if (err) {
+            return res.status(400).json({ error: err.message });
+        }
+
+        // Process terrain_types and area_coordinates for each sub-location
+        const processedRows = rows.map(row => ({
+            ...row,
+            terrain_types: row.terrain_types ? row.terrain_types.split(',') : [],
+            area_coordinates: row.area_coordinates ? JSON.parse(row.area_coordinates) : null
+        }));
+
+        return res.json({
+            message: 'success',
+            data: processedRows
+        });
+    });
+});
+
+// Update a location by ID
+router.put('/:id', (req: Request, res: Response) => {
+    const locationId = req.params.id;
+    const {
+        name,
+        region_id,
+        description,
+        population,
+        area_coordinates,
+        travel_time,
+        parent_location_id,
+        accessibility,
+        terrains
+    } = req.body;
+
+    db.serialize(() => {
+        db.run('BEGIN TRANSACTION');
+
+        // Update location data
+        const updateLocationSQL = `
+            UPDATE location
+            SET name = ?,
+                region_id = ?,
+                description = ?,
+                population = ?,
+                area_coordinates = ?,
+                travel_time = ?,
+                parent_location_id = ?,
+                accessibility = ?
+            WHERE id = ?
+        `;
+
+        db.run(updateLocationSQL, [
+            name,
+            region_id,
+            description,
+            population,
+            JSON.stringify(area_coordinates),
+            travel_time,
+            parent_location_id,
+            accessibility,
+            locationId
+        ], function(err: Error | null) {
+            if (err) {
+                db.run('ROLLBACK');
+                return res.status(400).json({ error: err.message });
+            }
+
+            // Handle terrains
+            if (terrains && Array.isArray(terrains)) {
+                // First, delete existing terrains for this location
+                db.run('DELETE FROM location_terrain WHERE location_id = ?', [locationId], function(err: Error | null) {
+                    if (err) {
+                        db.run('ROLLBACK');
+                        return res.status(400).json({ error: err.message });
+                    }
+
+                    // Insert new terrains
+                    const insertTerrainSQL = 'INSERT INTO location_terrain (location_id, terrain_id, rate, field_id) VALUES (?, ?, ?, ?)';
+                    
+                    for (const terrain of terrains) {
+                        db.run(insertTerrainSQL, [
+                            locationId,
+                            terrain.terrain_id,
+                            terrain.rate,
+                            terrain.field_id || null
+                        ], function(err: Error | null) {
+                            if (err) {
+                                db.run('ROLLBACK');
+                                return res.status(400).json({ error: err.message });
+                            }
+                        });
+                    }
+                });
+            }
+
+            // Commit transaction
+            db.run('COMMIT', function(err: Error | null) {
+                if (err) {
+                    db.run('ROLLBACK');
+                    return res.status(400).json({ error: err.message });
+                }
+                return res.json({
+                    message: 'Location updated successfully',
+                    data: { id: locationId }
+                });
+            });
+        });
+    });
+});
+
+// Create a new location
+router.post('/', (req: Request, res: Response) => {
+    const {
+        name,
+        region_id,
+        description,
+        population,
+        area_coordinates,
+        travel_time,
+        parent_location_id,
+        accessibility,
+        terrains
+    } = req.body;
+
+    db.serialize(() => {
+        db.run('BEGIN TRANSACTION');
+
+        // Insert location data
+        const insertLocationSQL = `
+            INSERT INTO location (
+                name,
+                region_id,
+                description,
+                population,
+                area_coordinates,
+                travel_time,
+                parent_location_id,
+                accessibility
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        `;
+
+        db.run(insertLocationSQL, [
+            name,
+            region_id,
+            description,
+            population,
+            JSON.stringify(area_coordinates),
+            travel_time,
+            parent_location_id,
+            accessibility
+        ], function(err: Error | null) {
+            if (err) {
+                db.run('ROLLBACK');
+                return res.status(400).json({ error: err.message });
+            }
+
+            const locationId = this.lastID;
+
+            // Handle terrains
+            if (terrains && Array.isArray(terrains)) {
+                const insertTerrainSQL = `
+                    INSERT INTO location_terrain (location_id, terrain_id, rate, field_id)
+                    VALUES (?, ?, ?, ?)
+                `;
+
+                for (const terrain of terrains) {
+                    db.run(insertTerrainSQL, [
+                        locationId,
+                        terrain.terrain_id,
+                        terrain.rate,
+                        terrain.field_id
+                    ], (err: Error | null) => {
+                        if (err) {
+                            db.run('ROLLBACK');
+                            return res.status(400).json({ error: err.message });
+                        }
+                    });
+                }
+            }
+
+            // Commit transaction
+            db.run('COMMIT', function(err: Error | null) {
+                if (err) {
+                    db.run('ROLLBACK');
+                    return res.status(400).json({ error: err.message });
+                }
+                return res.json({
+                    message: 'success',
+                    data: { id: locationId }
+                });
+            });
+        });
+    });
+});
+
+// Get all terrains
+router.get('/terrains/all', (req: Request, res: Response) => {
+    const sql = 'SELECT * FROM terrain ORDER BY name';
+    
+    db.all(sql, [], (err: Error | null, rows: any[]) => {
+        if (err) {
+            return res.status(400).json({ error: err.message });
+        }
+        return res.json({
+            message: 'success',
+            data: rows
+        });
+    });
+});
+
+export default router;
