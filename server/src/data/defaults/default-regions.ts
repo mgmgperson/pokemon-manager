@@ -34,7 +34,7 @@ export const defaultRegions: Region[] = [
     {
         id: 1,
         name: "Kanto",
-        population: 103395492
+        population: 104650451
     },
     {
         id: 2,

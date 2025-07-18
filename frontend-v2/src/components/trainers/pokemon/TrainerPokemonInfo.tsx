@@ -4,43 +4,43 @@ import axios from 'axios';
 import { Box, Typography } from '@mui/material';
 import { Link } from 'react-router-dom';
 import TypeBadge from '../../TypeBadge';
-import { Pokemon, PokemonSpecies, Type, Nature } from '../../../types/pokemon';
+import { Pokemon, PokemonEntity, PokemonSpeciesData, NatureData } from '../../../types/pokemon';
 
 interface TrainerPokemonInfoProps {
     pokemon: Pokemon;
 }
 
-const fetchPokemonSpecies = async (speciesId: number): Promise<PokemonSpecies> => {
-    const { data } = await axios.get(`https://pokeapi.co/api/v2/pokemon-species/${speciesId}`);
-    return data;
+const fetchPokemonEntity = async (pokemonId: number): Promise<PokemonEntity> => {
+    const { data } = await axios.get(`http://localhost:5000/pokemon-entity/${pokemonId}`);
+    return data.data;
 };
 
-const fetchPokemonTypes = async (pokemonId: number): Promise<Type[]> => {
-    const { data } = await axios.get(`https://pokeapi.co/api/v2/pokemon/${pokemonId}`);
-    return data.types;
+const fetchPokemonSpecies = async (speciesId: number): Promise<PokemonSpeciesData> => {
+    const { data } = await axios.get(`http://localhost:5000/pokemon-species/${speciesId}`);
+    return data.data;
 };
 
-const fetchPokemonNature = async (natureId: number): Promise<Nature> => {
-    const { data } = await axios.get(`https://pokeapi.co/api/v2/nature/${natureId}`);
-    return data;
+const fetchPokemonNature = async (natureId: number): Promise<NatureData> => {
+    const { data } = await axios.get(`http://localhost:5000/natures/${natureId}`);
+    return data.data;
 };
 
 const TrainerPokemonInfo: React.FC<TrainerPokemonInfoProps> = ({ pokemon }) => {
     const [speciesName, setSpeciesName] = useState<string>('');
-    const [types, setTypes] = useState<Type[]>([]);
+    const [types, setTypes] = useState<string[]>([]);
     const [natureName, setNatureName] = useState<string | null>(null);
 
-    const { data: speciesData, isLoading: isSpeciesLoading } = useQuery<PokemonSpecies>({
+    const { data: pokemonEntityData, isLoading: isPokemonEntityLoading } = useQuery<PokemonEntity>({
+        queryKey: ['pokemonEntity', pokemon.pokemon_id],
+        queryFn: () => fetchPokemonEntity(pokemon.pokemon_id),
+    });
+
+    const { data: speciesData, isLoading: isSpeciesLoading } = useQuery<PokemonSpeciesData>({
         queryKey: ['pokemonSpecies', pokemon.species_id],
         queryFn: () => fetchPokemonSpecies(pokemon.species_id),
     });
 
-    const { data: typesData, isLoading: isTypesLoading } = useQuery<Type[]>({
-        queryKey: ['pokemonTypes', pokemon.pokemon_id],
-        queryFn: () => fetchPokemonTypes(pokemon.pokemon_id),
-    });
-
-    const { data: natureData, isLoading: isNatureLoading } = useQuery<Nature | null>({
+    const { data: natureData, isLoading: isNatureLoading } = useQuery<NatureData | null>({
         queryKey: ['pokemonNature', pokemon.nature_id],
         queryFn: () => (pokemon.nature_id ? fetchPokemonNature(pokemon.nature_id) : Promise.resolve(null)),
         enabled: !!pokemon.nature_id,
@@ -53,10 +53,10 @@ const TrainerPokemonInfo: React.FC<TrainerPokemonInfoProps> = ({ pokemon }) => {
     }, [speciesData]);
 
     useEffect(() => {
-        if (typesData) {
-            setTypes(typesData);
+        if (pokemonEntityData) {
+            setTypes(pokemonEntityData.types);
         }
-    }, [typesData]);
+    }, [pokemonEntityData]);
 
     useEffect(() => {
         if (natureData) {
@@ -64,7 +64,7 @@ const TrainerPokemonInfo: React.FC<TrainerPokemonInfoProps> = ({ pokemon }) => {
         }
     }, [natureData]);
 
-    if (isSpeciesLoading || isTypesLoading || isNatureLoading) {
+    if (isSpeciesLoading || isPokemonEntityLoading || isNatureLoading) {
         return (
             <Box className="!flex !justify-center !items-center !h-full">
                 <Typography variant="h6" className="!text-white">
@@ -95,8 +95,8 @@ const TrainerPokemonInfo: React.FC<TrainerPokemonInfoProps> = ({ pokemon }) => {
                             </Link>
                         </Typography>
                         <Box className="!flex !gap-2 !mt-2">
-                            {types.map((type, idx) => (
-                                <TypeBadge key={idx} type={type.type.name} />
+                            {types.map((type: string, idx: number) => (
+                                <TypeBadge key={idx} type={type.toLowerCase()} />
                             ))}
                         </Box>
                     </Box>

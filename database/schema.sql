@@ -41,11 +41,12 @@ CREATE TABLE region_name_frequency (
 CREATE TABLE gym_leader (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     trainer_id INTEGER NOT NULL,
-    badge TEXT,
+    badge INTEGER NOT NULL,
     city_id INTEGER NOT NULL,
     type TEXT,
     FOREIGN KEY (city_id) REFERENCES city(id),
-    FOREIGN KEY (trainer_id) REFERENCES trainer(id)
+    FOREIGN KEY (trainer_id) REFERENCES trainer(id),
+    FOREIGN KEY (badge) REFERENCES badge(id)
 );
 
 CREATE TABLE elite_four (
@@ -483,4 +484,179 @@ CREATE TABLE shop_item (
 
 CREATE TABLE travel_log (
     
+);
+
+CREATE TABLE tournament_template (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    description TEXT,
+    region_id INTEGER,                 -- NULL ⇒ global
+    frequency TEXT CHECK (             -- for auto‑scheduling
+        frequency IN ('one_off','annual','biennial','seasonal','monthly')
+    ) DEFAULT 'one_off',
+    start_month INTEGER,               -- e.g. 6 = June Conference
+    team_type TEXT CHECK (             -- singles, teams of 2‑6, leagues, etc.
+        team_type IN ('single','team')
+    ) DEFAULT 'single',
+    default_rule_set_id INTEGER,       -- FK below
+    created_by_user_id INTEGER,        -- if players design their own
+
+    FOREIGN KEY (region_id) REFERENCES region(id),
+    FOREIGN KEY (default_rule_set_id) REFERENCES rule_set(id)
+);
+
+/* A concrete running instance (eg. 2027 Kanto Conference). */
+CREATE TABLE tournament_event (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    template_id INTEGER NOT NULL,
+    edition_label TEXT,                -- "152nd Indigo Conference"
+    start_date TEXT,
+    end_date   TEXT,
+    status TEXT CHECK(
+        status IN ('scheduled','ongoing','completed','canceled')
+    ) DEFAULT 'scheduled',
+    FOREIGN KEY (template_id) REFERENCES tournament_template(id)
+);
+
+CREATE TABLE rule_set (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT,                         -- "Standard Singles No‑Legend"
+    notes TEXT
+);
+
+
+CREATE TABLE rule (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    rule_set_id INTEGER NOT NULL,
+    key TEXT NOT NULL,       -- e.g. 'battle_format', 'allow_legendary'
+    value TEXT NOT NULL,     -- store as TEXT, cast as needed
+    FOREIGN KEY (rule_set_id) REFERENCES rule_set(id)
+);
+/*  example rows:
+    (rule_set_id=7,'battle_format','singles')
+    (rule_set_id=7,'double_elimination','false')
+    (rule_set_id=7,'allow_legendary','false')
+    (rule_set_id=7,'field_policy','neutral_only')
+    (rule_set_id=7,'max_team_size','6')
+    (rule_set_id=7,'max_pokemon_level','100')
+    (rule_set_id=7,'seeded','true')
+*/
+
+CREATE TABLE stage_template (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    tournament_template_id INTEGER NOT NULL,
+    seq INTEGER NOT NULL,              -- 1,2,3… order
+    stage_type TEXT CHECK (
+        stage_type IN ('round_robin','group','single_elim','double_elim','swiss')
+    ),
+    participants INTEGER,              -- expected entrants or NULL = auto
+    groups INTEGER,                    -- for group stage
+    best_of INTEGER DEFAULT 1,         -- Bo1, Bo3, Bo9…
+    rule_set_id INTEGER,               -- override / additive rules
+    FOREIGN KEY (tournament_template_id) REFERENCES tournament_template(id),
+    FOREIGN KEY (rule_set_id) REFERENCES rule_set(id)
+);
+
+/* For the live event → expanded from stage_template. */
+CREATE TABLE stage_event (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    tournament_event_id INTEGER NOT NULL,
+    stage_template_id INTEGER NOT NULL,
+    status TEXT CHECK(status IN ('pending','running','complete')) DEFAULT 'pending',
+    FOREIGN KEY (tournament_event_id) REFERENCES tournament_event(id),
+    FOREIGN KEY (stage_template_id)   REFERENCES stage_template(id)
+);
+
+CREATE TABLE qualification_rule (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    tournament_template_id INTEGER NOT NULL,
+    criterion_type TEXT CHECK (
+        criterion_type IN ('badge','badge_count','min_rating','previous_winner','invite_only')
+    ),
+    value TEXT,      -- e.g. '8', '1500', '<other_tournament_id>'
+    notes TEXT,
+    FOREIGN KEY (tournament_template_id) REFERENCES tournament_template(id)
+);
+
+CREATE TABLE prize (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    tournament_template_id INTEGER NOT NULL,
+    position INTEGER NOT NULL,         -- 1 = Champion, 2 = Runner‑up …
+    prize_type TEXT CHECK (
+        prize_type IN ('cash','item','tournament_ticket','title','badge','custom')
+    ),
+    value TEXT,        -- json or simple ID (item_id, tournament_template_id)
+    FOREIGN KEY (tournament_template_id) REFERENCES tournament_template(id)
+);
+
+/* Represents a participant in a tournament */
+CREATE TABLE tournament_participant (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    stage_event_id INTEGER NOT NULL,
+    seed INTEGER,
+    FOREIGN KEY (stage_event_id) REFERENCES stage_event(id)
+);
+
+/* Represents a team member in a tournament, teams can have only 1 member representing a "participant" */
+CREATE TABLE team_member (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    participant_id INTEGER NOT NULL,
+    trainer_id INTEGER NOT NULL,
+    FOREIGN KEY (participant_id) REFERENCES tournament_participant(id),
+    FOREIGN KEY (trainer_id)     REFERENCES trainer(id)
+);
+
+CREATE TABLE pokemon_registration (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    team_member_id INTEGER NOT NULL,
+    pokemon_id INTEGER NOT NULL,
+    FOREIGN KEY (team_member_id) REFERENCES team_member(id),
+    FOREIGN KEY (pokemon_id)     REFERENCES pokemon(id)
+);
+
+CREATE TABLE match (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    stage_event_id INTEGER NOT NULL,
+    round INTEGER,
+    participant_a_id INTEGER NOT NULL,
+    participant_b_id INTEGER NOT NULL,
+    stadium_id INTEGER,                  
+    winner_id INTEGER,                    -- NULL until finished
+    scheduled_at TEXT,
+    field_id INTEGER,                     -- which battle field to load
+    FOREIGN KEY (stage_event_id)     REFERENCES stage_event(id),
+    FOREIGN KEY (participant_a_id)   REFERENCES tournament_participant(id),
+    FOREIGN KEY (participant_b_id)   REFERENCES tournament_participant(id),
+    FOREIGN KEY (winner_id)          REFERENCES tournament_participant(id),
+    FOREIGN KEY (field_id)           REFERENCES field(id),
+    FOREIGN KEY (stadium_id)        REFERENCES stadium(id)
+);
+
+CREATE TABLE badge (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    code TEXT UNIQUE NOT NULL,     -- canonical slug, e.g. 'cascade_badge', 'indigo_conf_winner'
+    name TEXT NOT NULL,            -- display name
+    category TEXT NOT NULL CHECK (
+        category IN ('gym','tournament','conference','league','honor','custom')
+    ),
+    region_id INTEGER,             -- NULL if global
+    image TEXT,                    -- path / asset key
+    description TEXT,
+    tournament_template_id INTEGER,
+
+    FOREIGN KEY (region_id)              REFERENCES region(id),
+    FOREIGN KEY (tournament_template_id) REFERENCES tournament_template(id)
+);
+
+CREATE TABLE trainer_badge (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    trainer_id INTEGER NOT NULL,
+    badge_id   INTEGER NOT NULL,
+    awarded_at TEXT NOT NULL DEFAULT (datetime('now')),
+    source_event_id INTEGER,       -- e.g. tournament_event.id where awarded; NULL if static grant
+    notes TEXT,
+
+    FOREIGN KEY (trainer_id)      REFERENCES trainer(id),
+    FOREIGN KEY (badge_id)        REFERENCES badge(id),
+    FOREIGN KEY (source_event_id) REFERENCES tournament_event(id)
 );

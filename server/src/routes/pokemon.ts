@@ -55,6 +55,8 @@ router.put('/:id', (req: Request, res: Response) => {
     training_efficiency
   } = req.body;
 
+  console.log('Updating body:', req.body);
+
   const sqlUpdatePokemon = `
     UPDATE pokemon
     SET species_id = ?, pokemon_id = ?, level = ?, 

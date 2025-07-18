@@ -29,6 +29,7 @@ interface BasicRegion {
 interface BasicLocation {
     id: number;
     name: string;
+    area_coordinates?: string;
 }
 
 const fetchRegions = async (): Promise<BasicRegion[]> => {
@@ -38,6 +39,11 @@ const fetchRegions = async (): Promise<BasicRegion[]> => {
 
 const fetchLocations = async (): Promise<BasicLocation[]> => {
     const { data } = await axios.get('http://localhost:5000/locations');
+    return data.data;
+};
+
+const fetchLocationsByRegion = async (regionId: string): Promise<BasicLocation[]> => {
+    const { data } = await axios.get(`http://localhost:5000/locations?region_id=${regionId}`);
     return data.data;
 };
 
@@ -74,6 +80,13 @@ const AddLocation: React.FC = () => {
     const { data: locationsData, isLoading: isLocationsLoading } = useQuery({
         queryKey: ['locations'],
         queryFn: fetchLocations,
+    });
+
+    // Query for locations in the selected region (for map context)
+    const { data: regionLocationsData } = useQuery({
+        queryKey: ['regionLocations', formData.region_id],
+        queryFn: () => fetchLocationsByRegion(formData.region_id),
+        enabled: !!formData.region_id,
     });
 
     // Mutation for adding location
@@ -350,6 +363,11 @@ const AddLocation: React.FC = () => {
                     <Box className="p-4 relative">
                         <Typography variant="body2" className="mb-4 text-gray-300">
                             Click on the map to add coordinate points for the location area.
+                            {regionLocationsData && regionLocationsData.length > 0 && (
+                                <span className="block mt-1 text-gray-400 text-sm">
+                                    Red polygons show other locations in this region for context.
+                                </span>
+                            )}
                         </Typography>
                         {currentRegion ? (
                             <Box 
@@ -363,14 +381,43 @@ const AddLocation: React.FC = () => {
                                     onLoad={handleImageLoad}
                                 />
                                 
+                                {/* Render other locations in the region as static polygons */}
+                                {regionLocationsData && imageDimensions && (
+                                    <svg 
+                                        className="absolute top-0 left-0 pointer-events-none"
+                                        style={{ zIndex: 0 }}
+                                        width={imageDimensions.width}
+                                        height={imageDimensions.height}
+                                    >
+                                        {regionLocationsData.map((location) => {
+                                            const locationCoords = safeJsonParse(location.area_coordinates, []);
+                                            if (locationCoords.length < 3) return null;
+                                            
+                                            const points = locationCoords.map(([y, x]: [number, number]) => 
+                                                `${x * imageDimensions.width},${(1 - y) * imageDimensions.height}`
+                                            ).join(' ');
+                                            
+                                            return (
+                                                <polygon
+                                                    key={`context-${location.id}`}
+                                                    points={points}
+                                                    fill="rgba(239, 68, 68, 0.3)"
+                                                    stroke="rgba(239, 68, 68, 0.6)"
+                                                    strokeWidth="1"
+                                                />
+                                            );
+                                        })}
+                                    </svg>
+                                )}
+                                
                                 {/* Render coordinate points */}
-                                {coordinates.map((coord: [number, number], index: number) => (
+                                {imageDimensions && coordinates.map((coord: [number, number], index: number) => (
                                     <Box
                                         key={index}
                                         className="absolute w-4 h-4 bg-blue-500 border-2 border-white rounded-full transform -translate-x-1/2 -translate-y-1/2 cursor-pointer hover:bg-blue-600"
                                         style={{
-                                            left: `${coord[1] * 100}%`,
-                                            top: `${(1 - coord[0]) * 100}%`
+                                            left: `${coord[1] * imageDimensions.width}px`,
+                                            top: `${(1 - coord[0]) * imageDimensions.height}px`
                                         }}
                                         onClick={(e) => {
                                             e.stopPropagation();
@@ -381,10 +428,12 @@ const AddLocation: React.FC = () => {
                                 ))}
                                 
                                 {/* Draw lines between points if we have more than 1 */}
-                                {coordinates.length > 1 && (
+                                {coordinates.length > 1 && imageDimensions && (
                                     <svg 
                                         className="absolute inset-0 w-full h-full pointer-events-none"
-                                        style={{ zIndex: 1 }}
+                                        style={{ zIndex: 2 }}
+                                        width={imageDimensions.width}
+                                        height={imageDimensions.height}
                                     >
                                         {coordinates.map((coord: [number, number], index: number) => {
                                             if (index === coordinates.length - 1) return null;
@@ -392,10 +441,10 @@ const AddLocation: React.FC = () => {
                                             return (
                                                 <line
                                                     key={index}
-                                                    x1={`${coord[1] * 100}%`}
-                                                    y1={`${(1 - coord[0]) * 100}%`}
-                                                    x2={`${nextCoord[1] * 100}%`}
-                                                    y2={`${(1 - nextCoord[0]) * 100}%`}
+                                                    x1={coord[1] * imageDimensions.width}
+                                                    y1={(1 - coord[0]) * imageDimensions.height}
+                                                    x2={nextCoord[1] * imageDimensions.width}
+                                                    y2={(1 - nextCoord[0]) * imageDimensions.height}
                                                     stroke="rgba(59, 130, 246, 0.8)"
                                                     strokeWidth="2"
                                                 />
@@ -404,10 +453,10 @@ const AddLocation: React.FC = () => {
                                         {/* Close the polygon if we have 3+ points */}
                                         {coordinates.length >= 3 && (
                                             <line
-                                                x1={`${coordinates[coordinates.length - 1][1] * 100}%`}
-                                                y1={`${(1 - coordinates[coordinates.length - 1][0]) * 100}%`}
-                                                x2={`${coordinates[0][1] * 100}%`}
-                                                y2={`${(1 - coordinates[0][0]) * 100}%`}
+                                                x1={coordinates[coordinates.length - 1][1] * imageDimensions.width}
+                                                y1={(1 - coordinates[coordinates.length - 1][0]) * imageDimensions.height}
+                                                x2={coordinates[0][1] * imageDimensions.width}
+                                                y2={(1 - coordinates[0][0]) * imageDimensions.height}
                                                 stroke="rgba(59, 130, 246, 0.8)"
                                                 strokeWidth="2"
                                             />

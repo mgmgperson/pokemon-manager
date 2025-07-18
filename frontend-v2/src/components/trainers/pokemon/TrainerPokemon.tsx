@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { Box, Typography, Paper, Button } from '@mui/material';
 import TypeBadge from '../../TypeBadge';
-import { Pokemon, PokemonSpecies } from '../../../types/pokemon';
+import { Pokemon, PokemonEntity } from '../../../types/pokemon';
 
 type StatKey = 'hp' | 'attack' | 'defense' | 'special_attack' | 'special_defense' | 'speed';
 
@@ -27,14 +27,14 @@ const fetchTrainerPokemon = async (id: string) => {
     return data.data;
 };
 
-const fetchPokemonSpecies = async (speciesId: number) => {
-    const { data } = await axios.get(`https://pokeapi.co/api/v2/pokemon/${speciesId}/`);
-    return data;
+const fetchPokemonEntity = async (pokemonId: number) => {
+    const { data } = await axios.get(`http://localhost:5000/pokemon-entity/${pokemonId}`);
+    return data.data;
 };
 
 const TrainerPokemon: React.FC = () => {
     const { id } = useParams<{ id: string }>();
-    const [speciesData, setSpeciesData] = useState<Record<number, PokemonSpecies>>({});
+    const [pokemonEntityData, setPokemonEntityData] = useState<Record<number, PokemonEntity>>({});
 
     const { data: trainerData, isLoading: isTrainerLoading } = useQuery({
         queryKey: ['trainer', id],
@@ -48,17 +48,17 @@ const TrainerPokemon: React.FC = () => {
 
     useEffect(() => {
         if (pokemonData) {
-            const fetchSpeciesData = async () => {
-                const speciesMap: Record<number, PokemonSpecies> = {};
+            const fetchPokemonEntityData = async () => {
+                const entityMap: Record<number, PokemonEntity> = {};
                 for (const pokemon of pokemonData) {
-                    if (!speciesMap[pokemon.species_id]) {
-                        const speciesData = await fetchPokemonSpecies(pokemon.species_id);
-                        speciesMap[pokemon.species_id] = speciesData;
+                    if (!entityMap[pokemon.pokemon_id]) {
+                        const entityData = await fetchPokemonEntity(pokemon.pokemon_id);
+                        entityMap[pokemon.pokemon_id] = entityData;
                     }
                 }
-                setSpeciesData(speciesMap);
+                setPokemonEntityData(entityMap);
             };
-            fetchSpeciesData();
+            fetchPokemonEntityData();
         }
     }, [pokemonData]);
 
@@ -178,19 +178,19 @@ const TrainerPokemon: React.FC = () => {
                                     <Box className="!flex !flex-col !items-center">
                                         <img
                                             src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.pokemon_id}.png`}
-                                            alt={speciesData[pokemon.species_id]?.name || 'Pokemon'}
+                                            alt={pokemonEntityData[pokemon.pokemon_id]?.name || 'Pokemon'}
                                             className="!w-32 !h-32 !object-contain"
                                         />
                                         <Typography variant="h6" className="!text-white !mt-2">
-                                            {pokemon.nickname || speciesData[pokemon.species_id]?.name}
+                                            {pokemon.nickname || pokemonEntityData[pokemon.pokemon_id]?.name}
                                         </Typography>
                                         <Typography variant="body2" className="!text-gray-400">
                                             Level: {pokemon.level}
                                             {pokemon.is_mega ? ' (Mega)' : pokemon.is_gigantamax ? ' (Gigantamax)' : ''}
                                         </Typography>
                                         <Box className="!flex !gap-2 !mt-2">
-                                            {speciesData[pokemon.species_id]?.types.map((type, index) => (
-                                                <TypeBadge key={index} type={type.type.name} />
+                                            {pokemonEntityData[pokemon.pokemon_id]?.types.map((type: string, index: number) => (
+                                                <TypeBadge key={index} type={type.toLowerCase()} />
                                             ))}
                                         </Box>
                                         <Box className="!w-full !mt-4 !space-y-2">

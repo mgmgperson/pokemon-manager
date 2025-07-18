@@ -17,13 +17,10 @@ router.get('/', (req: Request, res: Response) => {
     let sql = `
         SELECT l.*,
                r.name as region_name,
-               pl.name as parent_location_name,
-               GROUP_CONCAT(DISTINCT t.name) as terrain_types
+               pl.name as parent_location_name
         FROM location l
         LEFT JOIN region r ON l.region_id = r.id
         LEFT JOIN location pl ON l.parent_location_id = pl.id
-        LEFT JOIN location_terrain lt ON l.id = lt.location_id
-        LEFT JOIN terrain t ON lt.terrain_id = t.id
     `;
 
     const params: any[] = [];
@@ -32,23 +29,50 @@ router.get('/', (req: Request, res: Response) => {
         params.push(regionId);
     }
 
-    sql += ' GROUP BY l.id';
+    sql += ' ORDER BY l.id';
 
     db.all(sql, params, (err: Error | null, rows: any[]) => {
         if (err) {
             return res.status(400).json({ error: err.message });
         }
 
-        // Process terrain_types into arrays
-        const processedRows = rows.map(row => ({
-            ...row,
-            terrain_types: row.terrain_types ? row.terrain_types.split(',') : [],
-            area_coordinates: row.area_coordinates ? JSON.parse(row.area_coordinates) : null
-        }));
+        // Get terrain details for each location
+        const locationPromises = rows.map(location => {
+            return new Promise((resolve) => {
+                const terrainsSql = `
+                    SELECT 
+                        t.id as terrain_id,
+                        t.name,
+                        t.code,
+                        t.description,
+                        lt.rate,
+                        lt.field_id
+                    FROM location_terrain lt
+                    JOIN terrain t ON lt.terrain_id = t.id
+                    WHERE lt.location_id = ?
+                    ORDER BY t.name
+                `;
+                
+                db.all(terrainsSql, [location.id], (err: Error | null, terrains: any[]) => {
+                    if (err) {
+                        console.error('Error fetching terrains for location:', err);
+                        terrains = [];
+                    }
+                    
+                    resolve({
+                        ...location,
+                        area_coordinates: location.area_coordinates ? JSON.parse(location.area_coordinates) : null,
+                        terrains: terrains || []
+                    });
+                });
+            });
+        });
 
-        return res.json({
-            message: 'success',
-            data: processedRows
+        Promise.all(locationPromises).then(processedRows => {
+            return res.json({
+                message: 'success',
+                data: processedRows
+            });
         });
     });
 });
@@ -113,6 +137,91 @@ router.post('/', (req: Request, res: Response): void => {
                 travel_time: travel_time || 1,
                 parent_location_id,
                 accessibility: accessibility || 1
+            }
+        });
+    });
+});
+
+// Batch update terrain rates for multiple locations
+router.put('/terrain-rates', (req: Request, res: Response): void => {
+    const { updates } = req.body; // Array of { location_id, terrain_id, rate }
+    console.log('Received updates:', updates);
+    
+    if (!updates || !Array.isArray(updates)) {
+        res.status(400).json({ error: 'Updates array is required' });
+        return;
+    }
+
+    db.serialize(() => {
+        db.run('BEGIN TRANSACTION');
+
+        let completed = 0;
+        let hasError = false;
+
+        if (updates.length === 0) {
+            db.run('COMMIT');
+            res.json({ message: 'No updates to process' });
+            return;
+        }
+
+        updates.forEach(({ location_id, terrain_id, rate }) => {
+            if (rate === null || rate === 0) {
+                // Remove the terrain association
+                db.run(
+                    'DELETE FROM location_terrain WHERE location_id = ? AND terrain_id = ?',
+                    [location_id, terrain_id],
+                    function(err: Error | null) {
+                        if (err && !hasError) {
+                            hasError = true;
+                            db.run('ROLLBACK');
+                            res.status(400).json({ error: err.message });
+                            return;
+                        }
+                        
+                        completed++;
+                        if (completed === updates.length && !hasError) {
+                            db.run('COMMIT');
+                            res.json({ message: 'Terrain rates updated successfully' });
+                        }
+                    }
+                );
+            } else {
+                // Get the default field_id from terrain table
+                db.get(
+                    'SELECT default_field_id FROM terrain WHERE id = ?',
+                    [terrain_id],
+                    function(err: Error | null, terrainRow: any) {
+                        if (err && !hasError) {
+                            hasError = true;
+                            db.run('ROLLBACK');
+                            res.status(400).json({ error: err.message });
+                            return;
+                        }
+
+                        const fieldId = terrainRow?.default_field_id || null;
+                        
+                        // Insert or update the terrain association
+                        db.run(
+                            `INSERT OR REPLACE INTO location_terrain (location_id, terrain_id, rate, field_id) 
+                             VALUES (?, ?, ?, ?)`,
+                            [location_id, terrain_id, rate, fieldId],
+                            function(err: Error | null) {
+                                if (err && !hasError) {
+                                    hasError = true;
+                                    db.run('ROLLBACK');
+                                    res.status(400).json({ error: err.message });
+                                    return;
+                                }
+                                
+                                completed++;
+                                if (completed === updates.length && !hasError) {
+                                    db.run('COMMIT');
+                                    res.json({ message: 'Terrain rates updated successfully' });
+                                }
+                            }
+                        );
+                    }
+                );
             }
         });
     });

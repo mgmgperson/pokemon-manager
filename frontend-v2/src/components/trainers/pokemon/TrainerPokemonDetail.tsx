@@ -12,7 +12,7 @@ const GenderIcon: React.FC<{ gender: string | null }> = ({ gender }) => {
     return <span>⚲</span>; // Genderless
 };
 
-const fetchPokemonDetails = async (trainerId: string, pokemonId: string) => {
+const fetchPokemonDetails = async (pokemonId: string) => {
     const { data } = await axios.get(`http://localhost:5000/pokemon/${pokemonId}`);
     return data.data;
 };
@@ -22,8 +22,8 @@ const TrainerPokemonDetail: React.FC = () => {
     const [activeTab, setActiveTab] = React.useState(0);
 
     const { data: pokemonData, isLoading } = useQuery({
-        queryKey: ['pokemonDetails', id, pokemonId],
-        queryFn: () => fetchPokemonDetails(id!, pokemonId!),
+        queryKey: ['pokemonDetails', pokemonId],
+        queryFn: () => fetchPokemonDetails(pokemonId!),
         enabled: !!id && !!pokemonId,
     });
 

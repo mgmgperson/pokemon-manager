@@ -18,6 +18,7 @@ import TrainerPokemon from './components/trainers/pokemon/TrainerPokemon';
 import TrainerPokemonDetail from './components/trainers/pokemon/TrainerPokemonDetail';
 import AddTrainerPokemon from './components/trainers/pokemon/AddTrainerPokemon';
 import EditTrainerPokemon from './components/trainers/pokemon/EditTrainerPokemon';
+import Squad from './components/squad/Squad';
 import CityDetail from './components/cities/CityDetail';
 import EditCity from './components/cities/edit/EditCity';
 import MessageBox from './components/messages/MessageBox';
@@ -27,9 +28,11 @@ import ShopDetail from './components/shops/ShopDetail';
 import ShopSell from './components/shops/ShopSell';
 import LocationDetail from './components/locations/LocationDetail';
 import EditLocation from './components/locations/edit/EditLocation';
+import EditTerrainLocation from './components/locations/edit/EditTerrainLocation';
 import AddCity from './components/cities/edit/AddCity';
 import AddLocation from './components/locations/edit/AddLocation';
 import EditShop from './components/shops/edit/EditShop';
+import AddShop from './components/shops/edit/AddShop';
 
 const theme = createTheme({
   palette: {
@@ -53,6 +56,7 @@ const App: React.FC = () => {
             <div className="content flex-1 mt-[60px] ml-[185px] min-h-[calc(100vh-60px)] bg-[#121212]">
               <Routes>
                 <Route path="/" element={<div className="text-white">Welcome to Pokemon Manager!</div>} />
+                <Route path="/squad" element={<Squad />} />
                 <Route path="/league" element={<League />} />
                 <Route path="/regions" element={<RegionList />} />
                 <Route path="/regions/:id" element={<RegionDetail />} />
@@ -78,8 +82,10 @@ const App: React.FC = () => {
                 <Route path="/shops/:id/sell" element={<ShopSell />} />
                 <Route path="/locations/:id" element={<LocationDetail />} />
                 <Route path="/edit_location/:id" element={<EditLocation />} />
+                <Route path="/terrain-manager" element={<EditTerrainLocation />} />
                 <Route path="/add_location" element={<AddLocation />} />
                 <Route path="/edit_shop/:id" element={<EditShop />} />
+                <Route path="/add_shop" element={<AddShop />} />
               </Routes>
             </div>
           </div>

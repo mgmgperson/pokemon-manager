@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
-import { Box, Typography, TextField, Button, MenuItem, CircularProgress } from '@mui/material';
-import { Pokemon, PokemonSpecies, Nature } from '../../../types/pokemon';
+import { Box, Typography, TextField, Button, MenuItem } from '@mui/material';
+import { Pokemon, PokemonEntity, NatureData, PokemonSpeciesData } from '../../../types/pokemon';
 
 interface TrainerPokemonData extends Pokemon {
     trainer_fname: string;
@@ -36,26 +36,23 @@ const fetchPokemonDetails = async (id: string) => {
 };
 
 const fetchPokemonSpecies = async (id: number) => {
-    const response = await axios.get(`https://pokeapi.co/api/v2/pokemon-species/${id}`);
-    return response.data;
+    const response = await axios.get(`http://localhost:5000/pokemon-species/${id}`);
+    return response.data.data;
 };
 
 const fetchPokemonBaseStats = async (speciesId: number) => {
-    const response = await axios.get(`https://pokeapi.co/api/v2/pokemon/${speciesId}`);
-    return response.data;
+    const response = await axios.get(`http://localhost:5000/pokemon-entity/${speciesId}`);
+    return response.data.data;
 };
 
 const fetchNatures = async () => {
-    const response = await axios.get('https://pokeapi.co/api/v2/nature');
-    return response.data.results.map((nature: any, index: number) => ({
-        id: index + 1,
-        name: nature.name.charAt(0).toUpperCase() + nature.name.slice(1)
-    }));
+    const response = await axios.get('http://localhost:5000/natures');
+    return response.data.data;
 };
 
 const fetchNatureInfo = async (natureId: number) => {
-    const response = await axios.get(`https://pokeapi.co/api/v2/nature/${natureId}`);
-    return response.data;
+    const response = await axios.get(`http://localhost:5000/natures/${natureId}`);
+    return response.data.data;
 };
 
 const EditTrainerPokemon: React.FC = () => {
@@ -72,37 +69,34 @@ const EditTrainerPokemon: React.FC = () => {
         queryFn: () => fetchPokemonDetails(pokemonId!),
     });
 
-    const { data: species, isLoading: isSpeciesLoading } = useQuery<PokemonSpecies>({
+    const { data: species, isLoading: isSpeciesLoading } = useQuery<PokemonSpeciesData>({
         queryKey: ['species', pokemon?.species_id],
         queryFn: () => fetchPokemonSpecies(pokemon!.species_id),
         enabled: !!pokemon?.species_id,
     });
 
-    const { data: baseStats, isLoading: isBaseStatsLoading } = useQuery({
+    const { data: baseStats, isLoading: isBaseStatsLoading } = useQuery<PokemonEntity>({
         queryKey: ['baseStats', pokemon?.species_id],
         queryFn: () => fetchPokemonBaseStats(pokemon!.species_id),
         enabled: !!pokemon?.species_id,
     });
 
-    const { data: natures, isLoading: isNaturesLoading } = useQuery<Nature[]>({
+    const { data: natures, isLoading: isNaturesLoading } = useQuery<NatureData[]>({
         queryKey: ['natures'],
         queryFn: fetchNatures,
     });
 
-    // Update base stats when species data changes
+    // Update base stats when Pokemon entity data changes
     useEffect(() => {
-        if (baseStats) {
-            const statsArr: number[] = [0, 0, 0, 0, 0, 0];
-            baseStats.stats.forEach((s: any) => {
-                const sname = s.stat.name;
-                const sbase = s.base_stat;
-                if (sname === 'hp') statsArr[0] = sbase;
-                else if (sname === 'attack') statsArr[1] = sbase;
-                else if (sname === 'defense') statsArr[2] = sbase;
-                else if (sname === 'special-attack') statsArr[3] = sbase;
-                else if (sname === 'special-defense') statsArr[4] = sbase;
-                else if (sname === 'speed') statsArr[5] = sbase;
-            });
+        if (baseStats?.base_stats) {
+            const statsArr: number[] = [
+                baseStats.base_stats.hp,
+                baseStats.base_stats.attack,
+                baseStats.base_stats.defense,
+                baseStats.base_stats.special_attack,
+                baseStats.base_stats.special_defense,
+                baseStats.base_stats.speed
+            ];
             setBaseStatsArray(statsArr);
         }
     }, [baseStats]);
@@ -111,9 +105,9 @@ const EditTrainerPokemon: React.FC = () => {
     useEffect(() => {
         if (formData.nature_id) {
             fetchNatureInfo(formData.nature_id)
-                .then((natData) => {
-                    const inc = natData?.increased_stat?.name || null;
-                    const dec = natData?.decreased_stat?.name || null;
+                .then((natData: NatureData) => {
+                    const inc = natData?.increased_stat || null;
+                    const dec = natData?.decreased_stat || null;
                     const defaultMults = [1, 1, 1, 1, 1, 1];
 
                     function statIndex(name: string) {
@@ -444,7 +438,7 @@ const EditTrainerPokemon: React.FC = () => {
                         <MenuItem value="">
                             <em>Select Nature</em>
                         </MenuItem>
-                        {Array.isArray(natures) && natures.map((nature: any) => (
+                        {Array.isArray(natures) && natures.map((nature: NatureData) => (
                             <MenuItem key={nature.id} value={nature.id} className="!text-white">
                                 {nature.name}
                             </MenuItem>

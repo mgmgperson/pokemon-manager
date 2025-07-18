@@ -105,7 +105,7 @@ export interface InventoryItem {
 export const defaultMessages: Message[] = [
     {
         id: 1,
-        sentAt: '2025-06-20T09:00:00',
+        sentAt: '2036-09-01T09:00:00',
         sender: 'Professor Oak',
         subject: 'Welcome to the World of Pokémon!',
         body: 'Welcome to your new journey! Remember to visit my laboratory to receive your first Pokémon.',
@@ -119,7 +119,7 @@ export const defaultGameState: GameState = {
     saveName: 'New Game',
     createdAt: '2025-06-20T09:00:00',
     lastPlayedAt: '2025-06-20T09:00:00',
-    currentDate: '2025-06-20',
+    currentDate: '2036-09-01',
     currentTime: '09:00:00',
     activeTrainerId: 1,
     activeLocationId: 1  // Greater Pallet
@@ -140,7 +140,7 @@ export const defaultFinancialTransactions: FinancialTransaction[] = [
         trainerId: 1,
         amount: 3000,
         description: 'Initial funds from family',
-        date: '2025-06-20T09:00:00',
+        date: '2036-09-01T09:00:00',
         category: 'misc'
     }
 ];

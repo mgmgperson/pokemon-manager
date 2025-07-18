@@ -11,26 +11,19 @@ import {
     InputLabel,
     Select,
     MenuItem,
-    Grid,
     Paper,
     SelectChangeEvent,
 } from '@mui/material';
-import { Pokemon, PokemonSpecies, Nature } from '../../../types/pokemon';
+import { PokemonEntity, NatureData } from '../../../types/pokemon';
 
-const fetchPokemonSpecies = async (): Promise<PokemonSpecies[]> => {
-    const { data } = await axios.get('https://pokeapi.co/api/v2/pokemon?limit=151');
-    const speciesPromises = data.results.map((result: any) => 
-        axios.get(result.url).then((res: any) => res.data)
-    );
-    return Promise.all(speciesPromises);
+const fetchPokemonEntities = async (): Promise<PokemonEntity[]> => {
+    const { data } = await axios.get('http://localhost:5000/pokemon-entity?limit=151');
+    return data.data;
 };
 
-const fetchNatures = async (): Promise<Nature[]> => {
-    const { data } = await axios.get('https://pokeapi.co/api/v2/nature');
-    const naturePromises = data.results.map((result: any) => 
-        axios.get(result.url).then((res: any) => res.data)
-    );
-    return Promise.all(naturePromises);
+const fetchNatures = async (): Promise<NatureData[]> => {
+    const { data } = await axios.get('http://localhost:5000/natures');
+    return data.data;
 };
 
 const AddTrainerPokemon: React.FC = () => {
@@ -59,9 +52,9 @@ const AddTrainerPokemon: React.FC = () => {
         date_met_at: new Date().toISOString().split('T')[0],
     });
 
-    const { data: species, isLoading: isLoadingSpecies } = useQuery({
-        queryKey: ['pokemonSpecies'],
-        queryFn: fetchPokemonSpecies,
+    const { data: pokemonEntities, isLoading: isLoadingPokemon } = useQuery({
+        queryKey: ['pokemonEntities'],
+        queryFn: fetchPokemonEntities,
     });
 
     const { data: natures, isLoading: isLoadingNatures } = useQuery({
@@ -97,7 +90,7 @@ const AddTrainerPokemon: React.FC = () => {
         addPokemonMutation.mutate(formData);
     };
 
-    if (isLoadingSpecies || isLoadingNatures) {
+    if (isLoadingPokemon || isLoadingNatures) {
         return <div>Loading...</div>;
     }
 
@@ -116,9 +109,9 @@ const AddTrainerPokemon: React.FC = () => {
                                     onChange={handleSelectChange}
                                     required
                                 >
-                                    {species?.map((s) => (
-                                        <MenuItem key={s.id} value={s.id}>
-                                            {s.name.charAt(0).toUpperCase() + s.name.slice(1)}
+                                    {pokemonEntities?.map((pokemon: PokemonEntity) => (
+                                        <MenuItem key={pokemon.id} value={pokemon.id}>
+                                            {pokemon.name.charAt(0).toUpperCase() + pokemon.name.slice(1)}
                                         </MenuItem>
                                     ))}
                                 </Select>
@@ -165,9 +158,9 @@ const AddTrainerPokemon: React.FC = () => {
                                     onChange={handleSelectChange}
                                     required
                                 >
-                                    {natures?.map((n) => (
-                                        <MenuItem key={n.id} value={n.id}>
-                                            {n.name.charAt(0).toUpperCase() + n.name.slice(1)}
+                                    {natures?.map((nature: NatureData) => (
+                                        <MenuItem key={nature.id} value={nature.id}>
+                                            {nature.name.charAt(0).toUpperCase() + nature.name.slice(1)}
                                         </MenuItem>
                                     ))}
                                 </Select>

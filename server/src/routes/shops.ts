@@ -542,4 +542,120 @@ router.get('/:id/edit', (req: Request, res: Response): void => {
     });
 });
 
+// Create a new shop
+router.post('/', (req: Request, res: Response): void => {
+    const {
+        name,
+        scope,
+        region_id,
+        terrain_id,
+        location_id,
+        description,
+        markup,
+        items
+    } = req.body;
+
+    // Validate required fields
+    if (!name || !scope) {
+        res.status(400).json({ error: 'Name and scope are required' });
+        return;
+    }
+
+    // Validate scope-specific requirements
+    if (scope === 'regional' && (!region_id || !terrain_id)) {
+        res.status(400).json({ error: 'Regional shops require both region_id and terrain_id' });
+        return;
+    }
+    if (scope === 'special' && !location_id) {
+        res.status(400).json({ error: 'Special shops require location_id' });
+        return;
+    }
+
+    db.serialize(() => {
+        db.run('BEGIN TRANSACTION');
+
+        // Insert shop data
+        const insertShopSQL = `
+            INSERT INTO shop (
+                name,
+                scope,
+                region_id,
+                terrain_id,
+                location_id,
+                description,
+                markup
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        `;
+
+        db.run(insertShopSQL, [
+            name,
+            scope,
+            scope === 'regional' ? region_id : null,
+            scope === 'regional' ? terrain_id : null,
+            scope === 'special' ? location_id : null,
+            description,
+            markup || 1.0
+        ], function(err: Error | null) {
+            if (err) {
+                db.run('ROLLBACK');
+                res.status(400).json({ error: err.message });
+                return;
+            }
+
+            const shopId = this.lastID;
+
+            // Handle shop items
+            if (items && Array.isArray(items) && items.length > 0) {
+                const insertItemSQL = 'INSERT INTO shop_item (shop_id, item_id, price, stock) VALUES (?, ?, ?, ?)';
+                
+                let completed = 0;
+                for (const item of items) {
+                    db.run(insertItemSQL, [
+                        shopId,
+                        item.item_id,
+                        item.price,
+                        item.stock || null
+                    ], function(err: Error | null) {
+                        if (err) {
+                            db.run('ROLLBACK');
+                            res.status(400).json({ error: err.message });
+                            return;
+                        }
+
+                        completed++;
+                        if (completed === items.length) {
+                            // Commit transaction
+                            db.run('COMMIT', function(err: Error | null) {
+                                if (err) {
+                                    db.run('ROLLBACK');
+                                    res.status(400).json({ error: err.message });
+                                    return;
+                                }
+                                res.json({
+                                    message: 'Shop created successfully',
+                                    data: { id: shopId }
+                                });
+                            });
+                        }
+                    });
+                }
+            } else {
+                // No items to insert, just commit
+                db.run('COMMIT', function(err: Error | null) {
+                    if (err) {
+                        db.run('ROLLBACK');
+                        res.status(400).json({ error: err.message });
+                        return;
+                    }
+                    res.json({
+                        message: 'Shop created successfully',
+                        data: { id: shopId }
+                    });
+                });
+            }
+        });
+    });
+});
+
 export default router;

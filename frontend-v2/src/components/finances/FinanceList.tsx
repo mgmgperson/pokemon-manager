@@ -1,5 +1,6 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import {
     Box,
@@ -15,7 +16,9 @@ import {
     TableSortLabel,
     Chip,
     Skeleton,
+    Button,
 } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
 import ShopList from '../shops/ShopList';
 import { TransactionResponse, Transaction, TransactionCategory, FinanceStatus } from '../../types/finance';
 
@@ -80,6 +83,7 @@ const CategoryChip: React.FC<{ category: TransactionCategory }> = ({ category })
 };
 
 const FinanceList: React.FC = () => {
+    const navigate = useNavigate();
     const [page, setPage] = React.useState(0);
     const [rowsPerPage, setRowsPerPage] = React.useState(10);
     const [selectedCategory, setSelectedCategory] = React.useState<TransactionCategory | undefined>();
@@ -251,6 +255,15 @@ const FinanceList: React.FC = () => {
                     </Typography>
                     <Box className="flex-1 overflow-auto">
                         <ShopList />
+                    </Box>
+                    <Box className="flex justify-end mt-4">
+                        <Button
+                            variant="contained"
+                            startIcon={<AddIcon />}
+                            onClick={() => navigate('/add_shop')}
+                        >
+                            Add Shop
+                        </Button>
                     </Box>
                 </Paper>
             </Box>

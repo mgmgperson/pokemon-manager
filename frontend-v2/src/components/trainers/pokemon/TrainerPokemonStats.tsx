@@ -1,33 +1,12 @@
 import React from 'react';
 import { Box, Typography, LinearProgress } from '@mui/material';
-import { useQuery } from '@tanstack/react-query';
-import axios from 'axios';
-import { Pokemon, PokemonSpecies } from '../../../types/pokemon';
+import { Pokemon } from '../../../types/pokemon';
 
 interface TrainerPokemonStatsProps {
     pokemon: Pokemon;
 }
 
-const fetchPokemonSpecies = async (speciesId: number): Promise<PokemonSpecies> => {
-    const { data } = await axios.get(`https://pokeapi.co/api/v2/pokemon/${speciesId}`);
-    return data;
-};
-
 const TrainerPokemonStats: React.FC<TrainerPokemonStatsProps> = ({ pokemon }) => {
-    const { data: species, isLoading } = useQuery({
-        queryKey: ['pokemonSpecies', pokemon.species_id],
-        queryFn: () => fetchPokemonSpecies(pokemon.species_id),
-    });
-
-    if (isLoading || !species) {
-        return (
-            <Box className="!flex !justify-center !items-center !h-full">
-                <Typography variant="h6" className="!text-white">
-                    Loading...
-                </Typography>
-            </Box>
-        );
-    }
 
     const stats = [
         { name: 'HP', value: pokemon.hp, iv: pokemon.iv_hp, ev: pokemon.ev_hp },

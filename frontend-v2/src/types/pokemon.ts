@@ -122,4 +122,39 @@ export interface PokemonForm {
             name: string;
         };
     }[];
-} 
+}
+
+// New type for our backend Pokemon entity data
+export interface PokemonEntity {
+    id: number;
+    name: string;
+    types: string[]; // array of type names like ["GRASS", "POISON"]
+    base_stats: {
+        hp: number;
+        attack: number;
+        defense: number;
+        special_attack: number;
+        special_defense: number;
+        speed: number;
+    };
+}
+
+// New type for our backend Nature data
+export interface NatureData {
+    id: number;
+    name: string;
+    increased_stat: string;
+    decreased_stat: string;
+}
+
+// New type for our backend Pokemon species data
+export interface PokemonSpeciesData {
+    id: number;
+    name: string;
+    generation: number;
+    is_legendary: boolean;
+    is_mythical: boolean;
+    base_happiness?: number | null;
+    capture_rate?: number;
+    genera?: string;
+}

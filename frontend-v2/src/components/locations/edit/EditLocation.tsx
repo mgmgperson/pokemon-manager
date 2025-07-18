@@ -48,6 +48,11 @@ const fetchTerrains = async (): Promise<Terrain[]> => {
     return data.data;
 };
 
+const fetchLocationsByRegion = async (regionId: number): Promise<EditableLocation[]> => {
+    const { data } = await axios.get(`http://localhost:5000/locations?region_id=${regionId}`);
+    return data.data;
+};
+
 const updateLocation = async ({ id, updatedLocation }: { id: string, updatedLocation: any }) => {
     const { data } = await axios.put(`http://localhost:5000/locations/${id}`, updatedLocation);
     return data;
@@ -101,6 +106,13 @@ const EditLocation: React.FC = () => {
     const { data: terrainsData, isLoading: isTerrainsLoading } = useQuery({
         queryKey: ['terrains'],
         queryFn: fetchTerrains,
+    });
+
+    // Query for locations in the selected region (for map context)
+    const { data: regionLocationsData } = useQuery({
+        queryKey: ['regionLocations', formData.region_id],
+        queryFn: () => fetchLocationsByRegion(formData.region_id!),
+        enabled: !!formData.region_id,
     });
 
     // Mutation for updating location
@@ -483,12 +495,36 @@ const EditLocation: React.FC = () => {
                                 height={imageDimensions.height}
                                 style={{ pointerEvents: 'none' }}
                             >
+                                {/* Render other locations in the region as static polygons */}
+                                {regionLocationsData?.map((location) => {
+                                    // Skip the current location being edited
+                                    if (location.id === parseInt(id!)) return null;
+                                    
+                                    const locationCoords = safeJsonParse(location.area_coordinates, []);
+                                    if (locationCoords.length < 3) return null;
+                                    
+                                    const points = locationCoords.map(([y, x]: [number, number]) => 
+                                        `${x * imageDimensions.width},${(1-y) * imageDimensions.height}`
+                                    ).join(' ');
+                                    
+                                    return (
+                                        <polygon
+                                            key={`context-${location.id}`}
+                                            points={points}
+                                            className="fill-red-500/30 stroke-red-500/60 stroke-1"
+                                        />
+                                    );
+                                })}
+                                
+                                {/* Current location polygon */}
                                 <polygon
                                     points={safeJsonParse(formData.area_coordinates, [])
                                         .map(([y, x]: [number, number]) => `${x * imageDimensions.width},${(1-y) * imageDimensions.height}`)
                                         .join(' ')}
                                     className="fill-blue-500/30 stroke-blue-500 stroke-2"
                                 />
+                                
+                                {/* Current location points */}
                                 {safeJsonParse(formData.area_coordinates, []).map(([y, x]: [number, number], index: number) => (
                                     <circle
                                         key={index}
@@ -512,6 +548,11 @@ const EditLocation: React.FC = () => {
                         </Button>
                         <Typography className="text-gray-400">
                             Click on the map to add points. Points will be connected in the order they are added.
+                            {regionLocationsData && regionLocationsData.length > 1 && (
+                                <span className="block mt-1 text-sm">
+                                    Red polygons show other locations in this region for context.
+                                </span>
+                            )}
                         </Typography>
                     </Box>
                 </DialogContent>
