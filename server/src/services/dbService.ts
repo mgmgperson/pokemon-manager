@@ -2,18 +2,14 @@
 
 import sqlite3 from 'sqlite3';
 import { PokemonRow, TrainerRow } from '../types/database';
+import { getActiveDB } from './dbManager';
 
 const { Database } = sqlite3.verbose();
 
-// Create a global DB connection
-export const sqlDb = new Database('../database/db.sqlite', (err: Error | null) => {
-  if (err) {
-    console.error('Error opening database:', err.message);
-  }
-});
 
 // Helper to fetch trainer by ID
 export function fetchTrainer(trainerId: number): Promise<TrainerRow | null> {
+  const sqlDb = getActiveDB();
   return new Promise((resolve, reject) => {
     const sql = `SELECT * FROM trainer WHERE id = ?`;
     sqlDb.get(sql, [trainerId], (err, row) => {
@@ -25,6 +21,7 @@ export function fetchTrainer(trainerId: number): Promise<TrainerRow | null> {
 
 // Helper to fetch all Pokemon for a trainer
 export function fetchTrainerPokemon(trainerId: number): Promise<PokemonRow[]> {
+  const sqlDb = getActiveDB();
   return new Promise((resolve, reject) => {
     const sql = `SELECT * FROM pokemon WHERE trainer_id = ?`;
     sqlDb.all(sql, [trainerId], (err, rows) => {
@@ -41,6 +38,7 @@ export function fetchTrainerFieldRating(
   fieldName: string
 ): Promise<number> {
   return new Promise((resolve, reject) => {
+    const sqlDb = getActiveDB();
     const colName = fieldName.toLowerCase().replace(/_/g, '') + '_field_rating'; // e.g. "windyfieldrating"
     const sqlQuery = `
       SELECT fr.${colName} as ratingVal

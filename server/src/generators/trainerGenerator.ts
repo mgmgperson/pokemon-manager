@@ -2,9 +2,9 @@ import sqlite3 from 'sqlite3';
 import { generateName } from './nameGenerator';
 import { RANK_BREAKPOINTS } from '../data/conversions/conversions';
 const { Database } = sqlite3.verbose();
+import { getActiveDB } from '../services/dbManager';
 
 // Connect to the database
-const db = new Database('../database/db.sqlite');
 
 // Define interfaces
 interface Trainer {
@@ -64,6 +64,7 @@ function weightedRandom<T>(items: T[], weights: number[]): T {
  * Get all regions from the database
  */
 async function getRegions(): Promise<RegionData[]> {
+  const db = getActiveDB();
   return new Promise((resolve, reject) => {
     db.all<RegionData>(
       'SELECT id, name, population FROM region',
@@ -79,6 +80,7 @@ async function getRegions(): Promise<RegionData[]> {
  * Get cities by region ID
  */
 async function getCitiesByRegion(regionId: number): Promise<CityData[]> {
+  const db = getActiveDB();
   return new Promise((resolve, reject) => {
     db.all<CityData>(
       'SELECT id, name, region_id, population FROM city WHERE region_id = ?',

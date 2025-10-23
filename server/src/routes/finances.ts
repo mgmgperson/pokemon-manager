@@ -1,17 +1,12 @@
 import { Router, Request, Response } from 'express';
 import sqlite3 from 'sqlite3';
-const { Database } = sqlite3.verbose();
+import { getActiveDB } from '../services/dbManager';
 
 const router: Router = Router();
 
-const db = new Database('../database/db.sqlite', (err: Error | null) => {
-  if (err) {
-    console.error('Error opening database:', err.message);
-  }
-});
-
 // Define route to get financial status
 router.get('/status', (req: Request, res: Response) => {
+  const db = getActiveDB();
   const sql = `
     SELECT tf.balance, tf.debt
     FROM trainer_finance tf
@@ -32,6 +27,7 @@ router.get('/status', (req: Request, res: Response) => {
 
 // Define route to get transaction history
 router.get('/transactions', (req: Request, res: Response) => {
+  const db = getActiveDB();
   const limit = parseInt(req.query.limit as string) || 50;
   const offset = parseInt(req.query.offset as string) || 0;
   const category = req.query.category as string;

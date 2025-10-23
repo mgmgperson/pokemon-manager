@@ -1,17 +1,12 @@
 import { Router, Request, Response } from 'express';
-import sqlite3 from 'sqlite3';
-const { Database } = sqlite3.verbose();
+import { getActiveDB } from '../services/dbManager';
 
 const router: Router = Router();
 
-const db = new Database('../database/db.sqlite', (err: Error | null) => {
-    if (err) {
-        console.error('Error opening database:', err.message);
-    }
-});
 
 // Get all locations (optionally filtered by region)
 router.get('/', (req: Request, res: Response) => {
+    const db = getActiveDB();
     const regionId = req.query.region_id;
     
     let sql = `
@@ -79,6 +74,7 @@ router.get('/', (req: Request, res: Response) => {
 
 // Create a new location
 router.post('/', (req: Request, res: Response): void => {
+    const db = getActiveDB();
     const {
         name,
         region_id,
@@ -144,6 +140,7 @@ router.post('/', (req: Request, res: Response): void => {
 
 // Batch update terrain rates for multiple locations
 router.put('/terrain-rates', (req: Request, res: Response): void => {
+    const db = getActiveDB();
     const { updates } = req.body; // Array of { location_id, terrain_id, rate }
     console.log('Received updates:', updates);
     
@@ -229,6 +226,7 @@ router.put('/terrain-rates', (req: Request, res: Response): void => {
 
 // Get a specific location by ID
 router.get('/:id', (req: Request, res: Response) => {
+    const db = getActiveDB();
     const locationId = req.params.id;
 
     const sqlLocation = `
@@ -336,6 +334,7 @@ router.get('/:id', (req: Request, res: Response) => {
 
 // Get all sub-locations for a location
 router.get('/:id/sub-locations', (req: Request, res: Response) => {
+    const db = getActiveDB();
     const locationId = req.params.id;
 
     const sql = `
@@ -369,6 +368,7 @@ router.get('/:id/sub-locations', (req: Request, res: Response) => {
 
 // Update a location by ID
 router.put('/:id', (req: Request, res: Response) => {
+    const db = getActiveDB();
     const locationId = req.params.id;
     const {
         name,
@@ -460,6 +460,7 @@ router.put('/:id', (req: Request, res: Response) => {
 
 // Create a new location
 router.post('/', (req: Request, res: Response) => {
+    const db = getActiveDB();
     const {
         name,
         region_id,
@@ -546,6 +547,7 @@ router.post('/', (req: Request, res: Response) => {
 
 // Get all terrains
 router.get('/terrains/all', (req: Request, res: Response) => {
+    const db = getActiveDB();
     const sql = 'SELECT * FROM terrain ORDER BY name';
     
     db.all(sql, [], (err: Error | null, rows: any[]) => {

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { AppBar, Toolbar, Typography, Button, IconButton, Box, TextField, InputAdornment } from '@mui/material';
 import { Menu as MenuIcon, Save as SaveIcon, CalendarToday as CalendarIcon, Search as SearchIcon } from '@mui/icons-material';
 
@@ -14,9 +15,11 @@ const Navbar: React.FC = () => {
         >
           <MenuIcon />
         </IconButton>
-        <Typography variant="h6" component="div" sx={{ mr: 2 }}>
-          Pokemon Manager
-        </Typography>
+        <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
+          <Typography variant="h6" component="div" sx={{ mr: 2 }}>
+            Pokemon Manager
+          </Typography>
+        </Link>
         <Box sx={{ flexGrow: 1, mr: 2 }}>
           <TextField
             size="small"
@@ -64,4 +67,4 @@ const Navbar: React.FC = () => {
   );
 };
 
-export default Navbar; 
+export default Navbar;

@@ -1,18 +1,13 @@
 import { Router, Request, Response } from 'express';
 import sqlite3 from 'sqlite3';
 import { allItems } from '../data/item';
+import { getActiveDB } from '../services/dbManager';
 
-const { Database } = sqlite3.verbose();
 const router: Router = Router();
-
-const db = new Database('../database/db.sqlite', (err: Error | null) => {
-    if (err) {
-        console.error('Error opening database:', err.message);
-    }
-});
 
 // Get inventory for active trainer
 router.get('/inventory', (req: Request, res: Response) => {
+    const db = getActiveDB();
     const sql = `
         SELECT i.item_id, i.quantity 
         FROM inventory i
@@ -59,6 +54,7 @@ router.get('/inventory', (req: Request, res: Response) => {
 
 // Sell items from inventory
 router.post('/sell', (req: Request, res: Response) => {
+    const db = getActiveDB();
     const items: { id: number; quantity: number }[] = req.body.items;
     
     // Begin transaction

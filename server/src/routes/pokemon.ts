@@ -1,17 +1,12 @@
 import { Router, Request, Response } from 'express';
-import sqlite3 from 'sqlite3';
-const { Database } = sqlite3.verbose();
+import { getActiveDB } from '../services/dbManager';
 
 const router: Router = Router();
 
-const db = new Database('../database/db.sqlite', (err: Error | null) => {
-  if (err) {
-    console.error('Error opening database:', err.message);
-  }
-});
 
 // Define the /:id route to get a Pokémon by its ID
 router.get('/:id', (req: Request, res: Response) => {
+  const db = getActiveDB();
   const pokemonId = req.params.id;
 
   const sql = `
@@ -40,6 +35,7 @@ router.get('/:id', (req: Request, res: Response) => {
 
 // Define the PUT /pokemon/:id route for updating a Pokémon
 router.put('/:id', (req: Request, res: Response) => {
+  const db = getActiveDB();
   const pokemonId = req.params.id;
   const {
     species_id, pokemon_id, level,
@@ -104,6 +100,7 @@ router.put('/:id', (req: Request, res: Response) => {
 
 // Define the POST /pokemon route for adding a new Pokémon
 router.post('/', (req: Request, res: Response) => {
+  const db = getActiveDB();
   const {
     trainer_id, species_id, pokemon_id, level,
     ot_name, ot_id,

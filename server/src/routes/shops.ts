@@ -1,15 +1,9 @@
 import { Router, Request, Response } from 'express';
-import sqlite3 from 'sqlite3';
 import { allItems } from '../data/item';
+import { getActiveDB } from '../services/dbManager';
 
-const { Database } = sqlite3.verbose();
 const router: Router = Router();
 
-const db = new Database('../database/db.sqlite', (err: Error | null) => {
-    if (err) {
-        console.error('Error opening database:', err.message);
-    }
-});
 
 // Query for checking shop accessibility
 const accessSql = `
@@ -57,6 +51,7 @@ const accessSql = `
 
 // Get available shops based on player's location
 router.get('/available', (req: Request, res: Response) => {
+    const db = getActiveDB();
     // First get the player's current location and its details
     const sql = `
         WITH location_info AS (
@@ -97,6 +92,7 @@ router.get('/available', (req: Request, res: Response) => {
 
 // Get specific shop details and its items
 router.get('/:id', (req: Request, res: Response) => {
+    const db = getActiveDB();
     const shopId = req.params.id;
 
     // First try to get shop details and its location info
@@ -162,6 +158,7 @@ router.get('/:id', (req: Request, res: Response) => {
 
 // Purchase items from shop
 router.post('/:id/buy', (req: Request, res: Response) => {
+    const db = getActiveDB();
     const shopId = req.params.id;
     const items: { id: number; quantity: number }[] = req.body.items;
     
@@ -307,6 +304,7 @@ router.post('/:id/buy', (req: Request, res: Response) => {
 
 // Get all shops
 router.get('/', (req: Request, res: Response) => {
+    const db = getActiveDB();
     const sql = `
         SELECT 
             s.*,
@@ -333,6 +331,7 @@ router.get('/', (req: Request, res: Response) => {
 
 // Update a shop
 router.put('/:id', (req: Request, res: Response): void => {
+    const db = getActiveDB();
     const shopId = req.params.id;
     const {
         name,
@@ -473,6 +472,7 @@ router.put('/:id', (req: Request, res: Response): void => {
 
 // Get shop details for editing (bypasses accessibility check)
 router.get('/:id/edit', (req: Request, res: Response): void => {
+    const db = getActiveDB();
     const shopId = req.params.id;
 
     const shopDetailsSql = `
@@ -544,6 +544,7 @@ router.get('/:id/edit', (req: Request, res: Response): void => {
 
 // Create a new shop
 router.post('/', (req: Request, res: Response): void => {
+    const db = getActiveDB();
     const {
         name,
         scope,

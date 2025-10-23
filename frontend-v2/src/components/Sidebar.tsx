@@ -17,7 +17,7 @@ import {
 import { Link } from 'react-router-dom';
 
 const menuItems = [
-  { text: 'Home', icon: <HomeIcon />, path: '/' },
+  { text: 'Home', icon: <HomeIcon />, path: '/home' },
   { text: 'Inbox', icon: <InboxIcon />, path: '/inbox' },
   { text: 'Squad', icon: <GroupIcon />, path: '/squad' },
   { text: 'Training', icon: <TrainingIcon />, path: '/training' },

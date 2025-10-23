@@ -1,17 +1,11 @@
 import { Router, Request, Response } from 'express';
-import sqlite3 from 'sqlite3';
-const { Database } = sqlite3.verbose();
+import { getActiveDB } from '../services/dbManager';
 
 const router: Router = Router();
 
-const db = new Database('../database/db.sqlite', (err: Error | null) => {
-  if (err) {
-    console.error('Error opening database:', err.message);
-  }
-});
-
 // Get the 50 most recent messages
 router.get('/', (req: Request, res: Response) => {
+  const db = getActiveDB();
   const sql = `
     SELECT * FROM message 
     ORDER BY sent_at DESC 
@@ -31,6 +25,7 @@ router.get('/', (req: Request, res: Response) => {
 
 // Get a specific message by ID
 router.get('/:id', (req: Request, res: Response) => {
+  const db = getActiveDB();
   const messageId = req.params.id;
   const sql = 'SELECT * FROM message WHERE id = ?';
   
@@ -50,6 +45,7 @@ router.get('/:id', (req: Request, res: Response) => {
 
 // Mark a message as read
 router.patch('/:id/read', (req: Request, res: Response) => {
+  const db = getActiveDB();
   const messageId = req.params.id;
   const sql = 'UPDATE message SET is_read = TRUE WHERE id = ?';
   

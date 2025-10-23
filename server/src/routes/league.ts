@@ -1,18 +1,13 @@
 // src/routes/league.ts
 import { Router, Request, Response } from 'express';
 import sqlite3 from 'sqlite3';
-const { Database } = sqlite3.verbose();
+import { getActiveDB } from '../services/dbManager';
 
 const router: Router = Router();
 
-const db = new Database('../database/db.sqlite', (err: Error | null) => {
-  if (err) {
-    console.error('Error opening database:', err.message);
-  }
-});
-
 // Route to get the grand champion, champions, and elite four across all regions
 router.get('/', (req: Request, res: Response) => {
+  const db = getActiveDB();
   const sqlGrandChampion = `
     SELECT t.id, t.fname, t.lname
     FROM grand_champion gc

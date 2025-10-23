@@ -1,17 +1,13 @@
 import { Router, Request, Response } from 'express';
 import sqlite3 from 'sqlite3';
-const { Database } = sqlite3.verbose();
+import { getActiveDB } from '../services/dbManager';
 
 const router: Router = Router();
 
-const db = new Database('../database/db.sqlite', (err: Error | null) => {
-  if (err) {
-    console.error('Error opening database:', err.message);
-  }
-});
 
 // GET /home - Get current game state info
 router.get('/home', (req: Request, res: Response) => {
+  const db = getActiveDB();
   const sql = `
     SELECT 
       gs.*,
@@ -43,6 +39,7 @@ router.get('/home', (req: Request, res: Response) => {
 
 // GET /active-trainer - Get just the active trainer ID
 router.get('/active-trainer', (req: Request, res: Response) => {
+  const db = getActiveDB();
   const sql = `
     SELECT active_trainer_id
     FROM game_state

@@ -1,8 +1,8 @@
 import sqlite3 from 'sqlite3';
 const { Database } = sqlite3.verbose();
+import { getActiveDB } from '../services/dbManager';
 
 // Connect to both databases
-const mainDb = new Database('../database/db.sqlite');
 const namesDb = new Database('../database/names.sqlite');
 
 interface NameResult {
@@ -41,6 +41,7 @@ function weightedRandom<T>(items: T[], weights: number[]): T {
  * Get country frequencies for a region and name type
  */
 async function getCountryFrequencies(regionId: number, type: 'F' | 'S'): Promise<CountryFrequency[]> {
+  const mainDb = getActiveDB();
   return new Promise((resolve, reject) => {
     mainDb.all<CountryFrequency>(
       `SELECT country, frequency FROM region_name_frequency 

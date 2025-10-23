@@ -1,17 +1,12 @@
 import { Router, Request, Response } from 'express';
 import sqlite3 from 'sqlite3';
-const { Database } = sqlite3.verbose();
+import { getActiveDB } from '../services/dbManager';
 
 const router: Router = Router();
 
-const db = new Database('../database/db.sqlite', (err: Error | null) => {
-  if (err) {
-    console.error('Error opening database:', err.message);
-  }
-});
-
 // Define the /cities route to get all cities
 router.get('/', (req: Request, res: Response) => {
+  const db = getActiveDB();
   const sql = 'SELECT * FROM city';
   db.all(sql, [], (err: Error | null, rows: any[]) => {
     if (err) {
@@ -26,6 +21,7 @@ router.get('/', (req: Request, res: Response) => {
 
 // Define the POST /cities route for creating a new city
 router.post('/', (req: Request, res: Response): void => {
+  const db = getActiveDB();
   const { name, region_id, population, description, x_coordinate, y_coordinate } = req.body;
 
   // Validate required fields
@@ -69,6 +65,7 @@ router.post('/', (req: Request, res: Response): void => {
 
 // Route to get a specific city and its details by city ID
 router.get('/:id', (req: Request, res: Response) => {
+  const db = getActiveDB();
   const cityId = req.params.id;
 
   const sqlCity = `
@@ -148,6 +145,7 @@ router.get('/:id', (req: Request, res: Response) => {
 
 // Route to update a city by ID
 router.put('/:id', (req: Request, res: Response) => {
+  const db = getActiveDB();
   const cityId = req.params.id;
   const { name, region_id, population, description, x_coordinate, y_coordinate, stadiums, gymLeaders } = req.body;
 

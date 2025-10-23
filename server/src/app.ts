@@ -21,6 +21,9 @@ import itemRoutes from './routes/items';
 import financeRoutes from './routes/finances';
 import shopRoutes from './routes/shops';
 import terrainRoutes from './routes/terrains';
+import metaRoutes from './routes/meta';
+import trainingRoutes from './routes/training';
+import createLeagueRoutes from './routes/create-league';
 
 const app: Application = express();
 const PORT = process.env.PORT || 5000;
@@ -47,6 +50,9 @@ app.use('/items', itemRoutes);
 app.use('/finances', financeRoutes);
 app.use('/shops', shopRoutes);
 app.use('/terrains', terrainRoutes);
+app.use('/meta', metaRoutes);
+app.use('/training', trainingRoutes);
+app.use('/create-league', createLeagueRoutes);
 
 // Start the server
 app.listen(PORT, () => {

@@ -1,17 +1,12 @@
 import { Router, Request, Response } from 'express';
 import sqlite3 from 'sqlite3';
-const { Database } = sqlite3.verbose();
+import { getActiveDB } from '../services/dbManager';
 
 const router: Router = Router();
 
-const db = new Database('../database/db.sqlite', (err: Error | null) => {
-  if (err) {
-    console.error('Error opening database:', err.message);
-  }
-});
-
 // Define the /trainers route
 router.get('/', (req: Request, res: Response) => {
+  const db = getActiveDB();
   const sql = `
     SELECT 
         trainer.*, 
@@ -52,6 +47,7 @@ router.get('/', (req: Request, res: Response) => {
 
 // Define the /trainers/inactive route
 router.get('/inactive', (req: Request, res: Response) => {
+  const db = getActiveDB();
   const sql = `
     SELECT * FROM trainer 
     WHERE active_status = 0 
@@ -70,6 +66,7 @@ router.get('/inactive', (req: Request, res: Response) => {
 
 // Define the /trainers/:id route
 router.get('/:id', (req: Request, res: Response) => {
+  const db = getActiveDB();
   const trainerId = req.params.id;
 
   const sqlTrainer = `
@@ -195,6 +192,7 @@ router.get('/:id', (req: Request, res: Response) => {
 
 // Define the /trainers/:id/pokemon route
 router.get('/:id/pokemon', (req: Request, res: Response) => {
+  const db = getActiveDB();
   const trainerId = req.params.id;
   const sql = `SELECT * FROM pokemon WHERE trainer_id = ?`;
 
@@ -211,6 +209,7 @@ router.get('/:id/pokemon', (req: Request, res: Response) => {
 
 // Define the POST /trainers route for creating a new trainer
 router.post('/', (req: Request, res: Response) => {
+  const db = getActiveDB();
   const {
     fname, lname, region_id, birthdate, pwtr_rating, peak_rating, peak_rank, active_status
   } = req.body;
@@ -249,6 +248,7 @@ router.post('/', (req: Request, res: Response) => {
 
 // Define the PUT /trainers/:id route for updating a trainer
 router.put('/:id', (req: Request, res: Response) => {
+  const db = getActiveDB();
   const trainerId = req.params.id;
   const {
     fname, lname, region_id, birthdate, pwtr_rating, peak_rating, peak_rank, active_status
@@ -289,6 +289,7 @@ router.put('/:id', (req: Request, res: Response) => {
 
 // Define the /trainers/:id/field_ratings PUT route
 router.put('/:id/field_ratings', (req: Request, res: Response) => {
+  const db = getActiveDB();
   const fieldRatingId = req.body.id;
   const updatedFieldRatings = req.body;
 
@@ -411,6 +412,7 @@ router.put('/:id/field_ratings', (req: Request, res: Response) => {
 
 // Define the PUT /trainers/:id/mental_ratings route
 router.put('/:id/mental_ratings', (req: Request, res: Response) => {
+  const db = getActiveDB();
   const mentalRatingId = req.body.id;
   const updatedMentalRatings = req.body;
 
@@ -465,6 +467,7 @@ router.put('/:id/mental_ratings', (req: Request, res: Response) => {
 
 // Define the PUT /trainers/:id/format_ratings route
 router.put('/:id/format_ratings', (req: Request, res: Response) => {
+  const db = getActiveDB();
   const formatRatingId = req.body.id;
   const updated = req.body;
 

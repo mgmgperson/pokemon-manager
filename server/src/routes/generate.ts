@@ -8,16 +8,13 @@ import { generatePokemonTeam, convertPWTRToOverallRating } from '../generators/p
 import { Types } from '../data/enums/types';
 import { Fields } from '../data/enums/fields';
 import { generateFieldRatings } from '../generators/fieldRatingGenerator';
-const { Database } = sqlite3.verbose();
+import { getActiveDB } from '../services/dbManager';
 
 const router: Router = Router();
-const db = new Database('../database/db.sqlite', (err: Error | null) => {
-  if (err) {
-    console.error('Error opening database:', err.message);
-  }
-});
+
 
 router.get('/generate-trainer', (req: Request, res: Response): void => {
+  const db = getActiveDB();
   const { regionId, gender, age, pwtr_rating } = req.query;
   
   // Parse optional parameters
@@ -121,6 +118,7 @@ function generateMentalRatings(overall: number, trainerId: number, ratingId: num
  *    and return them in JSON.
  */
 router.get('/generate-mental-ratings/:trainerId', (req: Request, res: Response) => {
+  const db = getActiveDB();
   const { trainerId } = req.params;
 
   // (A) First, check if we have a trainer row
@@ -160,6 +158,7 @@ router.get('/generate-mental-ratings/:trainerId', (req: Request, res: Response) 
 });
 
 router.get('/generate-format-ratings/:trainerId', (req: Request, res: Response) => {
+  const db = getActiveDB();
     const { trainerId } = req.params;
   
     // (A) Check trainer
@@ -204,6 +203,7 @@ router.get('/generate-format-ratings/:trainerId', (req: Request, res: Response) 
  * 3. Return generated rating object
  */
 router.get('/generate-general-ratings/:trainerId', (req: Request, res: Response) => {
+  const db = getActiveDB();
   const { trainerId } = req.params;
 
   // Fetch trainer data to get pwtr_rating
@@ -225,6 +225,7 @@ router.get('/generate-general-ratings/:trainerId', (req: Request, res: Response)
 });
 
 router.get('/generate-name', (req: Request, res: Response): void => {
+  const db = getActiveDB();
   const { regionId, gender } = req.query;
 
   // Validate parameters exist
@@ -415,6 +416,7 @@ router.get('/generate-pokemon-team', (req: Request, res: Response) => {
  *    and return them in JSON.
  */
 router.get('/generate-field-ratings/:trainerId', (req: Request, res: Response) => {
+  const db = getActiveDB();
   const { trainerId } = req.params;
 
   // (A) First, check if we have a trainer row

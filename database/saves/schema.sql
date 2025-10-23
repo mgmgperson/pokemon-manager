@@ -306,15 +306,8 @@ CREATE TABLE game_state (
     active_trainer_id INTEGER NOT NULL, -- The trainer currently being played
     active_location_id INTEGER NOT NULL, -- The current location of the active trainer
 
-    -- current_action TEXT CHECK(current_action IN (
-    --     'exploring', 'battling', 'training', 'traveling', 'resting'
-    -- )) DEFAULT 'exploring',
-    -- destination INTEGER DEFAULT NULL, -- For travel actions, can be a location ID
-    -- progress INTEGER DEFAULT 0, -- Progress in the current action (e.g., travel distance, training fatigue)
-
     FOREIGN KEY (active_trainer_id) REFERENCES trainer(id),
     FOREIGN KEY (active_location_id) REFERENCES location(id)
-    -- FOREIGN KEY (destination) REFERENCES location(id)
 );
 
 
@@ -357,13 +350,12 @@ CREATE TABLE training_program (
     base_duration INTEGER NOT NULL,
     fatigue_cost INTEGER NOT NULL DEFAULT 5,
     cost INTEGER NOT NULL DEFAULT 100, -- cost in in-game currency
-    trainer_id INTEGER NOT NULL,
-    description TEXT,
-    FOREIGN KEY (trainer_id) REFERENCES trainer(id)
+    description TEXT
 );
 
 CREATE TABLE training_session (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    trainer_id INTEGER NOT NULL,
     pokemon_id INTEGER NOT NULL,
     program_id INTEGER NOT NULL,
     start_time TEXT NOT NULL,
@@ -371,6 +363,7 @@ CREATE TABLE training_session (
     success BOOLEAN,
     fatigue INTEGER DEFAULT 0, -- fatigue accumulated during the session
     notes TEXT,
+    FOREIGN KEY (trainer_id) REFERENCES trainer(id),
     FOREIGN KEY (pokemon_id) REFERENCES pokemon(id),
     FOREIGN KEY (program_id) REFERENCES training_program(id)
 );
@@ -380,7 +373,6 @@ CREATE TABLE injury (
     name TEXT NOT NULL,
     approximate_healing_time INTEGER NOT NULL, -- days
     description TEXT,
-    pokemon_id INTEGER NOT NULL,
     FOREIGN KEY (pokemon_id) REFERENCES pokemon(id)  
 );
 
@@ -402,7 +394,7 @@ CREATE TABLE message (
     is_read BOOLEAN DEFAULT FALSE,
     message_type TEXT CHECK(message_type IN (
         'battle_result', 'offer', 'news', 'tutorial', 'alert', 'finance'
-    ))
+    )),
 );
 
 -- Locations
@@ -425,7 +417,7 @@ CREATE TABLE location (
     FOREIGN KEY (parent_location_id) REFERENCES location(id)
 );
 
-CREATE TABLE terrain_spawn (
+CREATE TABLE terrain_spawn {
     terrain_id INTEGER NOT NULL,
     pokemon_id INTEGER NOT NULL,
     rate INTEGER NOT NULL, -- relative spawn rate or weight
@@ -436,7 +428,7 @@ CREATE TABLE terrain_spawn (
     encounter_type TEXT CHECK(encounter_type IN ('grass', 'water', 'cave', 'sky', 'fishing', 'event')) DEFAULT 'grass',
     PRIMARY KEY (terrain_id, pokemon_id, time_of_day, season, encounter_type),
     FOREIGN KEY (terrain_id) REFERENCES terrain(id)
-);
+}
 
 CREATE TABLE terrain (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -461,7 +453,7 @@ CREATE TABLE region_generation_spawn ( -- corresponding a pokemon's generation t
     generation INTEGER NOT NULL,
     rate INTEGER NOT NULL, -- relative spawn rate or weight
     PRIMARY KEY (region_id, generation),
-    FOREIGN KEY (region_id) REFERENCES region(id)
+    FOREIGN KEY (region_id) REFERENCES region(id),
 );
 
 CREATE TABLE shop (
@@ -491,16 +483,7 @@ CREATE TABLE shop_item (
 );
 
 CREATE TABLE travel_log (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    trainer_id INTEGER NOT NULL,
-    from_location_id INTEGER,
-    to_location_id INTEGER,
-    departure_time TEXT,
-    arrival_time TEXT,
-    notes TEXT,
-    FOREIGN KEY (trainer_id) REFERENCES trainer(id),
-    FOREIGN KEY (from_location_id) REFERENCES location(id),
-    FOREIGN KEY (to_location_id) REFERENCES location(id)
+    
 );
 
 CREATE TABLE tournament_template (
@@ -670,84 +653,10 @@ CREATE TABLE trainer_badge (
     trainer_id INTEGER NOT NULL,
     badge_id   INTEGER NOT NULL,
     awarded_at TEXT NOT NULL DEFAULT (datetime('now')),
-    source_event_id INTEGER, -- e.g. tournament_event.id where awarded; NULL if static grant
+    source_event_id INTEGER,       -- e.g. tournament_event.id where awarded; NULL if static grant
     notes TEXT,
 
     FOREIGN KEY (trainer_id)      REFERENCES trainer(id),
     FOREIGN KEY (badge_id)        REFERENCES badge(id),
     FOREIGN KEY (source_event_id) REFERENCES tournament_event(id)
-);
-
-CREATE TABLE event_template (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    code TEXT UNIQUE,                                  -- 'gift_starter_kanto', 'league_match', ...
-    name TEXT NOT NULL,
-    type TEXT NOT NULL CHECK (
-        type IN ('story','battle','gift_pokemon','tournament_ceremony','system')
-    ),
-    description TEXT,
-    default_payload_json TEXT,                         -- per-type knobs (UI copy, images, etc.)
-    auto_open_overlay BOOLEAN DEFAULT 1
-);
-
-CREATE TABLE event_instance (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    template_id INTEGER, -- nullable
-    type TEXT NOT NULL CHECK (
-        type IN ('story','battle','gift_pokemon','tournament_ceremony','system')
-    ),
-    title TEXT NOT NULL,
-    subtitle TEXT,
-    status TEXT NOT NULL CHECK (
-        status IN ('scheduled','active','resolved','canceled')
-    ) DEFAULT 'scheduled',
-
-    starts_at TEXT NOT NULL, -- when overlay should appear
-    ends_at   TEXT, -- optional auto-expire
-    priority  INTEGER DEFAULT 0, -- tie-breaker for overlay queue
-
-    payload_json TEXT, -- freeform per type
-
-    -- Soft links (optional; your engines read these if provided)
-    match_id INTEGER,
-    tournament_event_id INTEGER,
-    gym_leader_id INTEGER,
-    location_id INTEGER,
-    region_id INTEGER,
-    stadium_id INTEGER,
-
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    resolved_at TEXT,
-
-    FOREIGN KEY (template_id)          REFERENCES event_template(id),
-    FOREIGN KEY (match_id)             REFERENCES match(id),
-    FOREIGN KEY (tournament_event_id)  REFERENCES tournament_event(id),
-    FOREIGN KEY (gym_leader_id)        REFERENCES gym_leader(id),
-    FOREIGN KEY (location_id)          REFERENCES location(id),
-    FOREIGN KEY (region_id)            REFERENCES region(id),
-    FOREIGN KEY (stadium_id)           REFERENCES stadium(id)
-);
-
-CREATE TABLE event_option (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    event_id INTEGER NOT NULL,
-    kind TEXT NOT NULL CHECK (                          -- UI hint
-        kind IN ('choice','text','reward')
-    ),
-    label TEXT,                                         -- button label (for 'choice') or heading
-    body TEXT,                                          -- rich text / markdown / story line
-    sort_order INTEGER DEFAULT 0,
-    conditions_json TEXT,                               -- optional gates (money >= X, etc.)
-    effects_json TEXT,                                  -- optional effects on click (for 'choice') or immediate (for 'reward')
-
-    FOREIGN KEY (event_id) REFERENCES event_instance(id)
-);
-
-CREATE TABLE event_log (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    event_id INTEGER NOT NULL,
-    at TEXT NOT NULL DEFAULT (datetime('now')),
-    message TEXT NOT NULL,
-    data_json TEXT,
-    FOREIGN KEY (event_id) REFERENCES event_instance(id)
 );
