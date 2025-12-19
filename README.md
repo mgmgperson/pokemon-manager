@@ -1,8 +1,8 @@
 A Pokemon-based Manager game. 
 
-**frontend-2:**
+**frontend-v2:**
 
-npm start
+npm run dev
 
 **server:**
 

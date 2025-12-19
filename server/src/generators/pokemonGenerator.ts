@@ -8,6 +8,9 @@ import { Pokemon } from '../data/enums/pokemon';
 import { RATING_MAP } from '../data/conversions/conversions';
 import Decimal from 'decimal.js';
 
+//TODO: caching still seems to be shit
+
+
 // Ensure Pokémon data is initialized
 if (allPokemon.length === 0) {
     initPokemon();
@@ -21,17 +24,101 @@ if (allSpecies.length === 0) {
 // Team size distribution (bell curve approximation)
 const TEAM_SIZE_PROBABILITIES = [
     { size: 6, weight: 1 },
-    { size: 8, weight: 5 },
-    { size: 9, weight: 50 },
+    { size: 8, weight: 10 },
+    { size: 9, weight: 25 },
     { size: 12, weight: 50 },
-    { size: 14, weight: 30 },
+    { size: 14, weight: 25 },
     { size: 15, weight: 25 },
     { size: 16, weight: 20 },
-    { size: 18, weight: 15 },
-    { size: 20, weight: 10 },
+    { size: 18, weight: 5 },
+    { size: 20, weight: 5 },
     { size: 21, weight: 5 },
     { size: 24, weight: 1 },
 ];
+
+/**
+ * Cache structure for pre-calculated Pokemon weights
+ */
+interface PokemonWeightData {
+    pokemonId: number;
+    baseWeight: number;
+    neutralViability: number;
+    bst: number;
+    fieldViabilities: Map<Fields, number>;
+}
+
+interface PokemonWeightCache {
+    weights: Map<number, PokemonWeightData>;
+}
+
+/**
+ * Build a cache of Pokemon weights to avoid repeated viability calculations
+ */
+function buildPokemonWeightCache(): PokemonWeightCache {
+    // console.log('buildPokemonWeightCache: building Pokemon weight cache...');
+    const weights = new Map<number, PokemonWeightData>();
+    
+    for (const pokemon of allPokemon) {
+        const viabilityRatings = pokemon.getViabilityRatings();
+        const neutralViability = viabilityRatings[Fields.NEUTRAL]?.toNumber() || 0;
+        const bst = pokemon.getBaseStatTotal();
+        
+        // Pre-calculate base weight
+        let baseWeight = 0.5;
+        
+        if (neutralViability < 30) {
+            baseWeight += 0.5 + (neutralViability / 60);
+        } else if (neutralViability < 60) {
+            baseWeight += 1.0 + (neutralViability / 60);
+        } else if (neutralViability < 80) {
+            baseWeight += 0.75 + (neutralViability / 80);
+        } else {
+            baseWeight += 0.5 + (neutralViability / 120);
+        }
+        
+        // BST factor
+        if (bst < 400) {
+            baseWeight += 0.2;
+        } else if (bst > 600) {
+            baseWeight += 0.05;
+        } else {
+            baseWeight += 0.1;
+        }
+        
+        // Store field viabilities
+        const fieldViabilities = new Map<Fields, number>();
+        for (const field in viabilityRatings) {
+            const fieldEnum = parseInt(field) as Fields;
+            if (!isNaN(fieldEnum)) {
+                fieldViabilities.set(fieldEnum, viabilityRatings[fieldEnum]?.toNumber() || 0);
+            }
+        }
+        
+        weights.set(pokemon.id, {
+            pokemonId: pokemon.id,
+            baseWeight,
+            neutralViability,
+            bst,
+            fieldViabilities
+        });
+    }
+    // console.log(`buildPokemonWeightCache: built cache for ${weights.size} Pokémon`);
+    return { weights };
+}
+
+// Global cache - initialized on first use
+let globalPokemonWeightCache: PokemonWeightCache | null = null;
+
+function ensurePokemonWeightCache(): PokemonWeightCache {
+    if (!globalPokemonWeightCache) {
+        // console.log('ensurePokemonWeightCache: cache missing, building now');
+        globalPokemonWeightCache = buildPokemonWeightCache();
+    } else {
+        // indicate that code is using the existing cache
+        // console.log('ensurePokemonWeightCache: cache hit');
+    }
+    return globalPokemonWeightCache;
+}
 
 /**
  * Determines what kind of special Pokémon (if any) to add to a team
@@ -85,6 +172,9 @@ export function generatePokemonTeam(
     generationPreferences?: number[],
     fieldPreferences?: Fields[]
 ): any[] {
+    // Ensure weight cache is built
+    ensurePokemonWeightCache();
+    
     // Determine team size using bell curve distribution
     const teamSize = determineTeamSize();
     
@@ -194,8 +284,8 @@ export function generatePokemonTeam(
             }
         }
         
-        // Weighted selection
-        const pokemon = selectPokemon(currentEligible, fieldPreferences, team);
+        // Weighted selection with cache
+        const pokemon = selectPokemon(currentEligible, fieldPreferences, team, globalPokemonWeightCache!);
         
         if (pokemon) {
             // Remove selected Pokémon from eligible pool to avoid duplicates
@@ -215,7 +305,13 @@ export function generatePokemonTeam(
             const hasGmaxForm = species?.varieties?.some(pokemonId => {
                 // Look for form names like "CHARIZARD_GMAX"
                 const formName = Pokemon[pokemonId];
-                return typeof formName === 'string' && formName.includes('_GMAX');
+                return typeof formName === 'string' && formName.includes(' GMAX');
+            });
+
+            const hasMegaForm = species?.varieties?.some(pokemonId => {
+                // Look for form names like "CHARIZARD_Mega"
+                const formName = Pokemon[pokemonId];
+                return typeof formName === 'string' && formName.includes(' MEGA');
             });
             
             let isGigantamax = false;
@@ -223,8 +319,7 @@ export function generatePokemonTeam(
             // Only add mega if trainer is qualified and we haven't reached the limit
             // Megas should be used on strong but not legendary Pokémon
             if (canUseMega && megaCount < maxMega && 
-                pokemonRarity === 'normal' && 
-                i >= Math.floor(teamSize / 3) && // Not one of the first few Pokémon
+                pokemonRarity === 'normal' && hasMegaForm &&
                 Math.random() < 0.5) { // 50% chance to use mega slot if available
                 isMega = true;
                 megaCount++;
@@ -246,14 +341,59 @@ export function generatePokemonTeam(
             if (species?.isLegendary) legendaryCount++;
             if (species?.isMythical) mythicalCount++;
             
+            // Detect MEGA / GMAX from the returned name and prefer base form when inserting
+            const nameUpper = (pokemon.name || '').toUpperCase();
+            const detectedMega = /\bMEGA\b|_MEGA$/i.test(nameUpper) || nameUpper.includes(' MEGA') || nameUpper.endsWith('MEGA');
+            const detectedGmax = /GMAX|G-MAX|GIGANTAMAX/i.test(nameUpper) || nameUpper.includes(' GMAX') || nameUpper.includes(' G-MAX') || nameUpper.includes(' GIGANTAMAX');
+
+            // Final flags combine generator logic and detection, BUT detection must respect
+            // availability, rating limits and current counts — do NOT allow detected special
+            // forms to bypass `canUse*` or `max*` limits.
+            let finalIsMega = !!isMega;
+            let finalIsGmax = !!isGigantamax;
+
+            if (!finalIsMega && detectedMega && hasMegaForm && canUseMega && megaCount < maxMega && pokemonRarity === 'normal') {
+                finalIsMega = true;
+                megaCount++;
+            }
+
+            if (!finalIsGmax && detectedGmax && hasGmaxForm && canUseGmax && gmaxCount < maxGmax && pokemonRarity === 'normal') {
+                finalIsGmax = true;
+                gmaxCount++;
+            }
+
+            // Default to the selected form's species/pokemon id/name/types
+            let outSpeciesId = pokemon.species;
+            let outPokemonId = pokemon.id;
+            let outName = pokemon.name;
+            let outTypes = pokemon.types;
+
+            // If the selected entity is a Mega or G-Max (by name), prefer the base species & base form id
+            if (finalIsMega || finalIsGmax || detectedMega || detectedGmax) {
+                // find the species entry and pick its canonical variety (first element)
+                const speciesEntry = typeof allSpecies !== 'undefined' ? allSpecies.find(s => s.id === pokemon.species) : undefined;
+                if (speciesEntry && Array.isArray(speciesEntry.varieties) && speciesEntry.varieties.length > 0) {
+                    outPokemonId = speciesEntry.varieties[0];
+                    outSpeciesId = speciesEntry.id as any;
+                    outName = speciesEntry.name;
+
+                    // try to fetch base entity to get base types
+                    const baseEntity = typeof allPokemon !== 'undefined' ? allPokemon.find(p => p.id === outPokemonId) : undefined;
+                    if (baseEntity) outTypes = baseEntity.types;
+                } else {
+                    // fallback: if no species entry, try to heuristically strip Mega/Gmax suffix
+                    outName = outName.replace(/\s+MEGA$/i, '').replace(/\s+GMAX$/i, '').replace(/\s+G-MAX$/i, '').replace(/\s+GIGANTAMAX$/i, '');
+                }
+            }
+
             team.push({
-                species_id: pokemon.species,
-                pokemon_id: pokemon.id,
-                name: pokemon.name,
+                species_id: outSpeciesId,
+                pokemon_id: outPokemonId,
+                name: outName,
                 level: level,
-                types: pokemon.types,
-                is_mega: isMega,
-                is_gigantamax: isGigantamax
+                types: outTypes,
+                is_mega: finalIsMega,
+                is_gigantamax: finalIsGmax
             });
         }
     }
@@ -275,7 +415,7 @@ function determineTeamSize(): number {
         random -= entry.weight;
     }
     
-    return 15; // Default fallback
+    return 12; // Default fallback
 }
 
 /**
@@ -422,67 +562,81 @@ function getEvolutionStage(species: PokemonSpecies): number {
 
 /**
  * Select a Pokémon based on field preferences and team composition
+ * Uses pre-calculated weight cache for performance
  */
 function selectPokemon(
     eligiblePokemon: PokemonEntity[], 
     fieldPreferences?: Fields[],
-    currentTeam: any[] = []
+    currentTeam: any[] = [],
+    cache?: PokemonWeightCache
 ): PokemonEntity {
     if (eligiblePokemon.length === 0) {
         // Fallback to all Pokémon if none are eligible
         eligiblePokemon = [...allPokemon];
     }
 
-    // Always use neutral field viability as a base factor
+    // Use cached weights for performance; track usage counts to log hits/misses
+    let cacheHitCount = 0;
     const weightedPokemon = eligiblePokemon.map(pokemon => {
-        // Start with a low base weight to allow for more variance
-        let weight = 0.5; 
+        let weight: number;
         
-        // Get viability ratings
-        const viabilityRatings = pokemon.getViabilityRatings();
-        
-        // Use neutral field viability as the primary factor
-        const neutralFieldViability = viabilityRatings[Fields.NEUTRAL] || new Decimal(0);
-        
-        // Calculate weight based on viability
-        // This approach allows a bell curve where mid-tier Pokémon are most common
-        const viabilityScore = neutralFieldViability.toNumber();
-        
-        if (viabilityScore < 30) {
-            // Weaker Pokémon get slightly increased representation
-            weight += 0.5 + (viabilityScore / 60);
-        } else if (viabilityScore < 60) {
-            // Mid-tier Pokémon are most common
-            weight += 1.0 + (viabilityScore / 60);
-        } else if (viabilityScore < 80) {
-            // Strong Pokémon are somewhat common
-            weight += 0.75 + (viabilityScore / 80);
+        if (cache?.weights.has(pokemon.id)) {
+            cacheHitCount++;
+            // Use cached base weight
+            const cached = cache.weights.get(pokemon.id)!;
+            weight = cached.baseWeight;
+            
+            // If field preferences are provided, add bonus from cached field viabilities
+            if (fieldPreferences && fieldPreferences.length > 0) {
+                fieldPreferences.forEach(field => {
+                    if (field !== Fields.NEUTRAL) {
+                        const fieldViability = cached.fieldViabilities.get(field) || 0;
+                        weight += fieldViability / 150; // Small boost for field preference
+                    }
+                });
+            }
         } else {
-            // Very strong Pokémon are less common
-            weight += 0.5 + (viabilityScore / 120);
-        }
-        
-        // If field preferences are provided, give bonus to Pokémon good in those fields
-        if (fieldPreferences && fieldPreferences.length > 0) {
-            fieldPreferences.forEach(field => {
-                if (field !== Fields.NEUTRAL && viabilityRatings[field]) {
-                    weight += viabilityRatings[field].toNumber() / 150; // Small boost for field preference
-                }
-            });
-        }
-        
-        // Less emphasis on BST now, just a very minor factor
-        const bst = pokemon.getBaseStatTotal();
-        if (bst < 400) {
-            weight += 0.2; // Slight boost for weaker Pokémon
-        } else if (bst > 600) {
-            weight += 0.05; // Very small boost for very strong Pokémon
-        } else {
-            weight += 0.1; // Small boost for mid-BST Pokémon
+            // Fallback to calculating weight (shouldn't happen if cache is built)
+            const viabilityRatings = pokemon.getViabilityRatings();
+            const neutralFieldViability = viabilityRatings[Fields.NEUTRAL] || new Decimal(0);
+            const viabilityScore = neutralFieldViability.toNumber();
+            weight = 0.5;
+            if (viabilityScore < 30) {
+                weight += 0.5 + (viabilityScore / 60);
+            } else if (viabilityScore < 60) {
+                weight += 1.0 + (viabilityScore / 60);
+            } else if (viabilityScore < 80) {
+                weight += 0.75 + (viabilityScore / 80);
+            } else {
+                weight += 0.5 + (viabilityScore / 120);
+            }
+            
+            if (fieldPreferences && fieldPreferences.length > 0) {
+                fieldPreferences.forEach(field => {
+                    if (field !== Fields.NEUTRAL && viabilityRatings[field]) {
+                        weight += viabilityRatings[field].toNumber() / 150;
+                    }
+                });
+            }
+            
+            const bst = pokemon.getBaseStatTotal();
+            if (bst < 400) {
+                weight += 0.2;
+            } else if (bst > 600) {
+                weight += 0.05;
+            } else {
+                weight += 0.1;
+            }
         }
         
         return { item: pokemon, weight };
     });
+
+    if (cache) {
+        // console.log(`selectPokemon: cache provided — used cache for ${cacheHitCount}/${eligiblePokemon.length} entries`);
+    } else {
+        // console.log('selectPokemon: no cache provided; using calculated weights');
+    }
     
     // Select Pokémon using weighted random selection
     return weightedRandomSelection(weightedPokemon);

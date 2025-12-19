@@ -3,6 +3,14 @@ import fs from 'fs';
 import path from 'path';
 import { defaultRegions, defaultCities, defaultStadiums, defaultNameFrequencies } from './default-regions';
 import { defaultLocations, defaultTerrains, defaultSpawnRules } from './default-locations';
+import {
+  defaultTrainers,
+  defaultTrainerHometowns,
+  defaultGymLeaders,
+  defaultEliteFour,
+  defaultChampions,
+  defaultGrandChampions
+} from './default-trainers';
 import { defaultPokemon } from './default-pokemon';
 import { defaultShops } from './default-shops';
 import { 
@@ -12,12 +20,16 @@ import {
   defaultFinancialTransactions, 
   defaultInventory 
 } from './default-state';
-
-interface Region {
-  id: number;
-  name: string;
-  population: number;
-}
+import {
+  defaultRuleSets,
+  defaultRules,
+  defaultTournamentTemplates,
+  defaultStageTemplates,
+  defaultQualificationRules,
+  defaultPrizes,
+  defaultBadges
+} from './default-tournaments';
+import { defaultEventTemplates, defaultEventInstances, defaultEventOptions } from './default-events';
 
 /**
  * Creates the database schema from schema.sql
@@ -495,28 +507,69 @@ export const populateDefaultPokemon = (db: sqlite3.Database): Promise<void> => {
       return;
     }
 
-    defaultPokemon.forEach((pokemon) => {
-      db.run(insertPokemonSql, [
-        pokemon.trainerId,
-        pokemon.speciesId,
-        pokemon.pokemonId,
-        pokemon.level,
-        pokemon.isGigantamax ? 1 : 0,
-        pokemon.isMega ? 1 : 0
-      ], (err) => {
-        if (err) {
-          console.error(`Error inserting Pokemon for trainer ${pokemon.trainerId}:`, err);
-          reject(err);
+    const rollback = (error: Error) => {
+      db.exec('ROLLBACK', () => reject(error));
+    };
+
+    db.serialize(() => {
+      db.run('BEGIN TRANSACTION', (beginErr) => {
+        if (beginErr) {
+          reject(beginErr);
           return;
         }
-        
-        completed++;
-        console.log(`Inserted Pokemon: Species ${pokemon.speciesId} (Level ${pokemon.level})`);
-        
-        if (completed === total) {
-          console.log(`All ${total} Pokemon inserted successfully`);
-          resolve();
-        }
+
+        const statement = db.prepare(insertPokemonSql, (prepareErr) => {
+          if (prepareErr) {
+            rollback(prepareErr);
+            return;
+          }
+
+          const insertPokemonSequentially = async () => {
+            for (const pokemon of defaultPokemon) {
+              await new Promise<void>((res, rej) => {
+                statement.run([
+                  pokemon.trainerId,
+                  pokemon.speciesId,
+                  pokemon.pokemonId,
+                  pokemon.level,
+                  pokemon.isGigantamax ? 1 : 0,
+                  pokemon.isMega ? 1 : 0
+                ], (err) => {
+                  if (err) {
+                    rej(err);
+                    return;
+                  }
+
+                  completed++;
+                  res();
+                });
+              });
+            }
+          };
+
+          insertPokemonSequentially()
+            .then(() => {
+              statement.finalize((finalizeErr) => {
+                if (finalizeErr) {
+                  rollback(finalizeErr);
+                  return;
+                }
+
+                db.run('COMMIT', (commitErr) => {
+                  if (commitErr) {
+                    rollback(commitErr);
+                    return;
+                  }
+
+                  console.log(`All ${total} Pokemon inserted successfully`);
+                  resolve();
+                });
+              });
+            })
+            .catch((error) => {
+              statement.finalize(() => rollback(error as Error));
+            });
+        });
       });
     });
   });
@@ -809,36 +862,294 @@ export const populateDefaultInventory = (db: sqlite3.Database): Promise<void> =>
   });
 };
 
-/**
- * Populates the database with a default trainer
- */
-export const populateDefaultTrainer = (db: sqlite3.Database): Promise<void> => {
-  return new Promise((resolve, reject) => {
-    const insertTrainerSql = `
-      INSERT INTO trainer (id, fname, lname, region_id, birthdate, pwtr_rating, peak_rating, peak_rank, active_status)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `;
 
-    db.run(insertTrainerSql, [
-      1,                    // id
-      'Red',               // fname
-      'Ketchum',           // lname
-      1,                   // region_id (Kanto)
-      '2020-04-01',        // birthdate
-      1500.0,              // pwtr_rating
-      1500.0,              // peak_rating
-      1,                   // peak_rank
-      1                    // active_status (true)
-    ], (err) => {
-      if (err) {
-        console.error('Error inserting default trainer:', err);
-        reject(err);
-        return;
-      }
-      
-      console.log('Inserted default trainer: Red Ketchum');
-      resolve();
+/**
+ * Populate tournament-related tables: rule sets, rules, templates, stages, qualifications, prizes, badges
+ */
+export const populateDefaultTournamentsAndRules = (db: sqlite3.Database): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    // Rule sets
+    const insertRuleSetSql = `INSERT OR IGNORE INTO rule_set (id, name, notes) VALUES (?, ?, ?)`;
+    const insertRuleSql = `INSERT OR IGNORE INTO rule (id, rule_set_id, key, value) VALUES (?, ?, ?, ?)`;
+    const insertTournamentSql = `INSERT OR IGNORE INTO tournament_template (id, name, description, region_id, frequency, start_month, team_type, default_rule_set_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+    const insertStageSql = `INSERT OR IGNORE INTO stage_template (id, tournament_template_id, seq, stage_type, participants, groups, best_of, rule_set_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+    const insertQualificationSql = `INSERT OR IGNORE INTO qualification_rule (id, tournament_template_id, criterion_type, value, notes) VALUES (?, ?, ?, ?, ?)`;
+    const insertPrizeSql = `INSERT OR IGNORE INTO prize (id, tournament_template_id, position, prize_type, value) VALUES (?, ?, ?, ?, ?)`;
+    const insertBadgeSql = `INSERT OR IGNORE INTO badge (id, code, name, category, region_id, image, description, tournament_template_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+
+    let pending = 0;
+    const maybeResolve = () => { if (pending === 0) resolve(); };
+
+    // Insert rule sets
+    pending += defaultRuleSets.length;
+    if (defaultRuleSets.length === 0) pending = pending; // no-op
+    defaultRuleSets.forEach(rs => {
+      db.run(insertRuleSetSql, [rs.id, rs.name, rs.notes || null], (err) => {
+        if (err) { console.error('Error inserting rule set', rs, err); reject(err); return; }
+        pending--;
+        maybeResolve();
+      });
     });
+
+    // Insert rules
+    pending += defaultRules.length;
+    defaultRules.forEach(r => {
+      db.run(insertRuleSql, [r.id, r.ruleSetId, r.key, r.value], (err) => {
+        if (err) { console.error('Error inserting rule', r, err); reject(err); return; }
+        pending--;
+        maybeResolve();
+      });
+    });
+
+    // Insert tournament templates
+    pending += defaultTournamentTemplates.length;
+    defaultTournamentTemplates.forEach(t => {
+      db.run(insertTournamentSql, [
+        t.id,
+        t.name,
+        t.description || null,
+        t.regionId || null,
+        t.frequency,
+        t.startMonth || null,
+        t.teamType,
+        t.defaultRuleSetId || null
+      ], (err) => {
+        if (err) { console.error('Error inserting tournament template', t, err); reject(err); return; }
+        pending--;
+        maybeResolve();
+      });
+    });
+
+    // Insert stage templates
+    pending += defaultStageTemplates.length;
+    defaultStageTemplates.forEach(s => {
+      db.run(insertStageSql, [
+        s.id,
+        s.tournamentTemplateId,
+        s.seq,
+        s.stageType,
+        s.participants || null,
+        s.groups || null,
+        s.bestOf || null,
+        s.ruleSetId || null
+      ], (err) => {
+        if (err) { console.error('Error inserting stage template', s, err); reject(err); return; }
+        pending--;
+        maybeResolve();
+      });
+    });
+
+    // Qualification rules
+    pending += defaultQualificationRules.length;
+    defaultQualificationRules.forEach(q => {
+      db.run(insertQualificationSql, [q.id, q.tournamentTemplateId, q.criterionType, q.value, q.notes || null], (err) => {
+        if (err) { console.error('Error inserting qualification rule', q, err); reject(err); return; }
+        pending--;
+        maybeResolve();
+      });
+    });
+
+    // Prizes
+    pending += defaultPrizes.length;
+    defaultPrizes.forEach(p => {
+      db.run(insertPrizeSql, [p.id, p.tournamentTemplateId, p.position, p.prizeType, p.value], (err) => {
+        if (err) { console.error('Error inserting prize', p, err); reject(err); return; }
+        pending--;
+        maybeResolve();
+      });
+    });
+
+    // Badges
+    pending += defaultBadges.length;
+    defaultBadges.forEach(b => {
+      db.run(insertBadgeSql, [b.id, b.code, b.name, b.category, b.regionId || null, b.image || null, b.description || null, b.tournamentTemplateId || null], (err) => {
+        if (err) { console.error('Error inserting badge', b, err); reject(err); return; }
+        pending--;
+        maybeResolve();
+      });
+    });
+
+    // If there was nothing to insert, resolve immediately
+    if (pending === 0) resolve();
+  });
+};
+
+
+/**
+ * Populate event-related tables: templates, instances, options
+ */
+export const populateDefaultEvents = (db: sqlite3.Database): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    const insertEventTemplateSql = `INSERT OR IGNORE INTO event_template (id, code, name, type, description, default_payload_json, auto_open_overlay) VALUES (?, ?, ?, ?, ?, ?, ?)`;
+    const insertEventInstanceSql = `INSERT OR IGNORE INTO event_instance (id, template_id, type, title, subtitle, status, starts_at, ends_at, priority, payload_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    const insertEventOptionSql = `INSERT OR IGNORE INTO event_option (id, event_id, kind, label, body, sort_order, conditions_json, effects_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+
+    let pending = 0;
+    const maybeResolve = () => { if (pending === 0) resolve(); };
+
+    pending += defaultEventTemplates.length;
+    defaultEventTemplates.forEach(t => {
+      db.run(insertEventTemplateSql, [t.id, t.code, t.name, t.type, t.description || null, t.defaultPayloadJson || null, t.autoOpenOverlay ? 1 : 0], (err) => {
+        if (err) { console.error('Error inserting event template', t, err); reject(err); return; }
+        pending--;
+        maybeResolve();
+      });
+    });
+
+    pending += defaultEventInstances.length;
+    defaultEventInstances.forEach(e => {
+      db.run(insertEventInstanceSql, [
+        e.id,
+        e.templateId || null,
+        e.type,
+        e.title,
+        e.subtitle || null,
+        e.status,
+        e.startsAt,
+        e.endsAt || null,
+        e.priority || null,
+        e.payloadJson || null
+      ], (err) => {
+        if (err) { console.error('Error inserting event instance', e, err); reject(err); return; }
+        pending--;
+        maybeResolve();
+      });
+    });
+
+    pending += defaultEventOptions.length;
+    defaultEventOptions.forEach(o => {
+      db.run(insertEventOptionSql, [o.id, o.eventId, o.kind, o.label || null, o.body || null, o.sortOrder || null, o.conditionsJson || null, o.effectsJson || null], (err) => {
+        if (err) { console.error('Error inserting event option', o, err); reject(err); return; }
+        pending--;
+        maybeResolve();
+      });
+    });
+
+    if (pending === 0) resolve();
+  });
+};
+
+
+/**
+ * Populates the database with the full set of default trainers and related records
+ */
+export const populateDefaultTrainers = (db: sqlite3.Database): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    // Trainers
+    const insertTrainerSql = `INSERT OR IGNORE INTO trainer (id, fname, lname, region_id, birthdate, pwtr_rating, peak_rating, peak_rank, active_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    let trainersCompleted = 0;
+    const totalTrainers = defaultTrainers.length;
+
+    // We'll treat three sections: trainers, hometowns, leaders (gym/elite/champion)
+    let sectionsToComplete = 3;
+    let sectionsDone = 0;
+    const sectionDone = () => {
+      sectionsDone++;
+      if (sectionsDone >= sectionsToComplete) resolve();
+    };
+
+    // Insert trainers
+    if (totalTrainers === 0) {
+      sectionDone();
+    } else {
+      defaultTrainers.forEach((t) => {
+        db.run(insertTrainerSql, [
+          t.id,
+          t.fname || null,
+          t.lname || null,
+          t.regionId || null,
+          t.birthdate || null,
+          t.pwtrRating || null,
+          t.peakRating || null,
+          t.peakRank || null,
+          t.activeStatus ? 1 : 0
+        ], (err) => {
+          if (err) {
+            console.error(`Error inserting trainer ${t.id}:`, err);
+            reject(err);
+            return;
+          }
+
+          trainersCompleted++;
+          if (trainersCompleted === totalTrainers) {
+            console.log(`All ${totalTrainers} trainers inserted`);
+            sectionDone();
+          }
+        });
+      });
+    }
+
+    // Trainer hometowns
+    const insertHometownSql = `INSERT OR IGNORE INTO trainer_hometown (id, trainer_id, city_id) VALUES (?, ?, ?)`;
+    const totalHometowns = (defaultTrainerHometowns || []).length;
+    let hometownsCompleted = 0;
+    if (totalHometowns === 0) {
+      sectionDone();
+    } else {
+      defaultTrainerHometowns.forEach((h) => {
+        db.run(insertHometownSql, [h.id, h.trainerId, h.cityId], (err) => {
+          if (err) { console.error(`Error inserting trainer hometown ${h.id}:`, err); reject(err); return; }
+          hometownsCompleted++;
+          if (hometownsCompleted === totalHometowns) {
+            console.log(`All ${totalHometowns} trainer hometowns inserted`);
+            sectionDone();
+          }
+        });
+      });
+    }
+
+    // Gym leaders, elite four, champions, grand champions
+    const insertGymSql = `INSERT OR IGNORE INTO gym_leader (id, trainer_id, badge, city_id, type) VALUES (?, ?, ?, ?, ?)`;
+    const insertEliteSql = `INSERT OR IGNORE INTO elite_four (id, trainer_id, region_id) VALUES (?, ?, ?)`;
+    const insertChampionSql = `INSERT OR IGNORE INTO champion (id, trainer_id, region_id) VALUES (?, ?, ?)`;
+    const insertGrandChampionSql = `INSERT OR IGNORE INTO grand_champion (id, trainer_id) VALUES (?, ?)`;
+
+    let leadersToInsert = 0;
+    leadersToInsert += (defaultGymLeaders || []).length;
+    leadersToInsert += (defaultEliteFour || []).length;
+    leadersToInsert += (defaultChampions || []).length;
+    leadersToInsert += (defaultGrandChampions || []).length;
+
+    if (leadersToInsert === 0) {
+      sectionDone();
+    } else {
+      let leadersCompleted = 0;
+      const maybeSectionDone = () => {
+        leadersCompleted++;
+        if (leadersCompleted === leadersToInsert) {
+          console.log(`All ${leadersToInsert} leader records inserted`);
+          sectionDone();
+        }
+      };
+
+      (defaultGymLeaders || []).forEach((g) => {
+        db.run(insertGymSql, [g.id, g.trainerId, g.badge || null, g.cityId, g.type || null], (err) => {
+          if (err) { console.error(`Error inserting gym leader ${g.id}:`, err); reject(err); return; }
+          maybeSectionDone();
+        });
+      });
+
+      (defaultEliteFour || []).forEach((e) => {
+        db.run(insertEliteSql, [e.id, e.trainerId, e.regionId], (err) => {
+          if (err) { console.error(`Error inserting elite four ${e.id}:`, err); reject(err); return; }
+          maybeSectionDone();
+        });
+      });
+
+      (defaultChampions || []).forEach((c) => {
+        db.run(insertChampionSql, [c.id, c.trainerId, c.regionId], (err) => {
+          if (err) { console.error(`Error inserting champion ${c.id}:`, err); reject(err); return; }
+          maybeSectionDone();
+        });
+      });
+
+      (defaultGrandChampions || []).forEach((gc) => {
+        db.run(insertGrandChampionSql, [gc.id, gc.trainerId], (err) => {
+          if (err) { console.error(`Error inserting grand champion ${gc.id}:`, err); reject(err); return; }
+          maybeSectionDone();
+        });
+      });
+    }
   });
 };
 
@@ -874,8 +1185,14 @@ export const populateDefaultData = async (db: sqlite3.Database): Promise<void> =
     console.log('Populating default spawn rules...');
     await populateDefaultSpawnRules(db);
     
-    console.log('Populating default trainer...');
-    await populateDefaultTrainer(db);
+    console.log('Populating default tournaments (rule sets, templates, badges)...');
+    await populateDefaultTournamentsAndRules(db);
+
+    console.log('Populating default events (templates, instances, options)...');
+    await populateDefaultEvents(db);
+    
+    console.log('Populating default trainers and leader data...');
+    await populateDefaultTrainers(db);
     
     console.log('Populating default Pokemon...');
     await populateDefaultPokemon(db);
@@ -897,9 +1214,6 @@ export const populateDefaultData = async (db: sqlite3.Database): Promise<void> =
     
     console.log('Populating default inventory...');
     await populateDefaultInventory(db);
-    
-    console.log('Populating default trainer...');
-    await populateDefaultTrainer(db);
     
     console.log('Default data population completed successfully!');
   } catch (error) {

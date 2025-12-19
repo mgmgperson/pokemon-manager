@@ -8,9 +8,91 @@ import { generatePokemonTeam, convertPWTRToOverallRating } from '../generators/p
 import { Types } from '../data/enums/types';
 import { Fields } from '../data/enums/fields';
 import { generateFieldRatings } from '../generators/fieldRatingGenerator';
+import { generatePokemonStats } from '../generators/pokemonSetGenerator';
 import { getActiveDB } from '../services/dbManager';
 
 const router: Router = Router();
+
+// Weight cache interface matching the one in populateTrainerGenerator
+interface WeightCache {
+  regions?: Array<{ id: number; name: string; population: number }>;
+  regionWeights?: number[];
+  citiesByRegion?: Map<number, Array<{ id: number; name: string; region_id: number; population: number }>>;
+  cityWeightsByRegion?: Map<number, number[]>;
+  nameFrequenciesByRegion?: Map<string, any[]>;
+}
+
+// Global cache for API routes - built lazily on first use
+let globalApiCache: WeightCache | null = null;
+
+/**
+ * Build weight cache for API routes (same logic as populateTrainerGenerator)
+ */
+async function buildApiCache(db: sqlite3.Database): Promise<WeightCache> {
+  console.log('[API Cache] Building weight cache for API routes...');
+  const cache: WeightCache = {};
+
+  // Helper to promisify db.all
+  function allAsync<T = any>(sql: string, params: unknown[] = []): Promise<T[]> {
+    return new Promise((resolve, reject) => {
+      db.all<T>(sql, params, (err, rows) => {
+        if (err) reject(err);
+        else resolve(rows);
+      });
+    });
+  }
+
+  // Load regions
+  const regions = await allAsync<{ id: number; name: string; population: number }>(
+    'SELECT id, name, population FROM region'
+  );
+  cache.regions = regions;
+  cache.regionWeights = regions.map(r => r.population || 1);
+
+  // Load all cities grouped by region
+  const cities = await allAsync<{ id: number; name: string; region_id: number; population: number }>(
+    'SELECT id, name, region_id, population FROM city ORDER BY region_id'
+  );
+  const citiesByRegion = new Map<number, typeof cities>();
+  const cityWeightsByRegion = new Map<number, number[]>();
+  for (const city of cities) {
+    if (!citiesByRegion.has(city.region_id)) {
+      citiesByRegion.set(city.region_id, []);
+      cityWeightsByRegion.set(city.region_id, []);
+    }
+    citiesByRegion.get(city.region_id)!.push(city);
+    cityWeightsByRegion.get(city.region_id)!.push(city.population || 1);
+  }
+  cache.citiesByRegion = citiesByRegion;
+  cache.cityWeightsByRegion = cityWeightsByRegion;
+
+  // Load name frequencies
+  const nameFreqs = await allAsync<{ region_id: number; type: string; country: string; frequency: number }>(
+    'SELECT region_id, type, country, frequency FROM region_name_frequency'
+  );
+  const nameFreqMap = new Map<string, any[]>();
+  for (const row of nameFreqs) {
+    const key = `${row.region_id}_${row.type}`;
+    if (!nameFreqMap.has(key)) {
+      nameFreqMap.set(key, []);
+    }
+    nameFreqMap.get(key)!.push({ country: row.country, frequency: row.frequency });
+  }
+  cache.nameFrequenciesByRegion = nameFreqMap;
+
+  console.log(`[API Cache] Built cache: ${regions.length} regions, ${cities.length} cities, ${nameFreqs.length} name frequencies`);
+  return cache;
+}
+
+/**
+ * Ensure API cache is built (lazy initialization)
+ */
+async function ensureApiCache(db: sqlite3.Database): Promise<WeightCache> {
+  if (!globalApiCache) {
+    globalApiCache = await buildApiCache(db);
+  }
+  return globalApiCache;
+}
 
 
 router.get('/generate-trainer', (req: Request, res: Response): void => {
@@ -67,8 +149,9 @@ router.get('/generate-trainer', (req: Request, res: Response): void => {
     }
   }
   
-  // Generate random trainer
-  generateRandomTrainer(regionIdNum, genderVal, ageNum, pwtrRatingNum)
+  // Ensure cache is built, then generate trainer with cache
+  ensureApiCache(db)
+    .then(cache => generateRandomTrainer(db, regionIdNum, genderVal, ageNum, pwtrRatingNum, cache))
     .then(result => res.json(result))
     .catch(error => {
       console.error('Error generating trainer:', error);
@@ -260,7 +343,7 @@ router.get('/generate-name', (req: Request, res: Response): void => {
     }
 
     // Generate name
-    generateName(regionIdNum, gender as 'M' | 'F')
+    generateName(db, regionIdNum, gender as 'M' | 'F')
       .then(name => res.json(name))
       .catch(error => {
         console.error('Error generating name:', error);
@@ -335,7 +418,7 @@ router.get('/generate-pokemon-team', (req: Request, res: Response) => {
       }
     }
     
-    console.log('Type preferences:', typePreferences);
+    //console.log('Type preferences:', typePreferences);
     
     // Parse generation preferences
     let generationPreferences: number[] | undefined;
@@ -392,12 +475,14 @@ router.get('/generate-pokemon-team', (req: Request, res: Response) => {
       generationPreferences,
       fieldPreferences
     );
-    
-    res.json({ 
+
+    const responsePayload = {
       team,
       team_size: team.length,
       overall_rating: overallRatingNum
-    });
+    };
+
+    res.json(responsePayload);
     return;
     
   } catch (error) {
@@ -481,6 +566,36 @@ router.get('/generate-field-ratings/:trainerId', (req: Request, res: Response) =
       });
     });
   });
+});
+
+/**
+ * GET /generate-pokemon-stats/:trainerId/:pokemonId
+ * 
+ * Generate all stats for a specific Pokemon without saving to the database.
+ * This includes OT info, happiness, gender, shiny, pokeball, stats, EVs, IVs, nature, ability, etc.
+ * 
+ * Returns a JSON object with all generated Pokemon statistics.
+ */
+router.get('/generate-pokemon-stats/:trainerId/:pokemonId', async (req: Request, res: Response) => {
+  const db = getActiveDB();
+  const { trainerId, pokemonId } = req.params;
+
+  // Validate parameters
+  const trainerIdNum = parseInt(trainerId);
+  const pokemonIdNum = parseInt(pokemonId);
+
+  if (isNaN(trainerIdNum) || isNaN(pokemonIdNum)) {
+    res.status(400).json({ error: 'Invalid trainerId or pokemonId' });
+    return;
+  }
+
+  try {
+    const stats = await generatePokemonStats(db, trainerIdNum, pokemonIdNum);
+    res.json(stats);
+  } catch (error: any) {
+    console.error('Error generating Pokemon stats:', error);
+    res.status(500).json({ error: error.message || 'Failed to generate Pokemon stats' });
+  }
 });
 
 export default router;

@@ -15,7 +15,7 @@ export enum Items {
     DUSK_BALL,
     HEAL_BALL,
     QUICK_BALL,
-    CHERRISH_BALL,
+    CHERISH_BALL,
 
     // Healing Items
     POTION = 100,

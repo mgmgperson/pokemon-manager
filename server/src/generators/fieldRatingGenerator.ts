@@ -191,13 +191,13 @@ export function generateFieldRatings(
         (trainerRating.special + trainerFieldRatings[fieldName]) / 2; // Inverse
   });
 
-  debugLog(
-    'Unused Pokémon:',
-    pokemonTeam
-      .filter((p) => !pokemonFrequency[p.species_id])
-      .map((p) => Pokemon[p.pokemon_id])
-      .join(', ')
-  );
+  // debugLog(
+  //   'Unused Pokémon:',
+  //   pokemonTeam
+  //     .filter((p) => !pokemonFrequency[p.species_id])
+  //     .map((p) => Pokemon[p.pokemon_id])
+  //     .join(', ')
+  // );
 
   return trainerFieldRatings;
 }

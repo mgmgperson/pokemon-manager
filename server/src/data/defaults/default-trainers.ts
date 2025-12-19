@@ -1,5 +1,4 @@
 //TODO: change to real standard trainers
-//TODO: use trainer generator to generate pwtrRating, etc.
 
 export interface Trainer {
     id: number;

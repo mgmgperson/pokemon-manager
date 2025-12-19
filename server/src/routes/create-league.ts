@@ -4,6 +4,9 @@ import path from 'path';
 import sqlite3 from 'sqlite3';
 import crypto from 'crypto';
 import { populateDefaultData } from '../data/defaults/defaulthelper';
+import { populateFullSaveData } from '../generators/fullSaveGenerator';
+import { populateGeneratedTrainers } from '../generators/populateTrainerGenerator';
+import { populatePokemonDetails } from '../generators/pokemonSetGenerator';
 
 const router: Router = Router();
 
@@ -54,13 +57,39 @@ router.post('/', (req: Request, res: Response) => {
 
       // Database created successfully
       console.log(`New league database created: ${dbPath}`);
+      // Record start time for total create-league operation
+      const createStartTime = Date.now();
       
       try {
         // If setupType is 'default', populate with default data
         if (setupType === 'default') {
+          let stepStartTime = Date.now();
           console.log('Populating database with default data...');
           await populateDefaultData(db);
-          console.log('Default data population completed');
+          let stepEndTime = Date.now();
+          let stepElapsed = ((stepEndTime - stepStartTime) / 1000).toFixed(2);
+          console.log(`Default data population completed - elapsed ${stepElapsed}s`);
+
+          stepStartTime = Date.now();
+          console.log('Generating full save enhancements...');
+          await populateFullSaveData(db);
+          stepEndTime = Date.now();
+          stepElapsed = ((stepEndTime - stepStartTime) / 1000).toFixed(2);
+          console.log(`Full save data generation completed - elapsed ${stepElapsed}s`);
+
+          stepStartTime = Date.now();
+          console.log('Generating additional trainers to reach 5000 total...');
+          await populateGeneratedTrainers(db);
+          stepEndTime = Date.now();
+          stepElapsed = ((stepEndTime - stepStartTime) / 1000).toFixed(2);
+          console.log(`Trainer generation completed - elapsed ${stepElapsed}s`);
+
+          stepStartTime = Date.now();
+          console.log('Populating Pokemon details (OT, gender, shiny, stats, etc.)...');
+          await populatePokemonDetails(db);
+          stepEndTime = Date.now();
+          stepElapsed = ((stepEndTime - stepStartTime) / 1000).toFixed(2);
+          console.log(`Pokemon details population completed - elapsed ${stepElapsed}s`);
         }
         
         // Generate a unique code for the save slot
@@ -157,6 +186,11 @@ router.post('/', (req: Request, res: Response) => {
             });
 
             // Return success response
+            const createEndTime = Date.now();
+            const elapsedMs = createEndTime - createStartTime;
+            const elapsedSeconds = (elapsedMs / 1000).toFixed(2);
+            console.log(`Create-league total time: ${elapsedSeconds}s`);
+
             res.json({
               message: 'League created successfully',
               data: {
@@ -165,7 +199,8 @@ router.post('/', (req: Request, res: Response) => {
                 saveCode,
                 setupType,
                 createdAt: new Date().toISOString(),
-                defaultDataPopulated: setupType === 'default'
+                defaultDataPopulated: setupType === 'default',
+                elapsedSeconds: Number(elapsedSeconds)
               }
             });
           });

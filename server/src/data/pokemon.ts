@@ -1359,3 +1359,6 @@ export function initPokemon() {
     allPokemon.push(new PokemonEntity(Pokemon.FRILLISH_FEMALE, Species.FRILLISH, "Frillish Female", 67, [], [], 0, 0, 0, 0, 0, 0, [], 12, 330, false));
     allPokemon.push(new PokemonEntity(Pokemon.JELLICENT_FEMALE, Species.JELLICENT, "Jellicent Female", 168, [], [], 0, 0, 0, 0, 0, 0, [], 22, 1350, false));
 }
+
+// Initialize Pokemon data when this module is imported
+initPokemon();

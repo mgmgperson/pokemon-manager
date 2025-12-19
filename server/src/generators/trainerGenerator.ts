@@ -43,6 +43,14 @@ interface GenerateTrainerResult {
   hometown: TrainerHometown;
 }
 
+interface WeightCache {
+  regions?: Array<{ id: number; name: string; population: number }>;
+  regionWeights?: number[];
+  citiesByRegion?: Map<number, Array<{ id: number; name: string; region_id: number; population: number }>>;
+  cityWeightsByRegion?: Map<number, number[]>;
+  nameFrequenciesByRegion?: Map<string, any[]>;
+}
+
 /**
  * Select a random item based on weights
  */
@@ -63,8 +71,7 @@ function weightedRandom<T>(items: T[], weights: number[]): T {
 /**
  * Get all regions from the database
  */
-async function getRegions(): Promise<RegionData[]> {
-  const db = getActiveDB();
+async function getRegions(db: sqlite3.Database): Promise<RegionData[]> {
   return new Promise((resolve, reject) => {
     db.all<RegionData>(
       'SELECT id, name, population FROM region',
@@ -79,8 +86,7 @@ async function getRegions(): Promise<RegionData[]> {
 /**
  * Get cities by region ID
  */
-async function getCitiesByRegion(regionId: number): Promise<CityData[]> {
-  const db = getActiveDB();
+async function getCitiesByRegion(db: sqlite3.Database, regionId: number): Promise<CityData[]> {
   return new Promise((resolve, reject) => {
     db.all<CityData>(
       'SELECT id, name, region_id, population FROM city WHERE region_id = ?',
@@ -96,10 +102,23 @@ async function getCitiesByRegion(regionId: number): Promise<CityData[]> {
 /**
  * Generate a random region based on population weights
  */
-async function generateRandomRegion(regionId?: number): Promise<RegionData> {
-  const regions = await getRegions();
+async function generateRandomRegion(db: sqlite3.Database, regionId?: number, cache?: WeightCache): Promise<RegionData> {
+  // Use cache if available
+  if (cache?.regions && cache?.regionWeights) {
+    // console.log(`generateRandomRegion: using cache (regionId=${regionId ?? 'random'})`);
+    if (regionId) {
+      const selectedRegion = cache.regions.find(r => r.id === regionId);
+      if (selectedRegion) {
+        return selectedRegion;
+      }
+    }
+    return weightedRandom(cache.regions, cache.regionWeights);
+  }
+  // console.log(`generateRandomRegion: cache not available, falling back to DB (regionId=${regionId ?? 'random'})`);
+
+  // Fallback to DB query
+  const regions = await getRegions(db);
   
-  // If regionId is provided, find and return that region
   if (regionId) {
     const selectedRegion = regions.find(r => r.id === regionId);
     if (selectedRegion) {
@@ -107,22 +126,36 @@ async function generateRandomRegion(regionId?: number): Promise<RegionData> {
     }
   }
   
-  // Otherwise, do weighted random selection
-  const weights = regions.map(r => r.population || 1); // Use 1 as fallback if population is null
+  const weights = regions.map(r => r.population || 1);
   return weightedRandom(regions, weights);
 }
 
 /**
  * Generate a random city in a region based on population weights
  */
-async function generateRandomCity(regionId: number): Promise<CityData> {
-  const cities = await getCitiesByRegion(regionId);
+async function generateRandomCity(db: sqlite3.Database, regionId: number, cache?: WeightCache): Promise<CityData> {
+  // Use cache if available
+  if (cache?.citiesByRegion && cache?.cityWeightsByRegion) {
+    // console.log(`generateRandomCity: using cache for region ${regionId}`);
+    const cities = cache.citiesByRegion.get(regionId);
+    const weights = cache.cityWeightsByRegion.get(regionId);
+    if (cities && weights) {
+      if (cities.length === 0) {
+        throw new Error(`No cities found for region ID ${regionId}`);
+      }
+      return weightedRandom(cities, weights);
+    }
+  }
+  // console.log(`generateRandomCity: cache not available for region ${regionId}, falling back to DB`);
+
+  // Fallback to DB query
+  const cities = await getCitiesByRegion(db, regionId);
   
   if (cities.length === 0) {
     throw new Error(`No cities found for region ID ${regionId}`);
   }
   
-  const weights = cities.map(c => c.population || 1); // Use 1 as fallback if population is null
+  const weights = cities.map(c => c.population || 1);
   return weightedRandom(cities, weights);
 }
 
@@ -333,20 +366,22 @@ function estimatePeakRating(peakRank: number, currentRank: number, age: number, 
  * Generate a random trainer
  */
 export async function generateRandomTrainer(
+  db: sqlite3.Database,
   regionId?: number,
   gender?: 'M' | 'F',
   age?: number,
-  pwtr_rating?: number
+  pwtr_rating?: number,
+  cache?: WeightCache
 ): Promise<GenerateTrainerResult> {
   try {
     // 1. Generate region
-    const region = await generateRandomRegion(regionId);
+    const region = await generateRandomRegion(db, regionId, cache);
     
     // 2. Generate gender
     const selectedGender = generateRandomGender(gender);
     
     // 3. Generate name based on region and gender
-    const name = await generateName(region.id, selectedGender);
+    const name = await generateName(db, region.id, selectedGender, cache);
     
     // 4. Generate birthdate
     const birthdate = generateBirthdate(age);
@@ -373,7 +408,7 @@ export async function generateRandomTrainer(
     const peakRating = estimatePeakRating(peakRank, currentRank, computedAge, pwtrRating);
     
     // 10. Generate random city for hometown
-    const city = await generateRandomCity(region.id);
+    const city = await generateRandomCity(db, region.id, cache);
     
     // 11. Create trainer object
     const trainer: Trainer = {

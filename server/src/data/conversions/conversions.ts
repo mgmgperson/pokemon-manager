@@ -1,4 +1,6 @@
 
+import { Types } from '../enums/types';
+
 // Rank breakpoints data mapping rank to rating
 export const RANK_BREAKPOINTS: [number, number][] = [
   [1, 4500],
@@ -87,3 +89,28 @@ export const RATING_MAP: [number, number][] = [
   [1200, 15],
   [1000, 10]
 ];
+
+// Type weights used to bias type-specialist selection.
+// All core types get weight 1.  `STELLAR` and `UNKNOWN` are not used (weight 0).
+export const TYPE_WEIGHTS: Record<Types, number> = {
+  [Types.NORMAL]: 1,
+  [Types.FIGHTING]: 1,
+  [Types.FLYING]: 1,
+  [Types.POISON]: 1,
+  [Types.GROUND]: 1,
+  [Types.ROCK]: 1,
+  [Types.BUG]: 1,
+  [Types.GHOST]: 1,
+  [Types.STEEL]: 1,
+  [Types.FIRE]: 1,
+  [Types.WATER]: 1,
+  [Types.GRASS]: 1,
+  [Types.ELECTRIC]: 1,
+  [Types.PSYCHIC]: 1,
+  [Types.ICE]: 1,
+  [Types.DRAGON]: 1,
+  [Types.DARK]: 1,
+  [Types.FAIRY]: 1,
+  [Types.STELLAR]: 0,
+  [Types.UNKNOWN]: 0
+};
