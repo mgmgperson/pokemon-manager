@@ -9,9 +9,21 @@ export interface City {
 }
 
 export interface GymLeader {
+    id: number;
     name: string;
     type: string;
+    city_id: number;
     city_name: string;
+}
+
+export interface ChampionInfo {
+    id: number;
+    name: string;
+}
+
+export interface EliteFourMember {
+    id: number;
+    name: string;
 }
 
 // Basic region type used in location editing
@@ -26,8 +38,8 @@ export interface Region {
     name: string;
     population: number;
     cities: City[];
-    champion: string | null;
-    eliteFour: string[];
+    champion: ChampionInfo | null;
+    eliteFour: EliteFourMember[];
     gymLeaders: GymLeader[];
     locations: Location[];
 }

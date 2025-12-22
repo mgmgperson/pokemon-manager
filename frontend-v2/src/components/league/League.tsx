@@ -1,5 +1,6 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import { Paper, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Box, CircularProgress } from '@mui/material';
 import { LeagueData } from '../../types/league';
 import axios from 'axios';
@@ -41,9 +42,11 @@ const League: React.FC = () => {
                 <Typography variant="h4" className="text-center mb-2 text-white">
                     Grand Champion
                 </Typography>
-                <Typography variant="h5" className="text-center text-white">
-                    {leagueData.grandChampion.name}
-                </Typography>
+                <Link to={`/trainers/${leagueData.grandChampion.id}`} className="no-underline">
+                    <Typography variant="h5" className="text-center text-white hover:text-blue-400 transition-colors">
+                        {leagueData.grandChampion.name}
+                    </Typography>
+                </Link>
             </Paper>
 
             {/* League Table */}
@@ -53,9 +56,11 @@ const League: React.FC = () => {
                         <TableRow>
                             {leagueData.champions.map((champion) => (
                                 <TableCell key={champion.region} className="!text-center border-b border-gray-700">
-                                    <Typography variant="h6" className="!text-white">
-                                        {champion.region}
-                                    </Typography>
+                                    <Link to={`/regions/${champion.region_id}`} className="no-underline">
+                                        <Typography variant="h6" className="!text-white hover:!text-blue-400 transition-colors">
+                                            {champion.region}
+                                        </Typography>
+                                    </Link>
                                 </TableCell>
                             ))}
                         </TableRow>
@@ -65,9 +70,11 @@ const League: React.FC = () => {
                         <TableRow>
                             {leagueData.champions.map((champion) => (
                                 <TableCell key={champion.id} className="!text-center !border-b !border-gray-700">
-                                    <Typography className="text-white font-bold">
-                                        {getFirstName(champion.name)}
-                                    </Typography>
+                                    <Link to={`/trainers/${champion.id}`} className="no-underline">
+                                        <Typography className="text-white font-bold hover:text-blue-400 transition-colors">
+                                            {getFirstName(champion.name)}
+                                        </Typography>
+                                    </Link>
                                 </TableCell>
                             ))}
                         </TableRow>
@@ -78,9 +85,11 @@ const League: React.FC = () => {
                                 <TableCell key={eliteGroup.region} className="!text-center">
                                     <Box className="!space-y-1">
                                         {eliteGroup.eliteFour.map((member) => (
-                                            <Typography key={member.id} className="text-white">
-                                                {getFirstName(member.name)}
-                                            </Typography>
+                                            <Link key={member.id} to={`/trainers/${member.id}`} className="no-underline block">
+                                                <Typography className="text-white hover:text-blue-400 transition-colors">
+                                                    {getFirstName(member.name)}
+                                                </Typography>
+                                            </Link>
                                         ))}
                                     </Box>
                                 </TableCell>

@@ -24,6 +24,7 @@ import terrainRoutes from './routes/terrains';
 import metaRoutes from './routes/meta';
 import trainingRoutes from './routes/training';
 import createLeagueRoutes from './routes/create-league';
+import tournamentRoutes from './routes/tournaments';
 
 const app: Application = express();
 const PORT = process.env.PORT || 5000;
@@ -53,6 +54,7 @@ app.use('/terrains', terrainRoutes);
 app.use('/meta', metaRoutes);
 app.use('/training', trainingRoutes);
 app.use('/create-league', createLeagueRoutes);
+app.use('/tournaments', tournamentRoutes);
 
 // Start the server
 app.listen(PORT, () => {

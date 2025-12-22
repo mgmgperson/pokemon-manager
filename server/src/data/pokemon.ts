@@ -52,8 +52,15 @@ export class PokemonEntity {
 /** List of all Pokémon entities */
 export const allPokemon: PokemonEntity[] = [];
 
+let pokemonInitialized = false;
+
 /** Function to initialize Pokémon entities */
 export function initPokemon() {
+    if (pokemonInitialized) {
+        return; // Already initialized, don't add duplicates
+    }
+    pokemonInitialized = true;
+    
     allPokemon.push(new PokemonEntity(Pokemon.BULBASAUR, Species.BULBASAUR, "Bulbasaur", 64, [Abilities.OVERGROW, Abilities.CHLOROPHYLL], [Types.GRASS, Types.POISON], 45, 49, 49, 65, 65, 45, [PokemonForms.BULBASAUR], 7, 69, true));
     allPokemon.push(new PokemonEntity(Pokemon.IVYSAUR, Species.IVYSAUR, "Ivysaur", 142, [Abilities.OVERGROW, Abilities.CHLOROPHYLL], [Types.GRASS, Types.POISON], 60, 62, 63, 80, 80, 60, [PokemonForms.IVYSAUR], 10, 130, true));
     allPokemon.push(new PokemonEntity(Pokemon.VENUSAUR, Species.VENUSAUR, "Venusaur", 263, [Abilities.OVERGROW, Abilities.CHLOROPHYLL], [Types.GRASS, Types.POISON], 80, 82, 83, 100, 100, 80, [PokemonForms.VENUSAUR], 20, 1000, true));
@@ -1359,6 +1366,3 @@ export function initPokemon() {
     allPokemon.push(new PokemonEntity(Pokemon.FRILLISH_FEMALE, Species.FRILLISH, "Frillish Female", 67, [], [], 0, 0, 0, 0, 0, 0, [], 12, 330, false));
     allPokemon.push(new PokemonEntity(Pokemon.JELLICENT_FEMALE, Species.JELLICENT, "Jellicent Female", 168, [], [], 0, 0, 0, 0, 0, 0, [], 22, 1350, false));
 }
-
-// Initialize Pokemon data when this module is imported
-initPokemon();

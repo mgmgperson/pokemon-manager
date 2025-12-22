@@ -43,19 +43,19 @@ router.get('/:id', (req: Request, res: Response) => {
     GROUP BY l.id
   `;
   const sqlChampion = `
-    SELECT t.fname, t.lname
+    SELECT t.id as trainer_id, t.fname, t.lname
     FROM champion ch
     JOIN trainer t ON ch.trainer_id = t.id
     WHERE ch.region_id = ?
   `;
   const sqlEliteFour = `
-    SELECT t.fname, t.lname
+    SELECT t.id as trainer_id, t.fname, t.lname
     FROM elite_four ef
     JOIN trainer t ON ef.trainer_id = t.id
     WHERE ef.region_id = ?
   `;
   const sqlGymLeaders = `
-    SELECT t.fname, t.lname, g.type, c.name as city_name
+    SELECT t.id as trainer_id, t.fname, t.lname, g.type, c.id as city_id, c.name as city_name
     FROM gym_leader g
     JOIN trainer t ON g.trainer_id = t.id
     JOIN city c ON g.city_id = c.id
@@ -107,14 +107,22 @@ router.get('/:id', (req: Request, res: Response) => {
               })),
               locations: processedLocations,
               champion: championRow
-                ? `${championRow.fname} ${championRow.lname || ''}`
+                ? {
+                    id: championRow.trainer_id,
+                    name: `${championRow.fname} ${championRow.lname || ''}`
+                  }
                 : null,
               eliteFour: eliteFourRows.map(
-                (row) => `${row.fname} ${row.lname || ''}`
+                (row) => ({
+                  id: row.trainer_id,
+                  name: `${row.fname} ${row.lname || ''}`
+                })
               ),
               gymLeaders: gymLeaderRows.map((row) => ({
+                id: row.trainer_id,
                 name: `${row.fname} ${row.lname || ''}`,
                 type: row.type,
+                city_id: row.city_id,
                 city_name: row.city_name
               })),
             };

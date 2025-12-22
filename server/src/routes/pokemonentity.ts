@@ -32,6 +32,7 @@ router.get('/', (req: any, res: any) => {
             id: pokemon.id,
             name: pokemon.name,
             types: pokemon.types.map(type => typeEnumToString(type)),
+            is_default: pokemon.isDefault,
             base_stats: {
                 hp: pokemon.baseHP,
                 attack: pokemon.baseATK,
@@ -86,6 +87,7 @@ router.get('/:id', (req: any, res: any) => {
             id: pokemon.id,
             name: pokemon.name,
             types: pokemon.types.map(type => typeEnumToString(type)),
+            is_default: pokemon.isDefault,
             base_stats: {
                 hp: pokemon.baseHP,
                 attack: pokemon.baseATK,

@@ -24,7 +24,7 @@ const menuItems = [
   { text: 'Item Bag', icon: <InventoryIcon />, path: '/items' },
   { text: 'Finances', icon: <FinanceIcon />, path: '/finances' },
   { text: 'PWTR', icon: <PersonIcon />, path: '/trainers' },
-  { text: 'Pokedex', icon: <PokedexIcon />, path: '/dex' },
+  { text: 'Pokedex', icon: <PokedexIcon />, path: '/pokedex' },
   { text: 'Regions', icon: <MapIcon />, path: '/regions' },
   { text: 'League', icon: <LeagueIcon />, path: '/league' },
   { text: 'Tournaments', icon: <TournamentIcon />, path: '/tournaments' },

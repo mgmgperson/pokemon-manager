@@ -47,8 +47,15 @@ export class PokemonSpecies {
 /** List of all Pokémon species */
 export const allSpecies: PokemonSpecies[] = [];
 
+let speciesInitialized = false;
+
 /** Function to initialize species (to be filled with real data) */
 export function initSpecies() {
+    if (speciesInitialized) {
+        return; // Already initialized, don't add duplicates
+    }
+    speciesInitialized = true;
+    
     allSpecies.push(new PokemonSpecies(Species.BULBASAUR, "Bulbasaur", 50, 45, [EggGroups.MONSTER, EggGroups.PLANT], null, false, 1, "Seed Pokémon", 1, GrowthRates.MEDIUM_SLOW, false, 20, false, false, false, [Pokemon.BULBASAUR]));
     allSpecies.push(new PokemonSpecies(Species.IVYSAUR, "Ivysaur", 50, 45, [EggGroups.MONSTER, EggGroups.PLANT], Species.BULBASAUR, false, 1, "Seed Pokémon", 1, GrowthRates.MEDIUM_SLOW, false, 20, false, false, false, [Pokemon.IVYSAUR]));
     allSpecies.push(new PokemonSpecies(Species.VENUSAUR, "Venusaur", 50, 45, [EggGroups.MONSTER, EggGroups.PLANT], Species.IVYSAUR, true, 1, "Seed Pokémon", 1, GrowthRates.MEDIUM_SLOW, true, 20, false, false, false, [Pokemon.VENUSAUR, Pokemon.VENUSAUR_MEGA, Pokemon.VENUSAUR_GMAX]));

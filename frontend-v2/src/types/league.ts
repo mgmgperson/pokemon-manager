@@ -5,6 +5,7 @@ export interface EliteFourMember {
 
 export interface RegionEliteFour {
     region: string;
+    region_id: number;
     eliteFour: EliteFourMember[];
 }
 
@@ -12,6 +13,7 @@ export interface Champion {
     id: number;
     name: string;
     region: string;
+    region_id: number;
 }
 
 export interface GrandChampion {

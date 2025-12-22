@@ -15,14 +15,14 @@ router.get('/', (req: Request, res: Response) => {
   `;
 
   const sqlChampions = `
-    SELECT t.id, r.name as region_name, t.fname, t.lname
+    SELECT t.id, r.id as region_id, r.name as region_name, t.fname, t.lname
     FROM champion ch
     JOIN trainer t ON ch.trainer_id = t.id
     JOIN region r ON ch.region_id = r.id
   `;
 
   const sqlEliteFour = `
-    SELECT t.id, r.name as region_name, t.fname, t.lname
+    SELECT t.id, r.id as region_id, r.name as region_name, t.fname, t.lname
     FROM elite_four ef
     JOIN trainer t ON ef.trainer_id = t.id
     JOIN region r ON ef.region_id = r.id
@@ -52,16 +52,20 @@ router.get('/', (req: Request, res: Response) => {
 
         const champions = championRows.map((row) => ({
           region: row.region_name,
+          region_id: row.region_id,
           id: row.id,
           name: `${row.fname} ${row.lname}`,
         }));
 
-        const eliteFourMap: Record<string, any[]> = {};
+        const eliteFourMap: Record<string, any> = {};
         eliteFourRows.forEach((row) => {
           if (!eliteFourMap[row.region_name]) {
-            eliteFourMap[row.region_name] = [];
+            eliteFourMap[row.region_name] = {
+              region_id: row.region_id,
+              members: []
+            };
           }
-          eliteFourMap[row.region_name].push({
+          eliteFourMap[row.region_name].members.push({
             id: row.id,
             name: `${row.fname} ${row.lname}`,
           });
@@ -69,7 +73,8 @@ router.get('/', (req: Request, res: Response) => {
 
         const eliteFour = Object.keys(eliteFourMap).map((region) => ({
           region: region,
-          eliteFour: eliteFourMap[region],
+          region_id: eliteFourMap[region].region_id,
+          eliteFour: eliteFourMap[region].members,
         }));
 
         res.json({
