@@ -21,7 +21,7 @@ export interface TrainerHometown {
 export interface GymLeader {
     id: number;
     trainerId: number;
-    badge: string | null;
+    badge: number;
     cityId: number;
     type: string | null;
 }
@@ -41,6 +41,13 @@ export interface Champion {
 export interface GrandChampion {
     id: number;
     trainerId: number;
+}
+
+export interface unusedGymData {
+    id: number;
+    badge: number | null;
+    cityId: number;
+    type: string | null;
 }
 
 export const defaultTrainers: Trainer[] = [
@@ -23282,603 +23289,665 @@ export const defaultGymLeaders: GymLeader[] = [
     {
         id: 1,
         trainerId: 209,
-        badge: null,
+        badge: 9,
         cityId: 1,
         type: "Ghost"
     },
     {
         id: 2,
         trainerId: 328,
-        badge: null,
+        badge: 6,
         cityId: 2,
         type: "Dark"
     },
     {
         id: 3,
         trainerId: 136,
-        badge: null,
+        badge: 1,
         cityId: 3,
         type: "Fighting"
     },
     {
         id: 6,
         trainerId: 301,
-        badge: null,
+        badge: 5,
         cityId: 6,
         type: "Poison"
     },
     {
         id: 8,
         trainerId: 112,
-        badge: null,
+        badge: 7,
         cityId: 8,
         type: "Ice"
     },
     {
         id: 9,
         trainerId: 160,
-        badge: null,
+        badge: 3,
         cityId: 9,
         type: "Electric"
     },
     {
         id: 10,
         trainerId: 145,
-        badge: null,
+        badge: 10,
         cityId: 10,
-        type: "Sound"
+        type: "Psychic"
     },
     {
         id: 11,
         trainerId: 153,
-        badge: null,
+        badge: 2,
         cityId: 11,
         type: "Water"
     },
     {
         id: 13,
         trainerId: 332,
-        badge: null,
+        badge: 14,
         cityId: 33,
         type: "Bug"
     },
     {
         id: 14,
         trainerId: 106,
-        badge: null,
+        badge: 15,
         cityId: 34,
-        type: "Light"
+        type: "Water"
     },
     {
         id: 15,
         trainerId: 117,
-        badge: null,
+        badge: 16,
         cityId: 35,
         type: "Dragon"
     },
     {
         id: 16,
         trainerId: 379,
-        badge: null,
+        badge: 17,
         cityId: 36,
         type: "Fighting"
     },
     {
         id: 18,
         trainerId: 267,
-        badge: null,
+        badge: 19,
         cityId: 38,
         type: "Fire"
     },
     {
         id: 19,
         trainerId: 84,
-        badge: null,
+        badge: 20,
         cityId: 39,
-        type: "Water"
+        type: "Fairy"
     },
     {
         id: 20,
         trainerId: 150,
-        badge: null,
+        badge: 21,
         cityId: 40,
         type: "Ghost"
     },
     {
         id: 22,
         trainerId: 77,
-        badge: null,
+        badge: 23,
         cityId: 42,
         type: "Normal"
     },
     {
         id: 23,
         trainerId: 120,
-        badge: null,
+        badge: 24,
         cityId: 45,
         type: "Dark"
     },
     {
         id: 24,
         trainerId: 89,
-        badge: null,
+        badge: 25,
         cityId: 60,
         type: "Water"
     },
     {
         id: 25,
         trainerId: 335,
-        badge: null,
+        badge: 26,
         cityId: 61,
         type: "Fighting"
     },
     {
         id: 26,
         trainerId: 336,
-        badge: null,
+        badge: 27,
         cityId: 62,
         type: "Fire"
     },
     {
         id: 27,
         trainerId: 216,
-        badge: null,
+        badge: 28,
         cityId: 63,
         type: "Ice"
     },
     {
         id: 28,
         trainerId: 337,
-        badge: null,
+        badge: 29,
         cityId: 64,
         type: "Normal"
     },
     {
         id: 29,
         trainerId: 166,
-        badge: null,
+        badge: 30,
         cityId: 65,
         type: "Ghost"
     },
     {
         id: 30,
         trainerId: 113,
-        badge: null,
+        badge: 31,
         cityId: 66,
         type: "Rock"
     },
     {
-        id: 32,
-        trainerId: 82,
-        badge: null,
-        cityId: 68,
-        type: "Steel"
-    },
-    {
         id: 33,
         trainerId: 164,
-        badge: null,
+        badge: 34,
         cityId: 69,
         type: "Psychic"
     },
     {
         id: 34,
         trainerId: 103,
-        badge: null,
+        badge: 35,
         cityId: 70,
         type: "Electric"
     },
     {
         id: 35,
         trainerId: 178,
-        badge: null,
+        badge: 36,
         cityId: 71,
         type: "Flying"
     },
     {
         id: 36,
         trainerId: 339,
-        badge: null,
+        badge: 37,
         cityId: 88,
         type: "Ground"
     },
     {
         id: 37,
         trainerId: 176,
-        badge: null,
+        badge: 38,
         cityId: 89,
         type: "Steel"
     },
     {
         id: 38,
         trainerId: 62,
-        badge: null,
+        badge: 39,
         cityId: 90,
         type: "Ice"
     },
     {
         id: 39,
         trainerId: 114,
-        badge: null,
+        badge: 40,
         cityId: 91,
         type: "Normal"
     },
     {
         id: 40,
         trainerId: 340,
-        badge: null,
+        badge: 41,
         cityId: 92,
         type: "Water"
     },
     {
         id: 41,
         trainerId: 80,
-        badge: null,
+        badge: 42,
         cityId: 93,
         type: "Ghost"
     },
     {
         id: 42,
         trainerId: 195,
-        badge: null,
+        badge: 43,
         cityId: 94,
         type: "Grass"
     },
     {
         id: 43,
         trainerId: 341,
-        badge: null,
+        badge: 44,
         cityId: 95,
         type: "Psychic"
     },
     {
         id: 44,
         trainerId: 342,
-        badge: null,
+        badge: 45,
         cityId: 96,
         type: "None"
     },
     {
         id: 45,
         trainerId: 227,
-        badge: null,
+        badge: 46,
         cityId: 97,
         type: "None"
     },
     {
         id: 46,
         trainerId: 158,
-        badge: null,
+        badge: 47,
         cityId: 98,
         type: "Rock"
     },
     {
         id: 47,
         trainerId: 49,
-        badge: null,
+        badge: 48,
         cityId: 99,
         type: "Electric"
     },
     {
         id: 48,
         trainerId: 343,
-        badge: null,
+        badge: 49,
         cityId: 120,
         type: "Fire"
     },
     {
         id: 49,
         trainerId: 344,
-        badge: null,
+        badge: 50,
         cityId: 121,
         type: "Bug"
     },
     {
         id: 50,
         trainerId: 345,
-        badge: null,
+        badge: 51,
         cityId: 122,
         type: "Normal"
     },
     {
         id: 51,
         trainerId: 346,
-        badge: null,
+        badge: 52,
         cityId: 123,
         type: "Grass"
     },
     {
         id: 52,
         trainerId: 347,
-        badge: null,
+        badge: 53,
         cityId: 124,
         type: "Ground"
     },
     {
         id: 53,
         trainerId: 109,
-        badge: null,
+        badge: 54,
         cityId: 125,
         type: "Electric"
     },
     {
         id: 54,
         trainerId: 125,
-        badge: null,
+        badge: 55,
         cityId: 126,
         type: "Dark"
     },
     {
         id: 55,
         trainerId: 348,
-        badge: null,
+        badge: 56,
         cityId: 127,
         type: "Normal"
     },
     {
         id: 57,
         trainerId: 224,
-        badge: null,
+        badge: 58,
         cityId: 129,
         type: "Water"
     },
     {
         id: 58,
         trainerId: 350,
-        badge: null,
+        badge: 59,
         cityId: 130,
         type: "Poison"
     },
     {
         id: 59,
         trainerId: 92,
-        badge: null,
+        badge: 60,
         cityId: 131,
         type: "Ghost"
     },
     {
         id: 60,
         trainerId: 152,
-        badge: null,
+        badge: 61,
         cityId: 149,
         type: "Flying"
     },
     {
         id: 62,
         trainerId: 183,
-        badge: null,
+        badge: 63,
         cityId: 151,
         type: "Electric"
     },
     {
         id: 63,
         trainerId: 352,
-        badge: null,
+        badge: 64,
         cityId: 152,
         type: "Rock"
     },
     {
         id: 64,
         trainerId: 353,
-        badge: null,
+        badge: 65,
         cityId: 153,
         type: "Fighting"
     },
     {
         id: 65,
         trainerId: 354,
-        badge: null,
+        badge: 66,
         cityId: 154,
         type: "None"
     },
     {
         id: 66,
         trainerId: 355,
-        badge: null,
+        badge: 67,
         cityId: 155,
         type: "Psychic"
     },
     {
         id: 67,
         trainerId: 204,
-        badge: null,
+        badge: 68,
         cityId: 156,
         type: "Grass"
     },
     {
         id: 68,
         trainerId: 306,
-        badge: null,
+        badge: 69,
         cityId: 157,
         type: "Water"
     },
     {
         id: 69,
         trainerId: 137,
-        badge: null,
+        badge: 70,
         cityId: 158,
         type: "Bug"
     },
     {
         id: 70,
         trainerId: 175,
-        badge: null,
+        badge: 71,
         cityId: 159,
         type: "Steel"
     },
     {
         id: 71,
         trainerId: 100,
-        badge: null,
+        badge: 72,
         cityId: 160,
         type: "Ice"
     },
     {
         id: 72,
         trainerId: 219,
-        badge: null,
+        badge: 73,
         cityId: 174,
         type: "Ice"
     },
     {
         id: 73,
         trainerId: 356,
-        badge: null,
+        badge: 74,
         cityId: 175,
         type: "Ground"
     },
     {
         id: 74,
         trainerId: 142,
-        badge: null,
+        badge: 75,
         cityId: 177,
         type: "Flying"
     },
     {
         id: 75,
         trainerId: 91,
-        badge: null,
+        badge: 76,
         cityId: 178,
         type: "Fire"
     },
     {
         id: 76,
         trainerId: 192,
-        badge: null,
+        badge: 77,
         cityId: 179,
         type: "Water"
     },
     {
         id: 77,
         trainerId: 162,
-        badge: null,
+        badge: 78,
         cityId: 180,
         type: "Fairy"
     },
     {
         id: 78,
         trainerId: 151,
-        badge: null,
+        badge: 79,
         cityId: 181,
         type: "Steel"
     },
     {
         id: 79,
         trainerId: 252,
-        badge: null,
+        badge: 80,
         cityId: 181,
         type: "Electric"
     },
     {
         id: 80,
         trainerId: 358,
-        badge: null,
+        badge: 81,
         cityId: 182,
         type: "Dark"
     },
     {
         id: 82,
         trainerId: 360,
-        badge: null,
+        badge: 83,
         cityId: 184,
         type: "Rock"
     },
     {
-        id: 97,
-        trainerId: 146,
-        badge: null,
-        cityId: 252,
-        type: "Fighting"
-    },
-    {
-        id: 104,
-        trainerId: 168,
-        badge: null,
-        cityId: 259,
-        type: "Dragon"
-    },
-    {
-        id: 105,
-        trainerId: 73,
-        badge: null,
-        cityId: 266,
-        type: "Ghost"
-    },
-    {
         id: 120,
         trainerId: 132,
-        badge: null,
+        badge: 86,
         cityId: 304,
         type: "Bug"
     },
     {
         id: 121,
         trainerId: 177,
-        badge: null,
+        badge: 87,
         cityId: 305,
         type: "Ghost"
     },
     {
         id: 122,
         trainerId: 72,
-        badge: null,
+        badge: 88,
         cityId: 306,
         type: "Fighting"
     },
     {
         id: 123,
         trainerId: 67,
-        badge: null,
+        badge: 89,
         cityId: 307,
         type: "Fairy"
     },
     {
         id: 124,
         trainerId: 147,
-        badge: null,
+        badge: 90,
         cityId: 308,
         type: "Rock"
     },
     {
         id: 126,
         trainerId: 218,
-        badge: null,
+        badge: 92,
         cityId: 310,
         type: "Fire"
     },
     {
         id: 127,
         trainerId: 93,
-        badge: null,
+        badge: 93,
         cityId: 311,
         type: "Poison"
     },
     {
         id: 128,
         trainerId: 159,
-        badge: null,
+        badge: 94,
         cityId: 312,
         type: "Ice"
     },
     {
         id: 129,
         trainerId: 123,
-        badge: null,
+        badge: 95,
         cityId: 313,
         type: "Water"
     },
     {
         id: 130,
         trainerId: 296,
-        badge: null,
+        badge: 96,
         cityId: 321,
         type: "Grass"
     },
     {
         id: 131,
         trainerId: 148,
-        badge: null,
+        badge: 8,
         cityId: 5,
+        type: "None"
+    },
+    {
+        id: 132,
+        trainerId: 90,
+        badge: 11,
+        cityId: 12,
+        type: "None"
+    },
+    {
+        id: 7,
+        trainerId: 104,
+        badge: 12,
+        cityId: 7,
+        type: "Steel"
+    },
+    {
+        id: 4,
+        trainerId: 298,
+        badge: 4,
+        cityId: 4,
+        type: "Grass"
+    },
+    {
+        id: 17,
+        trainerId: 285,
+        badge: 18,
+        cityId: 37,
+        type: "Electric"
+    },
+    {
+        id: 21,
+        trainerId: 314,
+        badge: 22,
+        cityId: 41,
+        type: "Grass"
+    },
+    {   id: 31,
+        trainerId: 242,
+        badge: 32,
+        cityId: 67,
+        type: "Grass"
+    },
+    {    
+        id: 32,
+        trainerId: 316,
+        badge: 33,
+        cityId: 68,
+        type: "Water"
+    },
+    {    
+        id: 56,
+        trainerId: 188,
+        badge: 57,
+        cityId: 128,
+        type: "None"
+    },
+    {    
+        id: 61,
+        trainerId: 94,
+        badge: 62,
+        cityId: 130,
+        type: "Fairy"
+    },
+    {    
+        id: 81,
+        trainerId: 95,
+        badge: 82,
+        cityId: 183,
+        type: "Ghost"
+    },
+    {
+        id: 83,
+        trainerId: 180,
+        badge: 84,
+        cityId: 176,
+        type: "Poison"
+    },
+    {    
+        id: 119,
+        trainerId: 87,
+        badge: 85,
+        cityId: 303,
+        type: "None"
+    },
+    {    
+        id: 125,
+        trainerId: 139,
+        badge: 91,
+        cityId: 309,
         type: "None"
     },
 ];

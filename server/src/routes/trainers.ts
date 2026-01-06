@@ -112,6 +112,22 @@ router.get('/:id', (req: Request, res: Response) => {
     WHERE trainer_hometown.trainer_id = ?
   `;
 
+  const sqlBadges = `
+    SELECT 
+        badge.id as badge_id,
+        badge.code,
+        badge.name,
+        badge.category,
+        badge.image,
+        badge.description,
+        trainer_badge.awarded_at,
+        trainer_badge.notes
+    FROM trainer_badge
+    JOIN badge ON trainer_badge.badge_id = badge.id
+    WHERE trainer_badge.trainer_id = ?
+    ORDER BY trainer_badge.awarded_at DESC
+  `;
+
   const sqlRating = `
     SELECT * FROM rating 
     WHERE trainer_id = ? 
@@ -140,18 +156,30 @@ router.get('/:id', (req: Request, res: Response) => {
         return res.status(400).json({ error: err2.message });
       }
       if (!ratingRow) {
-        // No rating found, return null or empty placeholders
-        return res.json({
-          message: 'success',
-          data: {
-            trainer: trainerRow,
-            rating: null,
-            format_rating: null,
-            field_rating: null,
-            mental_rating: null,
-            hometowns: []
+        // No rating found, fetch hometowns and badges, return null for ratings
+        db.all(sqlHometowns, [trainerId], (err6: Error | null, hometownsRows: any[]) => {
+          if (err6) {
+            return res.status(400).json({ error: err6.message });
           }
+          db.all(sqlBadges, [trainerId], (err7: Error | null, badgesRows: any[]) => {
+            if (err7) {
+              return res.status(400).json({ error: err7.message });
+            }
+            return res.json({
+              message: 'success',
+              data: {
+                trainer: trainerRow,
+                rating: null,
+                format_rating: null,
+                field_rating: null,
+                mental_rating: null,
+                hometowns: hometownsRows,
+                badges: badgesRows
+              }
+            });
+          });
         });
+        return;
       }
 
       const ratingId = ratingRow.id;
@@ -171,16 +199,22 @@ router.get('/:id', (req: Request, res: Response) => {
               if (err6) {
                 return res.status(400).json({ error: err6.message });
               }
-              return res.json({
-                message: 'success',
-                data: {
-                  trainer: trainerRow,
-                  rating: ratingRow,
-                  format_rating: formatRatingRow,
-                  field_rating: fieldRatingRow,
-                  mental_rating: mentalRatingRow,
-                  hometowns: hometownsRows
+              db.all(sqlBadges, [trainerId], (err7: Error | null, badgesRows: any[]) => {
+                if (err7) {
+                  return res.status(400).json({ error: err7.message });
                 }
+                return res.json({
+                  message: 'success',
+                  data: {
+                    trainer: trainerRow,
+                    rating: ratingRow,
+                    format_rating: formatRatingRow,
+                    field_rating: fieldRatingRow,
+                    mental_rating: mentalRatingRow,
+                    hometowns: hometownsRows,
+                    badges: badgesRows
+                  }
+                });
               });
             });
           });

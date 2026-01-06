@@ -129,7 +129,7 @@ const PokedexList: React.FC = () => {
                     {currentPokemon.map((pokemon) => (
                         <Link
                             key={pokemon.id}
-                            to={`#`}
+                            to={`/pokedex/pokemon/${pokemon.id}`}
                             className="no-underline"
                         >
                             <Paper className="p-4 bg-gray-800 hover:bg-gray-700 transition-colors h-full">

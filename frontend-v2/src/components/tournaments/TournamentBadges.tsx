@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Paper, Card, CardContent, Typography, Chip, Box } from '@mui/material';
 import { Badge } from '../../types/tournament';
 
@@ -35,7 +36,8 @@ const TournamentBadges: React.FC<TournamentBadgesProps> = ({ badges }) => {
     return (
         <Box className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {badges.map((badge) => (
-                <Card key={badge.id} className="!bg-gray-800 hover:!bg-gray-750 transition-colors h-full">
+                <Link key={badge.id} to={`/badges/${badge.id}`} className="no-underline">
+                    <Card className="!bg-gray-800 hover:!bg-gray-750 transition-colors h-full !cursor-pointer">
                         <CardContent>
                             <Box className="flex justify-between items-start mb-3">
                                 <Typography variant="h6" className="text-white font-bold">
@@ -67,6 +69,7 @@ const TournamentBadges: React.FC<TournamentBadgesProps> = ({ badges }) => {
                             )}
                         </CardContent>
                     </Card>
+                </Link>
             ))}
         </Box>
     );

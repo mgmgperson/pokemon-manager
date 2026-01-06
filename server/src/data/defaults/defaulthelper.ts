@@ -30,6 +30,7 @@ import {
   defaultBadges
 } from './default-tournaments';
 import { defaultEventTemplates, defaultEventInstances, defaultEventOptions } from './default-events';
+import { defaultTrainerBadges } from './default-badges';
 
 /**
  * Creates the database schema from schema.sql
@@ -1031,6 +1032,49 @@ export const populateDefaultEvents = (db: sqlite3.Database): Promise<void> => {
 
 
 /**
+ * Populates the database with default trainer badges (pre-generated tournament winners)
+ */
+export const populateDefaultBadges = (db: sqlite3.Database): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    const insertBadgeSql = `
+      INSERT INTO trainer_badge (id, trainer_id, badge_id, awarded_at, source_event_id, notes)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `;
+
+    let completed = 0;
+    const total = defaultTrainerBadges.length;
+
+    if (total === 0) {
+      resolve();
+      return;
+    }
+
+    defaultTrainerBadges.forEach((badge) => {
+      db.run(insertBadgeSql, [
+        badge.id,
+        badge.trainer_id,
+        badge.badge_id,
+        badge.awarded_at,
+        badge.source_event_id,
+        badge.notes
+      ], (err) => {
+        if (err) {
+          console.error(`Error inserting trainer badge ${badge.id}:`, err);
+          reject(err);
+          return;
+        }
+        completed++;
+        if (completed === total) {
+          console.log(`Successfully populated ${total} default trainer badges`);
+          resolve();
+        }
+      });
+    });
+  });
+};
+
+
+/**
  * Populates the database with the full set of default trainers and related records
  */
 export const populateDefaultTrainers = (db: sqlite3.Database): Promise<void> => {
@@ -1099,10 +1143,10 @@ export const populateDefaultTrainers = (db: sqlite3.Database): Promise<void> => 
     }
 
     // Gym leaders, elite four, champions, grand champions
-    const insertGymSql = `INSERT OR IGNORE INTO gym_leader (id, trainer_id, badge, city_id, type) VALUES (?, ?, ?, ?, ?)`;
-    const insertEliteSql = `INSERT OR IGNORE INTO elite_four (id, trainer_id, region_id) VALUES (?, ?, ?)`;
-    const insertChampionSql = `INSERT OR IGNORE INTO champion (id, trainer_id, region_id) VALUES (?, ?, ?)`;
-    const insertGrandChampionSql = `INSERT OR IGNORE INTO grand_champion (id, trainer_id) VALUES (?, ?)`;
+    const insertGymSql = `INSERT INTO gym_leader (id, trainer_id, badge, city_id, type) VALUES (?, ?, ?, ?, ?)`;
+    const insertEliteSql = `INSERT INTO elite_four (id, trainer_id, region_id) VALUES (?, ?, ?)`;
+    const insertChampionSql = `INSERT INTO champion (id, trainer_id, region_id) VALUES (?, ?, ?)`;
+    const insertGrandChampionSql = `INSERT INTO grand_champion (id, trainer_id) VALUES (?, ?)`;
 
     let leadersToInsert = 0;
     leadersToInsert += (defaultGymLeaders || []).length;
@@ -1123,7 +1167,7 @@ export const populateDefaultTrainers = (db: sqlite3.Database): Promise<void> => 
       };
 
       (defaultGymLeaders || []).forEach((g) => {
-        db.run(insertGymSql, [g.id, g.trainerId, g.badge || null, g.cityId, g.type || null], (err) => {
+        db.run(insertGymSql, [g.id, g.trainerId, g.badge || null, g.cityId, g.type || 'None'], (err) => {
           if (err) { console.error(`Error inserting gym leader ${g.id}:`, err); reject(err); return; }
           maybeSectionDone();
         });
@@ -1214,6 +1258,9 @@ export const populateDefaultData = async (db: sqlite3.Database): Promise<void> =
     
     console.log('Populating default inventory...');
     await populateDefaultInventory(db);
+    
+    console.log('Populating default trainer badges (tournament winners)...');
+    await populateDefaultBadges(db);
     
     console.log('Default data population completed successfully!');
   } catch (error) {

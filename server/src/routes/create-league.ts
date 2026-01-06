@@ -7,6 +7,7 @@ import { populateDefaultData } from '../data/defaults/defaulthelper';
 import { populateFullSaveData } from '../generators/fullSaveGenerator';
 import { populateGeneratedTrainers } from '../generators/populateTrainerGenerator';
 import { populatePokemonDetails } from '../generators/pokemonSetGenerator';
+import { populateBadgeOwnership } from '../generators/badgeOwnershipGenerator';
 
 const router: Router = Router();
 
@@ -90,6 +91,13 @@ router.post('/', (req: Request, res: Response) => {
           stepEndTime = Date.now();
           stepElapsed = ((stepEndTime - stepStartTime) / 1000).toFixed(2);
           console.log(`Pokemon details population completed - elapsed ${stepElapsed}s`);
+
+          stepStartTime = Date.now();
+          console.log('Generating badge ownership (gym badges and tournament placements)...');
+          await populateBadgeOwnership(db);
+          stepEndTime = Date.now();
+          stepElapsed = ((stepEndTime - stepStartTime) / 1000).toFixed(2);
+          console.log(`Badge ownership generation completed - elapsed ${stepElapsed}s`);
         }
         
         // Generate a unique code for the save slot

@@ -14,7 +14,10 @@ import TrainerList from './components/trainers/TrainerList';
 import TrainerDetail from './components/trainers/TrainerDetail';
 import TournamentList from './components/tournaments/TournamentList';
 import TournamentDetail from './components/tournaments/TournamentDetail';
+import BadgeList from './components/badges/BadgeList';
+import BadgeDetail from './components/badges/BadgeDetail';
 import PokedexList from './components/pokedex/PokedexList';
+import PokemonDetailPage from './components/pokedex/PokemonDetail';
 import AddTrainer from './components/trainers/edit/AddTrainer';
 import EditTrainer from './components/trainers/edit/EditTrainer';
 import EditFieldRating from './components/trainers/edit/EditFieldRating';
@@ -43,6 +46,8 @@ import TrainingCards from './components/training/TrainingCards';
 import TrainingProgram from './components/training/TrainingProgram';
 import AddTrainingProgram from './components/training/edit/AddTrainingProgram';
 import Home from './components/home/Home';
+import HistoryDashboard from './components/history/HistoryDashboard';
+import History from './components/history/History';
 
 const theme = createTheme({
   palette: {
@@ -91,14 +96,19 @@ const App: React.FC = () => {
           <Route element={<GameLayout />}>
             <Route path="home" element={<Home />} />
             <Route path="squad" element={<Squad />} />
+            <Route path="history" element={<History />} />
             <Route path="league" element={<League />} />
             <Route path="regions" element={<RegionList />} />
             <Route path="regions/:id" element={<RegionDetail />} />
             <Route path="tournaments" element={<TournamentList />} />
             <Route path="tournaments/:id" element={<TournamentDetail />} />
+            <Route path="badges" element={<BadgeList />} />
+            <Route path="badges/:id" element={<BadgeDetail />} />
             <Route path="pokedex" element={<PokedexList />} />
+            <Route path="pokedex/pokemon/:id" element={<PokemonDetailPage />} />
             <Route path="trainers" element={<TrainerList />} />
             <Route path="trainers/:id" element={<TrainerDetail />} />
+            <Route path="trainers/:id/history" element={<HistoryDashboard />} />
             <Route path="trainers/:id/pokemon" element={<TrainerPokemon />} />
             <Route path="trainers/:id/pokemon/:pokemonId" element={<TrainerPokemonDetail />} />
             <Route path="trainers/:id/add_pokemon" element={<AddTrainerPokemon />} />

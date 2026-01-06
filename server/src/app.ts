@@ -25,6 +25,8 @@ import metaRoutes from './routes/meta';
 import trainingRoutes from './routes/training';
 import createLeagueRoutes from './routes/create-league';
 import tournamentRoutes from './routes/tournaments';
+import historyRoutes from './routes/history';
+import badgeRoutes from './routes/badge';
 
 const app: Application = express();
 const PORT = process.env.PORT || 5000;
@@ -55,6 +57,8 @@ app.use('/meta', metaRoutes);
 app.use('/training', trainingRoutes);
 app.use('/create-league', createLeagueRoutes);
 app.use('/tournaments', tournamentRoutes);
+app.use('/history', historyRoutes);
+app.use('/badges', badgeRoutes);
 
 // Start the server
 app.listen(PORT, () => {

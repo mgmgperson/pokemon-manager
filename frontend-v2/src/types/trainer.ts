@@ -116,6 +116,17 @@ export interface Hometown {
     city_name: string;
 }
 
+export interface Badge {
+    badge_id: number;
+    code: string;
+    name: string;
+    category: string;
+    image: string | null;
+    description: string;
+    awarded_at: string;
+    notes: string;
+}
+
 export interface TrainerData {
     trainer: Trainer;
     rating: TrainerRating;
@@ -123,6 +134,7 @@ export interface TrainerData {
     mental_rating: MentalRating;
     format_rating: FormatRating;
     hometowns: Hometown[];
+    badges: Badge[];
 }
 
 export interface RatingData {

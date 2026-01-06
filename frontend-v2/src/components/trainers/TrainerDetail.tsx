@@ -146,7 +146,7 @@ const TrainerDetail: React.FC = () => {
         return <InactiveTrainerDetail trainerData={trainerData} />;
     }
 
-    const { trainer, rating, field_rating, mental_rating, format_rating, hometowns } = trainerData;
+    const { trainer, rating, field_rating, mental_rating, format_rating, hometowns, badges } = trainerData;
 
     const typeFieldData = createRatingData({
         pumped_field_rating: field_rating.pumped_field_rating,
@@ -331,7 +331,7 @@ const TrainerDetail: React.FC = () => {
                             </Box>
                         </Box>
                     </Box>
-                    <Box className="!w-full md:!w-1/3 !flex !flex-col !items-start">
+                    <Box className="!w-full md:!w-1/6 !flex !flex-col !items-start">
                         <Tooltip title={`Peak Rank: ${trainer.peak_rank || 'N/A'}`}>
                             <div>
                                 <Typography variant="subtitle1" className="!text-gray-400">
@@ -353,8 +353,62 @@ const TrainerDetail: React.FC = () => {
                             </div>
                         </Tooltip>
                     </Box>
-                    <Box className="!w-full md:!w-1/3">
-                        {/* Reserved for future content */}
+                    <Box className="!w-full md:!w-1/2">
+                        <Typography variant="h6" className="!text-white !mb-3">
+                            Badges ({badges?.length || 0})
+                        </Typography>
+                        <Box className="!flex !flex-wrap !gap-2">
+                            {badges && badges.length > 0 ? (
+                                badges.map((badge) => (
+                                    <Tooltip
+                                        key={badge.badge_id}
+                                        title={
+                                            <Box className="!p-1">
+                                                <Typography variant="subtitle2" className="!font-bold">
+                                                    {badge.name}
+                                                </Typography>
+                                                <Typography variant="caption" className="!block !mt-1">
+                                                    {badge.description}
+                                                </Typography>
+                                                <Typography variant="caption" className="!block !mt-1 !text-gray-300">
+                                                    Awarded: {new Date(badge.awarded_at).toLocaleDateString()}
+                                                </Typography>
+                                            </Box>
+                                        }
+                                        arrow
+                                        placement="top"
+                                    >
+                                        <Link to={`/badges/${badge.badge_id}`} className="!no-underline">
+                                            <Box
+                                                className="!w-12 !h-12 !bg-gray-700 !rounded !flex !items-center !justify-center !cursor-pointer hover:!bg-gray-600 !transition-colors"
+                                                sx={{
+                                                    border: '2px solid',
+                                                    borderColor: badge.category === 'gym' ? '#fbbf24' : 
+                                                                badge.category === 'conference' ? '#a78bfa' : '#6b7280'
+                                                }}
+                                            >
+                                                {badge.image ? (
+                                                    <img 
+                                                        src={badge.image} 
+                                                        alt={badge.name}
+                                                        className="!w-full !h-full !object-cover !rounded"
+                                                    />
+                                                ) : (
+                                                    <Typography variant="caption" className="!text-gray-400 !text-xs">
+                                                        {badge.category === 'gym' ? '🏅' : 
+                                                         badge.category === 'conference' ? '🏆' : '⭐'}
+                                                    </Typography>
+                                                )}
+                                            </Box>
+                                        </Link>
+                                    </Tooltip>
+                                ))
+                            ) : (
+                                <Typography variant="body2" className="!text-gray-400">
+                                    No badges earned yet
+                                </Typography>
+                            )}
+                        </Box>
                     </Box>
                 </Box>
             </Paper>

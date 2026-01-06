@@ -483,7 +483,16 @@ CREATE TABLE shop_item (
 );
 
 CREATE TABLE travel_log (
-    
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    trainer_id INTEGER NOT NULL,
+    from_location_id INTEGER,
+    to_location_id INTEGER,
+    departure_time TEXT,
+    arrival_time TEXT,
+    notes TEXT,
+    FOREIGN KEY (trainer_id) REFERENCES trainer(id),
+    FOREIGN KEY (from_location_id) REFERENCES location(id),
+    FOREIGN KEY (to_location_id) REFERENCES location(id)
 );
 
 CREATE TABLE tournament_template (
