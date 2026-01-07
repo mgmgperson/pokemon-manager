@@ -27,6 +27,7 @@ import createLeagueRoutes from './routes/create-league';
 import tournamentRoutes from './routes/tournaments';
 import historyRoutes from './routes/history';
 import badgeRoutes from './routes/badge';
+import simRoutes from './routes/sim';
 
 const app: Application = express();
 const PORT = process.env.PORT || 5000;
@@ -59,6 +60,7 @@ app.use('/create-league', createLeagueRoutes);
 app.use('/tournaments', tournamentRoutes);
 app.use('/history', historyRoutes);
 app.use('/badges', badgeRoutes);
+app.use('/sim', simRoutes);
 
 // Start the server
 app.listen(PORT, () => {
