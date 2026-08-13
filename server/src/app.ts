@@ -66,3 +66,7 @@ app.use('/sim', simRoutes);
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
+
+
+//todo: change package.json to esm + tsx?
+//todo: split routes + controllers files

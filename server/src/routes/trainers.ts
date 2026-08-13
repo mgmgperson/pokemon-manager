@@ -13,9 +13,9 @@ router.get('/', (req: Request, res: Response) => {
         home_region.name as region_name,
         CASE
             WHEN grand_champion.trainer_id IS NOT NULL THEN 'Grand Champion'
-            WHEN gym_leader.id IS NOT NULL THEN CONCAT(type, ' Leader of ', city.name)
-            WHEN elite_four.id IS NOT NULL THEN CONCAT('Elite Four of ', elite_region.name)
-            WHEN champion.id IS NOT NULL THEN CONCAT('Champion of ', champion_region.name)
+            WHEN gym_leader.id IS NOT NULL THEN type || ' Leader of ' || city.name
+            WHEN elite_four.id IS NOT NULL THEN 'Elite Four of ' || elite_region.name
+            WHEN champion.id IS NOT NULL THEN 'Champion of ' || champion_region.name
             ELSE 'None'
         END as title
     FROM trainer 
@@ -82,9 +82,9 @@ router.get('/:id', (req: Request, res: Response) => {
         ranked_trainers.rank AS rank,
         CASE
             WHEN grand_champion.trainer_id IS NOT NULL THEN 'Grand Champion'
-            WHEN gym_leader.id IS NOT NULL THEN CONCAT(type, ' Leader of ', city.name)
-            WHEN elite_four.id IS NOT NULL THEN CONCAT('Elite Four of ', elite_region.name)
-            WHEN champion.id IS NOT NULL THEN CONCAT('Champion of ', champion_region.name)
+            WHEN gym_leader.id IS NOT NULL THEN type || ' Leader of ' || city.name
+            WHEN elite_four.id IS NOT NULL THEN 'Elite Four of ' || elite_region.name
+            WHEN champion.id IS NOT NULL THEN 'Champion of ' || champion_region.name
             ELSE 'None'
         END AS title
     FROM trainer 

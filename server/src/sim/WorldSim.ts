@@ -77,7 +77,7 @@ export async function advanceWorld(
         const gameState = await getGameState(db, gameStateId);
         if (!gameState) {
             throw new Error('No game_state found');
-        }
+        }        
 
         // Build cursor with current time
         const fromTime = combineDateTime(gameState.current_date, gameState.current_time);

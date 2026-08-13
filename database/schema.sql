@@ -343,7 +343,8 @@ CREATE TABLE inventory (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     trainer_id INTEGER NOT NULL,
     item_id INTEGER NOT NULL,
-    quantity INTEGER DEFAULT 1, 
+    quantity INTEGER DEFAULT 1,
+    UNIQUE (trainer_id, item_id),
     FOREIGN KEY (trainer_id) REFERENCES trainer(id)
 );
 
