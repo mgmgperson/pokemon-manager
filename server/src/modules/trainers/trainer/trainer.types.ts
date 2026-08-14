@@ -1,5 +1,52 @@
 export type NumericValue = number | null;
 
+export const TRAINER_TITLE_FILTERS = [
+  'all',
+  'champion',
+  'elite_four',
+  'gym_leader',
+  'none',
+] as const;
+
+export type TrainerTitleFilter = (typeof TRAINER_TITLE_FILTERS)[number];
+
+export const TRAINER_STATUS_FILTERS = ['all', 'active', 'inactive', 'unknown'] as const;
+
+export type TrainerStatusFilter = (typeof TRAINER_STATUS_FILTERS)[number];
+
+export const TRAINER_SORT_FIELDS = [
+  'rank',
+  'name',
+  'pwtr_rating',
+  'region_name',
+  'title',
+  'birthdate',
+  'age',
+  'peak_rating',
+  'peak_rank',
+  'active_status',
+] as const;
+
+export type TrainerSortField = (typeof TRAINER_SORT_FIELDS)[number];
+
+export type SortOrder = 'asc' | 'desc';
+
+export interface TrainerListInput {
+  page: number;
+  pageSize: number;
+  search?: string;
+  regionId?: number;
+  title: TrainerTitleFilter;
+  status: TrainerStatusFilter;
+  sortBy: TrainerSortField;
+  sortOrder: SortOrder;
+}
+
+export interface TrainerOptionsInput {
+  search?: string;
+  ids: number[];
+}
+
 export interface TrainerWriteInput {
   fname?: string | null;
   lname?: string | null;

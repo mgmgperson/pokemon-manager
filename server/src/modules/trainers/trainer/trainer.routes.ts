@@ -3,6 +3,7 @@ import {
   createTrainerController,
   getTrainer,
   listInactiveTrainers,
+  listTrainerOptions,
   listTrainerPokemon,
   listTrainers,
   updateFieldRatingsController,
@@ -15,6 +16,7 @@ const router: Router = Router();
 
 router.get('/', listTrainers);
 router.get('/inactive', listInactiveTrainers);
+router.get('/options', listTrainerOptions);
 router.get('/:id', getTrainer);
 router.get('/:id/pokemon', listTrainerPokemon);
 router.post('/', createTrainerController);

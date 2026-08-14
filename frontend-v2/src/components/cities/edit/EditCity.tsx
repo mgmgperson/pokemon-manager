@@ -6,6 +6,7 @@ import axios from 'axios';
 import {
     Box,
     Typography,
+    Autocomplete,
     Paper,
     CircularProgress,
     TextField,
@@ -35,8 +36,8 @@ interface Region {
 
 interface Trainer {
     id: number;
-    fname: string;
-    lname: string;
+    fname: string | null;
+    lname: string | null;
 }
 
 import { City as CityType } from '../../../types/city';
@@ -76,8 +77,16 @@ const fetchRegions = async (): Promise<Region[]> => {
     return data.data;
 };
 
-const fetchTrainers = async (): Promise<Trainer[]> => {
-    const { data } = await axios.get('http://localhost:5000/trainers');
+const fetchTrainerOptions = async (input: {
+    search: string;
+    ids: number[];
+}): Promise<Trainer[]> => {
+    const { data } = await axios.get('http://localhost:5000/trainers/options', {
+        params: {
+            search: input.search || undefined,
+            ids: input.ids.length > 0 ? input.ids.join(',') : undefined,
+        },
+    });
     return data.data;
 };
 
@@ -142,17 +151,24 @@ const EditCity: React.FC = () => {
         queryFn: fetchRegions,
     });
 
-    const { data: trainersData, isLoading: isTrainersLoading } = useQuery({
-        queryKey: ['trainers'],
-        queryFn: fetchTrainers
-    });
-
-    // Log trainers data when it changes
-    useEffect(() => {
-        if (trainersData) {
-            console.log('Trainers data loaded:', trainersData);
+    const selectedTrainerIds = React.useMemo(() => {
+        const trainerIds = new Set(
+            gymLeaders
+                .map((leader) => Number(leader.trainer_id))
+                .filter((trainerId) => Number.isInteger(trainerId) && trainerId > 0)
+        );
+        const currentTrainerId = Number(currentGymLeader.trainer_id);
+        if (Number.isInteger(currentTrainerId) && currentTrainerId > 0) {
+            trainerIds.add(currentTrainerId);
         }
-    }, [trainersData]);
+
+        return [...trainerIds];
+    }, [currentGymLeader.trainer_id, gymLeaders]);
+
+    const { data: trainersData, isLoading: isTrainersLoading } = useQuery({
+        queryKey: ['trainer-options', trainerSearch, selectedTrainerIds],
+        queryFn: () => fetchTrainerOptions({ search: trainerSearch, ids: selectedTrainerIds }),
+    });
 
     // Mutation for updating city
     const mutation = useMutation({
@@ -360,7 +376,7 @@ const EditCity: React.FC = () => {
         mutation.mutate({ id: id!, updatedCity });
     };
 
-    if (isCityLoading || isRegionsLoading || isTrainersLoading) {
+    if (isCityLoading || isRegionsLoading) {
         return (
             <Box className="flex justify-center items-center h-full">
                 <CircularProgress />
@@ -774,57 +790,40 @@ const EditCity: React.FC = () => {
                 </DialogTitle>
                 <DialogContent className="bg-gray-800">
                     <Box className="pt-2 space-y-3">
-                        <FormControl fullWidth className="!bg-gray-700 mb-3">
-                            <InputLabel id="trainer-label" className="!text-gray-300">Trainer</InputLabel>
-                            <Select
-                                labelId="trainer-label"
-                                name="trainer_id"
-                                value={currentGymLeader.trainer_id || ''}
-                                onChange={handleGymLeaderSelectChange}
-                                label="Trainer"
-                                className="text-white"
-                                renderValue={(selected) => {
-                                    if (!trainersData) return 'Select a trainer';
-                                    const selectedTrainer = trainersData.find((t: Trainer) => Number(t.id) === Number(selected));
-                                    return selectedTrainer ? 
-                                        `${selectedTrainer.fname || ''} ${selectedTrainer.lname || ''}`.trim() : 
-                                        'Select a trainer';
-                                }}
-                            >
-                                <MenuItem disabled value="">
-                                    <Box sx={{ width: '100%' }}>
-                                        <TextField
-                                            placeholder="Search trainers..."
-                                            size="small"
-                                            fullWidth
-                                            variant="outlined"
-                                            onClick={(e) => e.stopPropagation()}
-                                            onChange={(e) => {
-                                                setTrainerSearch(e.target.value.toLowerCase());
-                                                e.stopPropagation();
-                                            }}
-                                            onKeyDown={(e) => e.stopPropagation()}
-                                            autoFocus
-                                            InputProps={{
-                                                className: 'text-white',
-                                            }}
-                                        />
-                                    </Box>
-                                </MenuItem>
-                                <Divider />
-                                {trainersData && trainersData.filter((trainer: Trainer) => {
-                                    if (!trainerSearch) return true;
-                                    
-                                    // Filter trainers based on search term
-                                    const trainerFullName = `${trainer.fname || ''} ${trainer.lname || ''}`.trim().toLowerCase();
-                                    return trainerFullName.includes(trainerSearch);
-                                }).map((trainer: Trainer) => (
-                                    <MenuItem key={trainer.id} value={trainer.id}>
-                                        {`${trainer.fname || ''} ${trainer.lname || ''}`.trim()}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
+                        <Autocomplete
+                            options={trainersData ?? []}
+                            value={
+                                (trainersData ?? []).find(
+                                    (trainer) => trainer.id === Number(currentGymLeader.trainer_id)
+                                ) ?? null
+                            }
+                            inputValue={trainerSearch}
+                            loading={isTrainersLoading}
+                            onInputChange={(_event, value) => setTrainerSearch(value)}
+                            onChange={(_event, trainer) => {
+                                setCurrentGymLeader((currentLeader) => ({
+                                    ...currentLeader,
+                                    trainer_id: trainer?.id ?? 0,
+                                }));
+                            }}
+                            getOptionLabel={(trainer) =>
+                                `${trainer.fname ?? ''} ${trainer.lname ?? ''}`.trim() || `Trainer #${trainer.id}`
+                            }
+                            isOptionEqualToValue={(option, value) => option.id === value.id}
+                            renderInput={(params) => (
+                                <TextField
+                                    {...params}
+                                    label="Trainer"
+                                    placeholder="Search trainers..."
+                                    className="!bg-gray-700 mb-3"
+                                    sx={{
+                                        '& .MuiInputBase-input': { color: 'white' },
+                                        '& .MuiInputLabel-root': { color: '#d1d5db' },
+                                        '& .MuiOutlinedInput-notchedOutline': { borderColor: '#4b5563' },
+                                    }}
+                                />
+                            )}
+                        />
                         <FormControl fullWidth className="!bg-gray-700 mb-3">
                             <InputLabel id="gym-type-label" className="!text-gray-300">Type</InputLabel>
                             <Select

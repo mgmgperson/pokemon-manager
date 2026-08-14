@@ -6,11 +6,12 @@ export interface Trainer {
     region_id: number;
     region_name: string;
     title: string | null;
-    rank: number;
+    rank: number | null;
     peak_rank: number | null;
     peak_rating: number | null;
     birthdate: string | null;
-    active_status: boolean;
+    active_status: boolean | number | null;
+    age?: number | null;
 }
 
 export interface TrainerRating {
@@ -217,4 +218,4 @@ export const fieldNamesMap: { [key: string]: string } = {
     sixes_rating: 'Sixes',
     threes_rating: 'Threes',
     twos_rating: 'Twos',
-}; 
+};
