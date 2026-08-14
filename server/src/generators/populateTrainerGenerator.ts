@@ -1,12 +1,12 @@
 import sqlite3 from 'sqlite3';
-import { RANK_BREAKPOINTS, TYPE_WEIGHTS } from '../data/conversions/conversions';
+import { RANK_BREAKPOINTS, TYPE_WEIGHTS } from '../reference-data/conversions/conversions';
 import { generateRandomTrainer } from './trainerGenerator';
 import { generateGeneralRatings } from './generalRatingGenerator';
 import { generateFormatRatingsFixed } from './formatRatingGenerator';
 import { generateFieldRatings } from './fieldRatingGenerator';
 import { generatePokemonTeam } from './pokemonGenerator';
-import { Types } from '../data/enums/types';
-import { allPokemon, initPokemon, PokemonEntity } from '../data/pokemon';
+import { Types } from '../reference-data/enums/types';
+import { allPokemon, initPokemon, PokemonEntity } from '../reference-data/pokemon';
 
 interface PreparedStatements {
   insertTrainer: sqlite3.Statement;

@@ -1,6 +1,6 @@
 import sqlite3 from 'sqlite3';
 const { Database } = sqlite3.verbose();
-import { getActiveDB } from '../services/dbManager';
+import { getActiveDB } from '../infrastructure/database/activeSave';
 
 // Connect to both databases
 const namesDb = new Database('../database/names.sqlite');
@@ -150,4 +150,4 @@ export async function generateName(db: sqlite3.Database, regionId: number, gende
     console.error('Error generating name:', error);
     throw error;
   }
-} 
+}

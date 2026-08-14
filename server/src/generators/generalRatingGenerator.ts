@@ -1,4 +1,4 @@
-import { RANK_BREAKPOINTS, RATING_MAP } from '../data/conversions/conversions';
+import { RANK_BREAKPOINTS, RATING_MAP } from '../reference-data/conversions/conversions';
 
 // Helper function to generate a bell-curve distributed random value
 function bellCurveRandom(mean: number, stdDev: number): number {

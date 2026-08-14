@@ -3,8 +3,8 @@ import { generateGeneralRatings } from './generalRatingGenerator';
 import { generateFormatRatingsFixed } from './formatRatingGenerator';
 import { generateFieldRatings } from './fieldRatingGenerator';
 import { generatePokemonTeam } from './pokemonGenerator';
-import { Types } from '../data/enums/types';
-import { allPokemon, initPokemon, PokemonEntity } from '../data/pokemon';
+import { Types } from '../reference-data/enums/types';
+import { allPokemon, initPokemon, PokemonEntity } from '../reference-data/pokemon';
 
 interface TrainerRow {
   id: number;

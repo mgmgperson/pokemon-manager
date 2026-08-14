@@ -1,12 +1,12 @@
 import sqlite3 from 'sqlite3';
-import { allSpecies } from '../data/pokemon-species';
-import { Items } from '../data/enums/items';
-import { getPokemonSet } from '../data/sets/sets';
-import { Natures } from '../data/enums/natures';
-import { allPokemon } from '../data/pokemon';
-import { RATING_MAP } from '../data/conversions/conversions';
-import { allNatures, initNatures } from '../data/nature';
-import { Stat } from '../data/enums/stat';
+import { allSpecies } from '../reference-data/pokemon-species';
+import { Items } from '../reference-data/enums/items';
+import { getPokemonSet } from '../reference-data/sets/sets';
+import { Natures } from '../reference-data/enums/natures';
+import { allPokemon } from '../reference-data/pokemon';
+import { RATING_MAP } from '../reference-data/conversions/conversions';
+import { allNatures, initNatures } from '../reference-data/nature';
+import { Stat } from '../reference-data/enums/stat';
 
 /**
  * Compute final stat value based on base stat, IV, EV, level, and nature multiplier

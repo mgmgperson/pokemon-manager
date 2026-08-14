@@ -20,7 +20,7 @@ import {
 } from '@mui/material';
 import { Store as ShopIcon } from '@mui/icons-material';
 import { InventoryItem, GroupedInventory, categoryNames } from '../../types/item';
-import { ItemCategory } from '../../../../server/src/data/item';
+import { ItemCategory } from '../../../../server/src/reference-data/item';
 
 const fetchInventory = async (): Promise<GroupedInventory> => {
     const { data } = await axios.get('http://localhost:5000/items/inventory');

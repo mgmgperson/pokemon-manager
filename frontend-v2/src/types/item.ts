@@ -1,4 +1,4 @@
-import { ItemCategory } from '../../../server/src/data/item';
+import { ItemCategory } from '../../../server/src/reference-data/item';
 
 export interface InventoryItem {
     id: number;

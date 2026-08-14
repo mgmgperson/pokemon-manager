@@ -1,9 +1,9 @@
-import { Fields } from '../data/enums/fields';
-import { allPokemon } from '../data/pokemon';
-import { Species } from '../data/enums/pokemon-species';
-import { Pokemon } from '../data/enums/pokemon';
+import { Fields } from '../reference-data/enums/fields';
+import { allPokemon } from '../reference-data/pokemon';
+import { Species } from '../reference-data/enums/pokemon-species';
+import { Pokemon } from '../reference-data/enums/pokemon';
 import Decimal from 'decimal.js';
-import { viabilityRatings } from '../data/texts/viabilityDecimals';
+import { viabilityRatings } from '../reference-data/texts/viabilityDecimals';
 
 // Debug mode - set to false for production
 const DEBUG = true;

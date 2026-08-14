@@ -1,8 +1,8 @@
 import sqlite3 from 'sqlite3';
 import { generateName } from './nameGenerator';
-import { RANK_BREAKPOINTS } from '../data/conversions/conversions';
+import { RANK_BREAKPOINTS } from '../reference-data/conversions/conversions';
 const { Database } = sqlite3.verbose();
-import { getActiveDB } from '../services/dbManager';
+import { getActiveDB } from '../infrastructure/database/activeSave';
 
 // Connect to the database
 

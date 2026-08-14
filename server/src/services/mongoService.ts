@@ -1,5 +1,7 @@
 import { MongoClient, Decimal128, ObjectId } from 'mongodb';
 
+// TODO: Audit this legacy Mongo reader against reference-data/texts/viabilityDecimals.ts,
+// then remove it if the checked-in static viability dataset is confirmed canonical.
 // Connect to your local Mongo
 const mongoUrl = 'mongodb://localhost:27017';
 const mongoClient = new MongoClient(mongoUrl);

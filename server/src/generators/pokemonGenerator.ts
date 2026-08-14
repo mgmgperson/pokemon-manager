@@ -1,11 +1,11 @@
-import { allPokemon, PokemonEntity, initPokemon } from '../data/pokemon';
-import { allSpecies, PokemonSpecies, initSpecies } from '../data/pokemon-species';
-import { Fields } from '../data/enums/fields';
-import { Types } from '../data/enums/types';
-import { Species } from '../data/enums/pokemon-species';
-import { PokemonForms } from '../data/enums/pokemon-form';
-import { Pokemon } from '../data/enums/pokemon';
-import { RATING_MAP } from '../data/conversions/conversions';
+import { allPokemon, PokemonEntity, initPokemon } from '../reference-data/pokemon';
+import { allSpecies, PokemonSpecies, initSpecies } from '../reference-data/pokemon-species';
+import { Fields } from '../reference-data/enums/fields';
+import { Types } from '../reference-data/enums/types';
+import { Species } from '../reference-data/enums/pokemon-species';
+import { PokemonForms } from '../reference-data/enums/pokemon-form';
+import { Pokemon } from '../reference-data/enums/pokemon';
+import { RATING_MAP } from '../reference-data/conversions/conversions';
 import Decimal from 'decimal.js';
 
 //TODO: caching still seems to be shit
