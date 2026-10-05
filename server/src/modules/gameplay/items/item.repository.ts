@@ -63,7 +63,7 @@ export function recordActiveTrainerSale(
         (SELECT active_trainer_id FROM game_state),
         ?,
         ?,
-        (SELECT current_date || ' ' || current_time FROM game_state),
+        (SELECT "current_date" || ' ' || current_time FROM game_state),
         'sale'
       )
     `,

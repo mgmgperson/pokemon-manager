@@ -7,7 +7,7 @@ import { getActiveDB } from '../infrastructure/database/activeSave';
 // Connect to the database
 
 // Define interfaces
-interface Trainer {
+export interface GeneratedTrainer {
   id?: number;
   fname: string;
   lname: string;
@@ -19,7 +19,7 @@ interface Trainer {
   active_status: boolean;
 }
 
-interface TrainerHometown {
+export interface GeneratedTrainerHometown {
   trainer_id?: number;
   city_id: number;
   city_name: string;
@@ -38,9 +38,9 @@ interface CityData {
   population: number;
 }
 
-interface GenerateTrainerResult {
-  trainer: Trainer;
-  hometown: TrainerHometown;
+export interface GenerateTrainerResult {
+  trainer: GeneratedTrainer;
+  hometown: GeneratedTrainerHometown;
 }
 
 interface WeightCache {
@@ -362,6 +362,30 @@ function estimatePeakRating(peakRank: number, currentRank: number, age: number, 
   return Math.round(finalRating * 100) / 100; // Round to 2 decimal places
 }
 
+export interface GeneratedTrainerCareerPeak {
+  peak_rating: number;
+  peak_rank: number;
+}
+
+export function generateTrainerCareerPeak(
+  age: number,
+  currentRating: number
+): GeneratedTrainerCareerPeak {
+  let currentRank = RANK_BREAKPOINTS.length;
+  for (let i = 0; i < RANK_BREAKPOINTS.length; i++) {
+    if (currentRating >= RANK_BREAKPOINTS[i][1]) {
+      currentRank = RANK_BREAKPOINTS[i][0];
+      break;
+    }
+  }
+
+  const peakRank = generatePeakRank(age, currentRating);
+  return {
+    peak_rank: peakRank,
+    peak_rating: estimatePeakRating(peakRank, currentRank, age, currentRating),
+  };
+}
+
 /**
  * Generate a random trainer
  */
@@ -392,38 +416,26 @@ export async function generateRandomTrainer(
     // 6. Compute age from birthdate
     const computedAge = computeAgeFromBirthdate(birthdate);
     
-    // 7. Find the current rank based on pwtrRating
-    let currentRank = RANK_BREAKPOINTS.length;
-    for (let i = 0; i < RANK_BREAKPOINTS.length; i++) {
-      if (pwtrRating >= RANK_BREAKPOINTS[i][1]) {
-        currentRank = RANK_BREAKPOINTS[i][0];
-        break;
-      }
-    }
-    
-    // 8. Generate peak rank based on age and current rating
-    const peakRank = generatePeakRank(computedAge, pwtrRating);
-    
-    // 9. Estimate peak rating
-    const peakRating = estimatePeakRating(peakRank, currentRank, computedAge, pwtrRating);
+    // 7. Generate career-peak values from age and current PWTR.
+    const careerPeak = generateTrainerCareerPeak(computedAge, pwtrRating);
     
     // 10. Generate random city for hometown
     const city = await generateRandomCity(db, region.id, cache);
     
     // 11. Create trainer object
-    const trainer: Trainer = {
+    const trainer: GeneratedTrainer = {
       fname: name.fname,
       lname: name.lname,
       region_id: region.id,
       birthdate,
       pwtr_rating: pwtrRating,
-      peak_rating: peakRating,
-      peak_rank: peakRank,
+      peak_rating: careerPeak.peak_rating,
+      peak_rank: careerPeak.peak_rank,
       active_status: true //Math.random() > 0.2 // 80% chance of being active
     };
     
     // 12. Create hometown object
-    const hometown: TrainerHometown = {
+    const hometown: GeneratedTrainerHometown = {
       city_id: city.id,
       city_name: city.name
     };

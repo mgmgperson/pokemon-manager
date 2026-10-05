@@ -8,6 +8,82 @@ import { RATING_MAP } from '../reference-data/conversions/conversions';
 import { allNatures, initNatures } from '../reference-data/nature';
 import { Stat } from '../reference-data/enums/stat';
 
+export interface PokemonDetailsGenerationInput {
+  trainerId: number;
+  trainerFirstName: string | null;
+  trainerLastName: string | null;
+  trainerPwtrRating: number | null;
+  trainerBirthdate: string | null;
+  speciesId: number;
+  pokemonId: number;
+  level: number;
+  gameDate: string;
+  rosterLevels: readonly number[];
+}
+
+export interface GeneratedPokemonDetails {
+  otName: string;
+  otId: number;
+  nickname: string;
+  happiness: number;
+  gender: string;
+  shiny: boolean;
+  pokeballId: number;
+  heldItemId: number;
+  experiencePoints: number;
+  dateMetAt: string;
+  levelMetAt: number;
+  currentHp: number;
+  currentStrength: number;
+  statusId: number;
+  battlesWon: number;
+  battlesLost: number;
+  kills: number;
+  deaths: number;
+  trainingEfficiency: number;
+  abilityId: number;
+  natureId: number;
+  evHp: number;
+  evAttack: number;
+  evDefense: number;
+  evSpecialAttack: number;
+  evSpecialDefense: number;
+  evSpeed: number;
+  ivHp: number;
+  ivAttack: number;
+  ivDefense: number;
+  ivSpecialAttack: number;
+  ivSpecialDefense: number;
+  ivSpeed: number;
+  hp: number;
+  attack: number;
+  defense: number;
+  specialAttack: number;
+  specialDefense: number;
+  speed: number;
+}
+
+interface LegacyGeneratedPokemonStats extends GeneratedPokemonDetails {
+  pokemonId: number;
+  trainerId: number;
+  speciesId: number;
+  pokemonEnumId: number;
+  ev_hp: number;
+  ev_attack: number;
+  ev_defense: number;
+  ev_sp_attack: number;
+  ev_sp_defense: number;
+  ev_speed: number;
+  iv_hp: number;
+  iv_attack: number;
+  iv_defense: number;
+  iv_sp_attack: number;
+  iv_sp_defense: number;
+  iv_speed: number;
+  special_attack: number;
+  special_defense: number;
+}
+
 /**
  * Compute final stat value based on base stat, IV, EV, level, and nature multiplier
  * Uses standard Pokemon stat calculation formula
@@ -792,194 +868,201 @@ export async function populatePokemonDetails(db: sqlite3.Database): Promise<void
 }
 
 /**
- * Generate Pokemon stats for a single Pokemon without saving to DB
- * Returns all the generated values for preview/API use
+ * Generate a complete Pokémon detail record without reading or writing a save.
+ * The caller supplies the trainer and planned roster context so a proposal can be
+ * reviewed before a Pokémon row exists.
+ */
+export function generatePokemonDetails(input: PokemonDetailsGenerationInput): GeneratedPokemonDetails {
+  const gameDate = new Date(`${input.gameDate}T00:00:00.000Z`);
+  if (Number.isNaN(gameDate.getTime()) || gameDate.toISOString().slice(0, 10) !== input.gameDate) {
+    throw new Error('gameDate must be a valid YYYY-MM-DD date');
+  }
+
+  const species = allSpecies.find((candidate) => candidate.id === input.speciesId);
+  const pokemonEntity = allPokemon.find((candidate) => candidate.id === input.pokemonId);
+  if (!species || !pokemonEntity || pokemonEntity.species !== input.speciesId) {
+    throw new Error(`Pokemon form ${input.pokemonId} does not belong to species ${input.speciesId}`);
+  }
+  if (!Number.isInteger(input.level) || input.level < 1 || input.level > 100) {
+    throw new Error('level must be a whole number between 1 and 100');
+  }
+
+  const sortedRosterLevels = input.rosterLevels
+    .filter((level) => Number.isInteger(level) && level >= 1)
+    .sort((left, right) => right - left);
+  const sixthHighestLevel = sortedRosterLevels[5];
+  const isHighestForTrainer = sixthHighestLevel !== undefined && input.level >= sixthHighestLevel;
+  const otName = [input.trainerFirstName, input.trainerLastName].filter(Boolean).join(' ');
+  const happiness = generateHappiness();
+  const gender = generateGender(species.genderRate);
+  const shiny = generateShiny();
+  const pokeballId = generatePokeballId();
+  const levelMetAt = generateLevelMetAt(input.level, isHighestForTrainer);
+  const dateMetAt = generateDateMetAt(input.trainerBirthdate, isHighestForTrainer, gameDate);
+  const battleStats = generateBattleStats(dateMetAt, input.trainerPwtrRating ?? 0, gameDate.getUTCFullYear());
+
+  let abilityId = pokemonEntity.abilities[0] ?? 0;
+  let natureId = Natures.HARDY;
+  let evHp = 0;
+  let evAttack = 0;
+  let evDefense = 0;
+  let evSpecialAttack = 0;
+  let evSpecialDefense = 0;
+  let evSpeed = 0;
+  const setData = getPokemonSet(input.pokemonId);
+  if (setData) {
+    const selectedAbility = selectWeighted(Object.entries(setData.abilities).map(([id, weight]) => ({
+      value: Number(id),
+      weight,
+    })));
+    if (selectedAbility !== null) {
+      abilityId = selectedAbility;
+    }
+
+    const selectedSpread = selectWeighted(setData.spreads.map((spread) => ({
+      value: spread.spread,
+      weight: spread.weight,
+    })));
+    if (selectedSpread) {
+      const parsedSpread = parseSpread(selectedSpread);
+      natureId = parsedSpread.nature;
+      evHp = parsedSpread.ev_hp;
+      evAttack = parsedSpread.ev_attack;
+      evDefense = parsedSpread.ev_defense;
+      evSpecialAttack = parsedSpread.ev_sp_attack;
+      evSpecialDefense = parsedSpread.ev_sp_defense;
+      evSpeed = parsedSpread.ev_speed;
+    }
+  }
+
+  const ivHp = generateIV();
+  const ivAttack = generateIV();
+  const ivDefense = generateIV();
+  const ivSpecialAttack = generateIV();
+  const ivSpecialDefense = generateIV();
+  const ivSpeed = generateIV();
+  const natureMultipliers = getNatureMultipliers(natureId);
+
+  return {
+    otName,
+    otId: input.trainerId,
+    nickname: species.name,
+    happiness,
+    gender,
+    shiny,
+    pokeballId,
+    heldItemId: 0,
+    experiencePoints: 0,
+    dateMetAt,
+    levelMetAt,
+    currentHp: 100,
+    currentStrength: 100,
+    statusId: 0,
+    battlesWon: battleStats.battlesWon,
+    battlesLost: battleStats.battlesLost,
+    kills: battleStats.kills,
+    deaths: battleStats.deaths,
+    trainingEfficiency: generateTrainingEfficiency(),
+    abilityId,
+    natureId,
+    evHp,
+    evAttack,
+    evDefense,
+    evSpecialAttack,
+    evSpecialDefense,
+    evSpeed,
+    ivHp,
+    ivAttack,
+    ivDefense,
+    ivSpecialAttack,
+    ivSpecialDefense,
+    ivSpeed,
+    hp: computeFinalStat('hp', pokemonEntity.baseHP, ivHp, evHp, input.level, natureMultipliers[0]),
+    attack: computeFinalStat('attack', pokemonEntity.baseATK, ivAttack, evAttack, input.level, natureMultipliers[1]),
+    defense: computeFinalStat('defense', pokemonEntity.baseDEF, ivDefense, evDefense, input.level, natureMultipliers[2]),
+    specialAttack: computeFinalStat('special_attack', pokemonEntity.baseSPATK, ivSpecialAttack, evSpecialAttack, input.level, natureMultipliers[3]),
+    specialDefense: computeFinalStat('special_defense', pokemonEntity.baseSPDEF, ivSpecialDefense, evSpecialDefense, input.level, natureMultipliers[4]),
+    speed: computeFinalStat('speed', pokemonEntity.baseSPE, ivSpeed, evSpeed, input.level, natureMultipliers[5]),
+  };
+}
+
+/**
+ * Generate Pokémon stats for an existing row without saving. This legacy API
+ * remains for the randomizer preview; new proposal code uses generatePokemonDetails.
  */
 export async function generatePokemonStats(
   db: sqlite3.Database,
   trainerId: number,
   pokemonId: number
-): Promise<any> {
-  return new Promise((resolve, reject) => {
-    // Fetch trainer and Pokemon info
-    const sql = `
-      SELECT 
-        p.id,
-        p.trainer_id,
-        p.species_id,
-        p.pokemon_id,
-        p.level,
-        t.fname,
-        t.lname,
-        t.pwtr_rating,
-        t.birthdate
-      FROM pokemon p
-      JOIN trainer t ON p.trainer_id = t.id
-      WHERE p.id = ? AND p.trainer_id = ?
-    `;
-    
-    db.get(sql, [pokemonId, trainerId], (err, pokemon: any) => {
-      if (err) {
-        reject(err);
-        return;
-      }
-      
-      if (!pokemon) {
-        reject(new Error(`Pokemon with ID ${pokemonId} and trainer ID ${trainerId} not found`));
-        return;
-      }
-      
-      // Find species info
-      const species = allSpecies.find(s => s.id === pokemon.species_id);
-      
-      if (!species) {
-        reject(new Error(`Species with ID ${pokemon.species_id} not found`));
-        return;
-      }
-      
-      // Generate all the values (same logic as populatePokemonDetails)
-      const otName = `${pokemon.fname} ${pokemon.lname}`;
-      const otId = pokemon.trainer_id;
-      const nickname = species.name;
-      const happiness = generateHappiness();
-      const gender = generateGender(species.genderRate);
-      const shiny = generateShiny();
-      const pokeballId = generatePokeballId();
-      const heldItemId = 0;
-      const experiencePoints = 0;
-      
-      // For single Pokemon generation, query to determine if it's among trainer's highest
-      // We'll fetch the 6th highest level for this trainer
-      const highestLevelSql = `
-        SELECT level FROM pokemon
-        WHERE trainer_id = ?
-        ORDER BY level DESC
-        LIMIT 1 OFFSET 5
-      `;
-      
-      db.get(highestLevelSql, [pokemon.trainer_id], (err, highestRow: any) => {
-        let isHighest = false;
-        if (!err && highestRow) {
-          const highestLevel = highestRow.level || 1;
-          isHighest = pokemon.level >= highestLevel;
-        }
-        
-        const levelMetAt = generateLevelMetAt(pokemon.level, isHighest);
-        const dateMetAt = generateDateMetAt(pokemon.birthdate, isHighest);
-        const currentHp = 100;
-        const currentStrength = 100;
-        const statusId = 0;
-        const trainingEfficiency = generateTrainingEfficiency();
-        
-        const battleStats = generateBattleStats(dateMetAt, pokemon.pwtr_rating);
-        
-        // Get Pokemon entity to access abilities
-        const pokemonEntity = allPokemon.find(p => p.id === pokemon.pokemon_id);
-        
-        // Get competitive set data for this Pokemon
-        const setData = getPokemonSet(pokemon.pokemon_id);
-        
-        // Generate ability, nature, EVs, and IVs
-        let abilityId = pokemonEntity && pokemonEntity.abilities.length > 0 
-          ? pokemonEntity.abilities[0] 
-          : 0;
-        let natureId = Natures.HARDY;
-        let ev_hp = 0, ev_attack = 0, ev_defense = 0, ev_sp_attack = 0, ev_sp_defense = 0, ev_speed = 0;
-        
-        if (setData) {
-          // Select ability from weighted list
-          const abilityWeights = Object.entries(setData.abilities).map(([id, weight]) => ({
-            value: parseInt(id),
-            weight,
-          }));
-          const selectedAbility = selectWeighted(abilityWeights);
-          if (selectedAbility !== null) {
-            abilityId = selectedAbility;
-          }
-          
-          // Select spread from weighted list
-          const spreadWeights = setData.spreads.map(s => ({
-            value: s.spread,
-            weight: s.weight,
-          }));
-          const selectedSpread = selectWeighted(spreadWeights);
-          if (selectedSpread) {
-            const parsed = parseSpread(selectedSpread);
-            natureId = parsed.nature;
-            ev_hp = parsed.ev_hp;
-            ev_attack = parsed.ev_attack;
-            ev_defense = parsed.ev_defense;
-            ev_sp_attack = parsed.ev_sp_attack;
-            ev_sp_defense = parsed.ev_sp_defense;
-            ev_speed = parsed.ev_speed;
-          }
-        }
-        
-        // Generate IVs with tail distribution (31 most common)
-        const iv_hp = generateIV();
-        const iv_attack = generateIV();
-        const iv_defense = generateIV();
-        const iv_sp_attack = generateIV();
-        const iv_sp_defense = generateIV();
-        const iv_speed = generateIV();
-        
-        // Calculate final stats using base stats, IVs, EVs, level, and nature
-        const natureMultipliers = getNatureMultipliers(natureId);
-        const finalHP = computeFinalStat('hp', pokemonEntity?.baseHP || 0, iv_hp, ev_hp, pokemon.level, natureMultipliers[0]);
-        const finalAttack = computeFinalStat('attack', pokemonEntity?.baseATK || 0, iv_attack, ev_attack, pokemon.level, natureMultipliers[1]);
-        const finalDefense = computeFinalStat('defense', pokemonEntity?.baseDEF || 0, iv_defense, ev_defense, pokemon.level, natureMultipliers[2]);
-        const finalSpAttack = computeFinalStat('special_attack', pokemonEntity?.baseSPATK || 0, iv_sp_attack, ev_sp_attack, pokemon.level, natureMultipliers[3]);
-        const finalSpDefense = computeFinalStat('special_defense', pokemonEntity?.baseSPDEF || 0, iv_sp_defense, ev_sp_defense, pokemon.level, natureMultipliers[4]);
-        const finalSpeed = computeFinalStat('speed', pokemonEntity?.baseSPE || 0, iv_speed, ev_speed, pokemon.level, natureMultipliers[5]);
-        
-        // Return all generated data
-        resolve({
-          pokemonId: pokemon.id,
-          trainerId: pokemon.trainer_id,
-          speciesId: pokemon.species_id,
-          pokemonEnumId: pokemon.pokemon_id,
-          level: pokemon.level,
-          otName,
-          otId,
-          nickname,
-          happiness,
-          gender,
-          shiny,
-          pokeballId,
-          heldItemId,
-          experiencePoints,
-          dateMetAt,
-          levelMetAt,
-          currentHp,
-          currentStrength,
-          statusId,
-          battlesWon: battleStats.battlesWon,
-          battlesLost: battleStats.battlesLost,
-          kills: battleStats.kills,
-          deaths: battleStats.deaths,
-          trainingEfficiency,
-          abilityId,
-          natureId,
-          ev_hp,
-          ev_attack,
-          ev_defense,
-          ev_sp_attack,
-          ev_sp_defense,
-          ev_speed,
-          iv_hp,
-          iv_attack,
-          iv_defense,
-          iv_sp_attack,
-          iv_sp_defense,
-          iv_speed,
-          hp: finalHP,
-          attack: finalAttack,
-          defense: finalDefense,
-          special_attack: finalSpAttack,
-          special_defense: finalSpDefense,
-          speed: finalSpeed,
-        });
-      });
-    });
+): Promise<LegacyGeneratedPokemonStats> {
+  const pokemon = await new Promise<{
+    id: number;
+    trainer_id: number;
+    species_id: number;
+    pokemon_id: number;
+    level: number;
+    fname: string | null;
+    lname: string | null;
+    pwtr_rating: number | null;
+    birthdate: string | null;
+  } | undefined>((resolve, reject) => {
+    db.get(
+      `
+        SELECT p.id, p.trainer_id, p.species_id, p.pokemon_id, p.level,
+          t.fname, t.lname, t.pwtr_rating, t.birthdate
+        FROM pokemon p
+        JOIN trainer t ON p.trainer_id = t.id
+        WHERE p.id = ? AND p.trainer_id = ?
+      `,
+      [pokemonId, trainerId],
+      (error, row) => error ? reject(error) : resolve(row as typeof pokemon)
+    );
   });
+  if (!pokemon) {
+    throw new Error(`Pokemon with ID ${pokemonId} and trainer ID ${trainerId} not found`);
+  }
+
+  const rosterLevels = await new Promise<number[]>((resolve, reject) => {
+    db.all(
+      'SELECT level FROM pokemon WHERE trainer_id = ? ORDER BY level DESC',
+      [trainerId],
+      (error, rows: Array<{ level: number | null }>) => error
+        ? reject(error)
+        : resolve(rows.flatMap((row) => row.level === null ? [] : [row.level]))
+    );
+  });
+  const details = generatePokemonDetails({
+    trainerId: pokemon.trainer_id,
+    trainerFirstName: pokemon.fname,
+    trainerLastName: pokemon.lname,
+    trainerPwtrRating: pokemon.pwtr_rating,
+    trainerBirthdate: pokemon.birthdate,
+    speciesId: pokemon.species_id,
+    pokemonId: pokemon.pokemon_id,
+    level: pokemon.level,
+    gameDate: '2036-12-31',
+    rosterLevels,
+  });
+
+  return {
+    ...details,
+    pokemonId: pokemon.id,
+    trainerId: pokemon.trainer_id,
+    speciesId: pokemon.species_id,
+    pokemonEnumId: pokemon.pokemon_id,
+    ev_hp: details.evHp,
+    ev_attack: details.evAttack,
+    ev_defense: details.evDefense,
+    ev_sp_attack: details.evSpecialAttack,
+    ev_sp_defense: details.evSpecialDefense,
+    ev_speed: details.evSpeed,
+    iv_hp: details.ivHp,
+    iv_attack: details.ivAttack,
+    iv_defense: details.ivDefense,
+    iv_sp_attack: details.ivSpecialAttack,
+    iv_sp_defense: details.ivSpecialDefense,
+    iv_speed: details.ivSpeed,
+    special_attack: details.specialAttack,
+    special_defense: details.specialDefense,
+  };
 }

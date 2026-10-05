@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import trainerRoutes from './modules/trainers/trainer/trainer.routes';
+import trainerManagementRoutes from './modules/trainers/management/trainer-management.routes';
 import regionRoutes from './modules/geography/regions/region.routes';
 import cityRoutes from './modules/geography/cities/city.routes';
 import locationRoutes from './modules/geography/locations/location.routes';
@@ -37,6 +38,7 @@ app.use(express.json());
 
 // Routes
 app.use('/trainers', trainerRoutes);
+app.use('/trainer-management', trainerManagementRoutes);
 app.use('/regions', regionRoutes);
 app.use('/cities', cityRoutes);
 app.use('/locations', locationRoutes);

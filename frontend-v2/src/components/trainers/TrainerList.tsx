@@ -11,74 +11,25 @@ import {
   MenuItem,
   Paper,
   Select,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TablePagination,
-  TableRow,
-  TableSortLabel,
   TextField,
   Typography,
 } from '@mui/material';
-import type { Trainer } from '../../types/trainer';
+import type { TrainerDirectoryEntry, TrainerDirectoryPagination } from '../../types/trainer';
+import TrainerDirectoryTable, { type TrainerDirectorySortField as TrainerSortField } from './TrainerDirectoryTable';
 
 type Order = 'asc' | 'desc';
 type TitleFilter = 'all' | 'champion' | 'elite_four' | 'gym_leader' | 'none';
 type StatusFilter = 'all' | 'active' | 'inactive' | 'unknown';
 
-type TrainerSortField =
-  | 'rank'
-  | 'name'
-  | 'pwtr_rating'
-  | 'region_name'
-  | 'title'
-  | 'birthdate'
-  | 'age'
-  | 'peak_rating'
-  | 'peak_rank'
-  | 'active_status';
-
-interface TrainerDirectoryEntry extends Trainer {
-  age: number | null;
-}
-
-interface Pagination {
-  page: number;
-  pageSize: number;
-  totalItems: number;
-  totalPages: number;
-}
-
 interface TrainerDirectoryResponse {
   data: TrainerDirectoryEntry[];
-  pagination: Pagination;
+  pagination: TrainerDirectoryPagination;
 }
 
 interface Region {
   id: number;
   name: string;
 }
-
-interface HeadCell {
-  id: TrainerSortField;
-  label: string;
-  numeric: boolean;
-}
-
-const headCells: HeadCell[] = [
-  { id: 'rank', numeric: true, label: 'Rank' },
-  { id: 'name', numeric: false, label: 'Name' },
-  { id: 'pwtr_rating', numeric: true, label: 'Rating' },
-  { id: 'region_name', numeric: false, label: 'Region' },
-  { id: 'title', numeric: false, label: 'Title' },
-  { id: 'birthdate', numeric: false, label: 'Birthdate' },
-  { id: 'age', numeric: true, label: 'Age' },
-  { id: 'peak_rating', numeric: true, label: 'Peak Rating' },
-  { id: 'peak_rank', numeric: true, label: 'Peak Rank' },
-  { id: 'active_status', numeric: false, label: 'Status' },
-];
 
 async function fetchTrainers(input: {
   page: number;
@@ -92,7 +43,7 @@ async function fetchTrainers(input: {
 }): Promise<TrainerDirectoryResponse> {
   const { data } = await axios.get<{
     data: TrainerDirectoryEntry[];
-    pagination: Pagination;
+    pagination: TrainerDirectoryPagination;
   }>('http://localhost:5000/trainers', {
     params: {
       page: input.page + 1,
@@ -114,28 +65,11 @@ async function fetchRegions(): Promise<Region[]> {
   return data.data;
 }
 
-function formatRating(value: number | null): string {
-  return value === null ? 'Unrated' : value.toFixed(2);
-}
-
-function formatStatus(status: Trainer['active_status']): string {
-  if (status === true || status === 1) {
-    return 'Active';
-  }
-
-  if (status === false || status === 0) {
-    return 'Inactive';
-  }
-
-  return 'Unknown';
-}
-
 const TrainerList: React.FC = () => {
   const [order, setOrder] = React.useState<Order>('asc');
   const [orderBy, setOrderBy] = React.useState<TrainerSortField>('rank');
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(25);
-  const [pageInput, setPageInput] = React.useState('');
   const [searchQuery, setSearchQuery] = React.useState('');
   const [regionId, setRegionId] = React.useState('');
   const [titleFilter, setTitleFilter] = React.useState<TitleFilter>('all');
@@ -181,27 +115,6 @@ const TrainerList: React.FC = () => {
     setOrderBy(property);
   };
 
-  const handleChangePage = (_event: unknown, newPage: number): void => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>): void => {
-    setRowsPerPage(Number(event.target.value));
-    setPage(0);
-  };
-
-  const handlePageJump = (): void => {
-    if (!pagination) {
-      return;
-    }
-
-    const pageNumber = Number(pageInput);
-    if (Number.isInteger(pageNumber) && pageNumber >= 1 && pageNumber <= pagination.totalPages) {
-      setPage(pageNumber - 1);
-      setPageInput('');
-    }
-  };
-
   const clearFilters = (): void => {
     setSearchQuery('');
     setRegionId('');
@@ -235,12 +148,26 @@ const TrainerList: React.FC = () => {
         <Typography variant="h4" className="!text-white">
           Trainer Directory
         </Typography>
-        <Link
-          to="/add_trainer"
-          className="!bg-blue-600 !text-white !px-4 !py-2 !rounded !no-underline hover:!bg-blue-700"
-        >
-          Add Trainer
-        </Link>
+        <Box className="!flex !gap-3">
+          <Link
+            to="/trainer-ratings"
+            className="!border !border-gray-500 !text-white !px-4 !py-2 !rounded !no-underline hover:!border-white"
+          >
+            Rating Leaders
+          </Link>
+          <Link
+            to="/trainer-manager"
+            className="!border !border-gray-500 !text-white !px-4 !py-2 !rounded !no-underline hover:!border-white"
+          >
+            Trainer Management
+          </Link>
+          <Link
+            to="/add_trainer"
+            className="!bg-blue-600 !text-white !px-4 !py-2 !rounded !no-underline hover:!bg-blue-700"
+          >
+            Add Trainer
+          </Link>
+        </Box>
       </div>
 
       <Paper className="!p-4 !mb-4 !bg-gray-800">
@@ -343,99 +270,20 @@ const TrainerList: React.FC = () => {
       </Paper>
 
       <Paper>
-        <TableContainer>
-          <Table>
-            <TableHead>
-              <TableRow>
-                {headCells.map((headCell) => (
-                  <TableCell key={headCell.id} align={headCell.numeric ? 'right' : 'left'} className="!text-white">
-                    <TableSortLabel
-                      active={orderBy === headCell.id}
-                      direction={orderBy === headCell.id ? order : 'asc'}
-                      onClick={() => handleRequestSort(headCell.id)}
-                      className="!text-white"
-                    >
-                      {headCell.label}
-                    </TableSortLabel>
-                  </TableCell>
-                ))}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {trainers.map((trainer) => (
-                <TableRow key={trainer.id} hover className="hover:!bg-gray-700">
-                  <TableCell align="right" className="!text-white">
-                    {trainer.rank ?? '—'}
-                  </TableCell>
-                  <TableCell className="!text-white">
-                    <Link
-                      to={`/trainers/${trainer.id}`}
-                      className="!text-blue-400 hover:!text-blue-300 !no-underline"
-                    >
-                      {[trainer.fname, trainer.lname].filter(Boolean).join(' ') || 'Unnamed Trainer'}
-                    </Link>
-                  </TableCell>
-                  <TableCell align="right" className="!text-white">
-                    {formatRating(trainer.pwtr_rating)}
-                  </TableCell>
-                  <TableCell className="!text-white">{trainer.region_name ?? 'Unknown'}</TableCell>
-                  <TableCell className="!text-white">{trainer.title || 'None'}</TableCell>
-                  <TableCell className="!text-white">{trainer.birthdate ?? 'Unknown'}</TableCell>
-                  <TableCell align="right" className="!text-white">{trainer.age ?? 'Unknown'}</TableCell>
-                  <TableCell align="right" className="!text-white">
-                    {trainer.peak_rating === null ? 'N/A' : trainer.peak_rating.toFixed(2)}
-                  </TableCell>
-                  <TableCell align="right" className="!text-white">{trainer.peak_rank ?? 'N/A'}</TableCell>
-                  <TableCell className="!text-white">{formatStatus(trainer.active_status)}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        <Box className="!flex !items-center !justify-between !border-t !border-gray-700">
-          <TablePagination
-            rowsPerPageOptions={[10, 25, 50, 100]}
-            component="div"
-            count={pagination?.totalItems ?? 0}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-            className="!text-white"
-          />
-          <Box className="!flex !items-center !gap-2 !pr-4">
-            <TextField
-              size="small"
-              placeholder="Page"
-              value={pageInput}
-              onChange={(event) => setPageInput(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter') {
-                  handlePageJump();
-                }
-              }}
-              type="number"
-              inputProps={{ min: 1, max: pagination?.totalPages ?? 1 }}
-              sx={{
-                width: '80px',
-                '& .MuiInputBase-input': { color: 'white' },
-                '& .MuiOutlinedInput-root': {
-                  '& fieldset': { borderColor: 'gray' },
-                  '&:hover fieldset': { borderColor: 'lightgray' },
-                },
-              }}
-            />
-            <Button
-              variant="contained"
-              onClick={handlePageJump}
-              size="small"
-              disabled={!pagination || pagination.totalPages === 0}
-              className="!bg-blue-600 hover:!bg-blue-700"
-            >
-              Go
-            </Button>
-          </Box>
-        </Box>
+        <TrainerDirectoryTable
+          trainers={trainers}
+          pagination={pagination}
+          page={page}
+          rowsPerPage={rowsPerPage}
+          order={order}
+          orderBy={orderBy}
+          onRequestSort={handleRequestSort}
+          onPageChange={setPage}
+          onRowsPerPageChange={(newRowsPerPage) => {
+            setRowsPerPage(newRowsPerPage);
+            setPage(0);
+          }}
+        />
       </Paper>
     </Box>
   );

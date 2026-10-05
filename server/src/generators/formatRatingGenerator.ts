@@ -3,7 +3,7 @@
   function randomInt(min: number, max: number): number {
     return Math.floor(Math.random() * (max - min + 1)) + min;
   }
-  
+
 
   export function generateFormatRatingsRandom(overall: number) {
     return {
@@ -33,8 +33,17 @@
     twos_rating: 1,
   };
   const SUM_WEIGHTS = Object.values(WEIGHTS).reduce((acc, val) => acc + val, 0);
+
+  export interface GeneratedFormatRatings extends Record<string, number> {
+    id: number;
+    rating_id: number;
+  }
   
-  export function generateFormatRatingsFixed(overall: number, trainerId: number, ratingId: number) {
+  export function generateFormatRatingsFixed(
+    overall: number,
+    trainerId: number,
+    ratingId: number,
+  ): GeneratedFormatRatings {
     // 1) compute desired sum
     const desiredSum = overall * SUM_WEIGHTS;
   
@@ -67,4 +76,3 @@
       ...rawRatings,
     };
   }
-  

@@ -14,6 +14,32 @@ export interface Trainer {
     age?: number | null;
 }
 
+export type TrainerReviewFlag =
+    | 'birthdate'
+    | 'region'
+    | 'hometown'
+    | 'active_status'
+    | 'pwtr_rating'
+    | 'peak_rating'
+    | 'peak_rank'
+    | 'rating'
+    | 'general_rating'
+    | 'no_pokemon'
+    | 'low_pokemon_count'
+    | 'pokemon_details';
+
+export interface TrainerDirectoryEntry extends Trainer {
+    age: number | null;
+    review_flags: TrainerReviewFlag[];
+}
+
+export interface TrainerDirectoryPagination {
+    page: number;
+    pageSize: number;
+    totalItems: number;
+    totalPages: number;
+}
+
 export interface TrainerRating {
     overall_rating: number;
     typing_rating: number;
@@ -130,10 +156,10 @@ export interface Badge {
 
 export interface TrainerData {
     trainer: Trainer;
-    rating: TrainerRating;
-    field_rating: FieldRating;
-    mental_rating: MentalRating;
-    format_rating: FormatRating;
+    rating: TrainerRating | null;
+    field_rating: FieldRating | null;
+    mental_rating: MentalRating | null;
+    format_rating: FormatRating | null;
     hometowns: Hometown[];
     badges: Badge[];
 }

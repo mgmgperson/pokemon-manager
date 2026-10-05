@@ -11,6 +11,8 @@ import League from './components/league/League';
 import RegionList from './components/regions/RegionList';
 import RegionDetail from './components/regions/RegionDetail';
 import TrainerList from './components/trainers/TrainerList';
+import TrainerRatingsLeaderboard from './components/trainers/TrainerRatingsLeaderboard';
+import TrainerManagement from './components/trainers/management/TrainerManagement';
 import TrainerDetail from './components/trainers/TrainerDetail';
 import TournamentList from './components/tournaments/TournamentList';
 import TournamentDetail from './components/tournaments/TournamentDetail';
@@ -107,6 +109,8 @@ const App: React.FC = () => {
             <Route path="pokedex" element={<PokedexList />} />
             <Route path="pokedex/pokemon/:id" element={<PokemonDetailPage />} />
             <Route path="trainers" element={<TrainerList />} />
+            <Route path="trainer-ratings" element={<TrainerRatingsLeaderboard />} />
+            <Route path="trainer-manager" element={<TrainerManagement />} />
             <Route path="trainers/:id" element={<TrainerDetail />} />
             <Route path="trainers/:id/history" element={<HistoryDashboard />} />
             <Route path="trainers/:id/pokemon" element={<TrainerPokemon />} />

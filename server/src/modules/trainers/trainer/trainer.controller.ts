@@ -3,6 +3,7 @@ import { getActiveDB } from '../../../infrastructure/database/activeSave';
 import {
   createTrainer,
   findInactiveTrainers,
+  findTrainerRatingLeaderboardPage,
   findTrainerOptions,
   findTrainerPage,
   findPokemonForTrainer,
@@ -13,6 +14,10 @@ import {
 } from './trainer.repository';
 import { updateFormatRatingsAndOverall } from './trainer.service';
 import {
+  TRAINER_MISSING_DATA_FILTERS,
+  TRAINER_RATING_LEADERBOARD_SORT_FIELDS,
+  TRAINER_RATING_METRIC_OPTIONS,
+  TRAINER_RATING_METRICS,
   TRAINER_SORT_FIELDS,
   TRAINER_STATUS_FILTERS,
   TRAINER_TITLE_FILTERS,
@@ -23,7 +28,11 @@ import type {
   MentalRatingWriteInput,
   SortOrder,
   TrainerListInput,
+  TrainerMissingDataFilter,
   TrainerOptionsInput,
+  TrainerRatingLeaderboardInput,
+  TrainerRatingLeaderboardSortField,
+  TrainerRatingMetric,
   TrainerSortField,
   TrainerStatusFilter,
   TrainerTitleFilter,
@@ -107,6 +116,20 @@ function parseFilter<T extends string>(
   return value as T;
 }
 
+function parseMissingDataFilters(query: Request['query']): TrainerMissingDataFilter[] {
+  const value = readSingleQueryValue(query, 'missing');
+  if (value === undefined || value === '') {
+    return [];
+  }
+
+  const filters = value.split(',');
+  if (filters.some((filter) => !TRAINER_MISSING_DATA_FILTERS.includes(filter as TrainerMissingDataFilter))) {
+    throw new Error('missing contains an invalid filter');
+  }
+
+  return [...new Set(filters)] as TrainerMissingDataFilter[];
+}
+
 function parseTrainerListInput(query: Request['query']): TrainerListInput {
   const page = parsePositiveInteger(readSingleQueryValue(query, 'page'), 'page', 1);
   const pageSize = parsePositiveInteger(
@@ -142,10 +165,57 @@ function parseTrainerListInput(query: Request['query']): TrainerListInput {
       const value = readSingleQueryValue(query, 'regionId');
       return value === undefined ? undefined : parsePositiveInteger(value, 'regionId');
     })(),
+    hometownCityId: (() => {
+      const value = readSingleQueryValue(query, 'hometownCityId');
+      return value === undefined ? undefined : parsePositiveInteger(value, 'hometownCityId');
+    })(),
     title: parseFilter<TrainerTitleFilter>(query, 'title', TRAINER_TITLE_FILTERS, 'all'),
     status: parseFilter<TrainerStatusFilter>(query, 'status', TRAINER_STATUS_FILTERS, 'all'),
     sortBy,
     sortOrder,
+    missing: parseMissingDataFilters(query),
+  };
+}
+
+function parseTrainerRatingLeaderboardInput(
+  query: Request['query']
+): TrainerRatingLeaderboardInput {
+  const page = parsePositiveInteger(readSingleQueryValue(query, 'page'), 'page', 1);
+  const pageSize = parsePositiveInteger(
+    readSingleQueryValue(query, 'pageSize'),
+    'pageSize',
+    DEFAULT_PAGE_SIZE
+  );
+  if (pageSize > MAX_PAGE_SIZE) {
+    throw new Error(`pageSize must not exceed ${MAX_PAGE_SIZE}`);
+  }
+  if (page > Math.floor(Number.MAX_SAFE_INTEGER / pageSize)) {
+    throw new Error('page is too large');
+  }
+
+  const sortBy = parseFilter<TrainerRatingLeaderboardSortField>(
+    query,
+    'sortBy',
+    TRAINER_RATING_LEADERBOARD_SORT_FIELDS,
+    'metric'
+  );
+
+  return {
+    page,
+    pageSize,
+    metric: parseFilter<TrainerRatingMetric>(
+      query,
+      'metric',
+      TRAINER_RATING_METRICS,
+      'overall_rating'
+    ),
+    sortBy,
+    sortOrder: parseFilter<SortOrder>(
+      query,
+      'sortOrder',
+      ['asc', 'desc'],
+      sortBy === 'rank' || sortBy === 'name' ? 'asc' : 'desc'
+    ),
   };
 }
 
@@ -174,6 +244,30 @@ export async function listTrainers(request: Request, response: Response): Promis
         pageSize: input.pageSize,
         totalItems: trainerPage.totalItems,
         totalPages: Math.ceil(trainerPage.totalItems / input.pageSize),
+      },
+    });
+  } catch (error) {
+    sendDatabaseError(response, error);
+  }
+}
+
+export async function listTrainerRatingLeaderboard(
+  request: Request,
+  response: Response
+): Promise<void> {
+  try {
+    const input = parseTrainerRatingLeaderboardInput(request.query);
+    const leaderboard = await findTrainerRatingLeaderboardPage(getActiveDB(), input);
+    response.json({
+      message: 'success',
+      data: leaderboard.trainers,
+      metric: input.metric,
+      metrics: TRAINER_RATING_METRIC_OPTIONS,
+      pagination: {
+        page: input.page,
+        pageSize: input.pageSize,
+        totalItems: leaderboard.totalItems,
+        totalPages: Math.ceil(leaderboard.totalItems / input.pageSize),
       },
     });
   } catch (error) {

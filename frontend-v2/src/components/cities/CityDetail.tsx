@@ -6,6 +6,7 @@ import { City } from '../../types/city';
 import axios from 'axios';
 import CityStadiums from './CityStadiums';
 import CityMap from './CityMap';
+import ScopedTrainerDirectory from '../trainers/ScopedTrainerDirectory';
 
 const fetchCity = async (id: string): Promise<City> => {
     const { data } = await axios.get(`http://localhost:5000/cities/${id}`);
@@ -84,6 +85,7 @@ const CityDetail: React.FC = () => {
                     className="text-white"
                 >
                     <Tab label="Info" className="text-white" />
+                    <Tab label="Trainers" className="text-white" />
                     <Tab label="Stadiums" className="text-white" />
                     <Tab label="Map" className="text-white" />
                 </Tabs>
@@ -118,10 +120,17 @@ const CityDetail: React.FC = () => {
                         )}
                     </Paper>
                 )}
-                {activeTab === 1 && city && (
-                    <CityStadiums stadiums={city.stadiums} />
+                {activeTab === 1 && (
+                    <ScopedTrainerDirectory
+                        heading="Hometown Trainers"
+                        emptyMessage="No active trainers list this city as a hometown."
+                        hometownCityId={id}
+                    />
                 )}
                 {activeTab === 2 && city && (
+                    <CityStadiums stadiums={city.stadiums} />
+                )}
+                {activeTab === 3 && city && (
                     <CityMap 
                         cityName={city.name} 
                         regionName={city.region.name} 

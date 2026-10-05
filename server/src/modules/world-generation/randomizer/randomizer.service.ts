@@ -1,14 +1,21 @@
 import sqlite3 from 'sqlite3';
 import { generateFieldRatings } from '../../../generators/fieldRatingGenerator';
 import { generateFormatRatingsFixed } from '../../../generators/formatRatingGenerator';
-import { generateGeneralRatings } from '../../../generators/generalRatingGenerator';
-import { generateName } from '../../../generators/nameGenerator';
+import {
+  generateGeneralRatings,
+  type GeneratedGeneralRatings,
+} from '../../../generators/generalRatingGenerator';
+import { generateName, type NameResult } from '../../../generators/nameGenerator';
+import { generateMentalRatings } from '../../../generators/mentalRatingGenerator';
 import {
   convertPWTRToOverallRating,
   generatePokemonTeam,
 } from '../../../generators/pokemonGenerator';
 import { generatePokemonStats } from '../../../generators/pokemonSetGenerator';
-import { generateRandomTrainer } from '../../../generators/trainerGenerator';
+import {
+  generateRandomTrainer,
+  type GenerateTrainerResult,
+} from '../../../generators/trainerGenerator';
 import { type Fields } from '../../../reference-data/enums/fields';
 import { type Types } from '../../../reference-data/enums/types';
 import {
@@ -45,33 +52,6 @@ export interface PokemonTeamOptions {
   fields?: Fields[];
 }
 
-function randomInt(min: number, max: number): number {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
-function generateMentalRatings(overall: number, ratingId: number) {
-  return {
-    id: ratingId,
-    rating_id: ratingId,
-    planning_rating: randomInt(Math.max(0, overall - 10), Math.min(99, overall + 10)),
-    risk_rating: randomInt(Math.max(0, overall - 15), Math.min(99, overall + 5)),
-    prediction_rating: randomInt(Math.max(0, overall - 20), Math.min(99, overall + 20)),
-    clutch_rating: randomInt(Math.max(0, overall - 10), Math.min(99, overall + 15)),
-    consistency_rating: randomInt(Math.max(0, overall - 10), Math.min(99, overall + 10)),
-    motivation_rating: randomInt(Math.max(0, overall - 15), Math.min(99, overall + 15)),
-    pokemon_knowledge_rating: randomInt(Math.max(0, overall - 10), Math.min(99, overall + 10)),
-    trainer_knowledge_rating: randomInt(Math.max(0, overall - 10), Math.min(99, overall + 10)),
-    training_rating: randomInt(Math.max(0, overall - 10), Math.min(99, overall + 10)),
-    conditioning_rating: randomInt(Math.max(0, overall - 10), Math.min(99, overall + 10)),
-    determination_rating: randomInt(Math.max(0, overall - 15), Math.min(99, overall + 15)),
-    facilities_rating: randomInt(Math.max(0, overall - 15), Math.min(99, overall + 20)),
-    attack_rating: randomInt(Math.max(0, overall - 15), Math.min(99, overall + 15)),
-    defense_rating: randomInt(Math.max(0, overall - 15), Math.min(99, overall + 15)),
-    speed_rating: randomInt(Math.max(0, overall - 15), Math.min(99, overall + 15)),
-    gimmick_rating: randomInt(Math.max(0, overall - 15), Math.min(99, overall + 15)),
-  };
-}
-
 async function weightCacheFor(database: sqlite3.Database): Promise<WeightCache> {
   const cache = cacheByDatabase.get(database);
   if (cache) {
@@ -103,7 +83,7 @@ async function trainerAndRating(
 export async function previewTrainer(
   database: sqlite3.Database,
   options: GenerateTrainerOptions
-): Promise<unknown> {
+): Promise<GenerateTrainerResult> {
   return generateRandomTrainer(
     database,
     options.regionId,
@@ -119,7 +99,11 @@ export async function previewMentalRatings(
   trainerId: string
 ) {
   const { rating } = await trainerAndRating(database, trainerId);
-  return generateMentalRatings(rating.overall_rating || 50, rating.id);
+  return {
+    id: rating.id,
+    rating_id: rating.id,
+    ...generateMentalRatings(rating.overall_rating || 50),
+  };
 }
 
 export async function previewFormatRatings(
@@ -133,7 +117,7 @@ export async function previewFormatRatings(
 export async function previewGeneralRatings(
   database: sqlite3.Database,
   trainerId: string
-): Promise<unknown> {
+): Promise<GeneratedGeneralRatings> {
   const trainer = await findTrainerForGeneration(database, trainerId);
   if (!trainer) {
     throw new GenerationLookupError(404, `No trainer found with ID ${trainerId}`);
@@ -146,7 +130,7 @@ export async function previewName(
   database: sqlite3.Database,
   regionId: number,
   gender: 'M' | 'F'
-): Promise<unknown> {
+): Promise<NameResult> {
   if (!await regionExists(database, regionId)) {
     throw new GenerationLookupError(404, `No region found with ID ${regionId}`);
   }

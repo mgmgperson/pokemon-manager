@@ -1,11 +1,7 @@
 import sqlite3 from 'sqlite3';
-const { Database } = sqlite3.verbose();
-import { getActiveDB } from '../infrastructure/database/activeSave';
+import { getNamesDatabase } from '../infrastructure/database/namesDatabase';
 
-// Connect to both databases
-const namesDb = new Database('../database/names.sqlite');
-
-interface NameResult {
+export interface NameResult {
   fname: string;
   lname: string;
 }
@@ -21,7 +17,7 @@ interface NameCount {
 }
 
 interface WeightCache {
-  nameFrequenciesByRegion?: Map<string, any[]>;
+  nameFrequenciesByRegion?: Map<string, CountryFrequency[]>;
 }
 
 interface NameListCacheEntry {
@@ -35,7 +31,11 @@ const nameListCache: Map<string, NameListCacheEntry> = new Map();
 /**
  * Return cached name arrays for a given country/gender/type, building on first use.
  */
-async function getNamesCached(country: string, gender: 'M' | 'F', type: 'forenames' | 'surnames') {
+async function getNamesCached(
+  country: string,
+  gender: 'M' | 'F',
+  type: 'forenames' | 'surnames'
+): Promise<NameListCacheEntry> {
   const key = `${type}_${country}_${gender}`;
   const cached = nameListCache.get(key);
   if (cached) return cached;
@@ -99,8 +99,9 @@ async function getCountryFrequencies(db: sqlite3.Database, regionId: number, typ
  * Get names for a country and gender
  */
 async function getNames(country: string, gender: 'M' | 'F', type: 'forenames' | 'surnames'): Promise<NameCount[]> {
+  const namesDatabase = await getNamesDatabase();
   return new Promise((resolve, reject) => {
-    namesDb.all<NameCount>(
+    namesDatabase.all<NameCount>(
       `SELECT ${type.slice(0, -1)} as name, count 
        FROM ${type} 
        WHERE country = ? AND gender = ?`,

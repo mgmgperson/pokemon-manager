@@ -9,11 +9,15 @@ import {
   FIELD_RATING_COLUMNS,
   FORMAT_RATING_COLUMNS,
   MENTAL_RATING_COLUMNS,
+  TRAINER_RATING_METRIC_OPTIONS,
   type FieldRatingWriteInput,
   type FormatRatingWriteInput,
   type MentalRatingWriteInput,
   type TrainerListInput,
+  type TrainerMissingDataFilter,
   type TrainerOptionsInput,
+  type TrainerRatingLeaderboardInput,
+  type TrainerRatingMetric,
   type TrainerStatusFilter,
   type TrainerTitleFilter,
   type TrainerWriteInput,
@@ -36,10 +40,24 @@ export interface TrainerSummary extends TrainerRow {
   title: string;
   rank: number | null;
   age: number | null;
+  review_flags: TrainerMissingDataFilter[];
 }
 
 export interface TrainerPage {
   trainers: TrainerSummary[];
+  totalItems: number;
+}
+
+export interface TrainerRatingLeaderboardEntry extends TrainerRow {
+  region_name: string | null;
+  title: string;
+  rank: number | null;
+  age: number | null;
+  metric_value: number | null;
+}
+
+export interface TrainerRatingLeaderboardPage {
+  trainers: TrainerRatingLeaderboardEntry[];
   totalItems: number;
 }
 
@@ -53,6 +71,7 @@ interface TrainerDetailRow extends TrainerRow {
   region_name: string | null;
   rank: number | null;
   title: string;
+  pokemon_count: number;
 }
 
 interface RatingRow {
@@ -125,11 +144,91 @@ const TRAINER_SORT_COLUMNS = {
   active_status: 'active_status',
 } as const;
 
+const TRAINER_RATING_LEADERBOARD_SORT_COLUMNS = {
+  rank: 'rating_rank',
+  name: "COALESCE(fname, '') || ' ' || COALESCE(lname, '') COLLATE NOCASE",
+  pwtr_rating: 'pwtr_rating',
+  region_name: 'region_name COLLATE NOCASE',
+  title: 'title COLLATE NOCASE',
+  birthdate: 'birthdate',
+  age: 'age',
+  peak_rating: 'peak_rating',
+  peak_rank: 'peak_rank',
+  metric: 'metric_value',
+} as const;
+
 const TRAINER_SUMMARY_CTE = `
-  WITH trainer_summaries AS (
+  WITH
+  current_game_date AS (
+    SELECT (
+      SELECT gs."current_date"
+      FROM game_state AS gs
+      ORDER BY gs.last_played_at DESC, gs.id DESC
+      LIMIT 1
+    ) AS current_date
+  ),
+  latest_ranked_ratings AS (
+    SELECT
+      id,
+      trainer_id,
+      overall_rating,
+      typing_rating,
+      mixed_rating,
+      special_rating,
+      ROW_NUMBER() OVER (PARTITION BY trainer_id ORDER BY year DESC, id DESC) AS row_number
+    FROM rating
+  ),
+  latest_ratings AS (
+    SELECT id, trainer_id, overall_rating, typing_rating, mixed_rating, special_rating
+    FROM latest_ranked_ratings
+    WHERE row_number = 1
+  ),
+  hometown_summaries AS (
+    SELECT trainer_id, COUNT(*) AS hometown_count
+    FROM trainer_hometown
+    GROUP BY trainer_id
+  ),
+  pokemon_summaries AS (
+    SELECT
+      trainer_id,
+      COUNT(*) AS pokemon_count,
+      MAX(
+        CASE
+          WHEN level IS NULL
+            OR nature_id IS NULL
+            OR ability_id IS NULL
+            OR gender IS NULL
+            OR iv_hp IS NULL
+            OR iv_attack IS NULL
+            OR iv_defense IS NULL
+            OR iv_special_attack IS NULL
+            OR iv_special_defense IS NULL
+            OR iv_speed IS NULL
+            OR ev_hp IS NULL
+            OR ev_attack IS NULL
+            OR ev_defense IS NULL
+            OR ev_special_attack IS NULL
+            OR ev_special_defense IS NULL
+            OR ev_speed IS NULL
+            THEN 1
+          ELSE 0
+        END
+      ) AS has_pokemon_missing_core_details
+    FROM pokemon
+    GROUP BY trainer_id
+  ),
+  trainer_summaries AS (
     SELECT
       trainer.*,
       home_region.name AS region_name,
+      COALESCE(hometown_summaries.hometown_count, 0) AS hometown_count,
+      COALESCE(pokemon_summaries.pokemon_count, 0) AS pokemon_count,
+      COALESCE(pokemon_summaries.has_pokemon_missing_core_details, 0) AS has_pokemon_missing_core_details,
+      latest_ratings.id AS latest_rating_id,
+      latest_ratings.overall_rating AS latest_overall_rating,
+      latest_ratings.typing_rating AS latest_typing_rating,
+      latest_ratings.mixed_rating AS latest_mixed_rating,
+      latest_ratings.special_rating AS latest_special_rating,
       CASE
         WHEN grand_champion.trainer_id IS NOT NULL THEN 'Grand Champion'
         WHEN gym_leader.id IS NOT NULL THEN type || ' Leader of ' || city.name
@@ -143,16 +242,20 @@ const TRAINER_SUMMARY_CTE = `
       END AS rank,
       CASE
         WHEN date(trainer.birthdate) IS NULL
-          OR date((SELECT game_state.current_date FROM game_state ORDER BY game_state.id LIMIT 1)) IS NULL
+          OR date(current_game_date."current_date") IS NULL
           THEN NULL
         ELSE
-          CAST(strftime('%Y', (SELECT game_state.current_date FROM game_state ORDER BY game_state.id LIMIT 1)) AS INTEGER)
+          CAST(strftime('%Y', current_game_date."current_date") AS INTEGER)
           - CAST(strftime('%Y', trainer.birthdate) AS INTEGER)
-          - (strftime('%m-%d', (SELECT game_state.current_date FROM game_state ORDER BY game_state.id LIMIT 1))
+          - (strftime('%m-%d', current_game_date."current_date")
             < strftime('%m-%d', trainer.birthdate))
       END AS age
     FROM trainer
+    CROSS JOIN current_game_date
     LEFT JOIN region AS home_region ON trainer.region_id = home_region.id
+    LEFT JOIN latest_ratings ON latest_ratings.trainer_id = trainer.id
+    LEFT JOIN hometown_summaries ON hometown_summaries.trainer_id = trainer.id
+    LEFT JOIN pokemon_summaries ON pokemon_summaries.trainer_id = trainer.id
     LEFT JOIN gym_leader ON trainer.id = gym_leader.trainer_id
     LEFT JOIN city ON gym_leader.city_id = city.id
     LEFT JOIN elite_four ON trainer.id = elite_four.trainer_id
@@ -162,6 +265,17 @@ const TRAINER_SUMMARY_CTE = `
     LEFT JOIN grand_champion ON trainer.id = grand_champion.trainer_id
   )
 `;
+
+interface TrainerSummaryRow extends Omit<TrainerSummary, 'review_flags'> {
+  hometown_count: number;
+  pokemon_count: number;
+  has_pokemon_missing_core_details: boolean | number;
+  latest_rating_id: number | null;
+  latest_overall_rating: number | null;
+  latest_typing_rating: number | null;
+  latest_mixed_rating: number | null;
+  latest_special_rating: number | null;
+}
 
 function escapeLikePattern(value: string): string {
   return value.replace(/\\/g, '\\\\').replace(/%/g, '\\%').replace(/_/g, '\\_');
@@ -181,13 +295,90 @@ function buildTrainerFilters(input: TrainerListInput): { sql: string; parameters
     parameters.push(input.regionId);
   }
 
+  if (input.hometownCityId !== undefined) {
+    conditions.push(`
+      EXISTS (
+        SELECT 1
+        FROM trainer_hometown
+        WHERE trainer_hometown.trainer_id = trainer_summaries.id
+          AND trainer_hometown.city_id = ?
+      )
+    `);
+    parameters.push(input.hometownCityId);
+  }
+
   appendTitleFilter(conditions, input.title);
   appendStatusFilter(conditions, input.status);
+  appendMissingDataFilters(conditions, input.missing);
 
   return {
     sql: conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '',
     parameters,
   };
+}
+
+function appendMissingDataFilters(
+  conditions: string[],
+  filters: TrainerMissingDataFilter[]
+): void {
+  if (filters.length === 0) {
+    return;
+  }
+
+  const filterConditions: Record<TrainerMissingDataFilter, string> = {
+    birthdate: 'age IS NULL',
+    region: 'region_name IS NULL',
+    hometown: 'hometown_count = 0',
+    active_status: 'active_status IS NULL',
+    pwtr_rating: 'pwtr_rating IS NULL',
+    peak_rating: 'peak_rating IS NULL',
+    peak_rank: 'peak_rank IS NULL',
+    rating: 'latest_rating_id IS NULL',
+    general_rating: `
+      latest_rating_id IS NOT NULL
+      AND (
+        latest_overall_rating IS NULL
+        OR latest_typing_rating IS NULL
+        OR latest_mixed_rating IS NULL
+        OR latest_special_rating IS NULL
+      )
+    `,
+    no_pokemon: 'pokemon_count = 0',
+    low_pokemon_count: 'pokemon_count BETWEEN 1 AND 5',
+    pokemon_details: 'has_pokemon_missing_core_details = 1',
+  };
+
+  conditions.push(`(${filters.map((filter) => filterConditions[filter]).join(' OR ')})`);
+}
+
+function findReviewFlags(
+  trainer: TrainerSummaryRow,
+  selectedFilters: TrainerMissingDataFilter[]
+): TrainerMissingDataFilter[] {
+  const matchesFilter: Record<TrainerMissingDataFilter, boolean> = {
+    birthdate: trainer.age === null,
+    region: trainer.region_name === null,
+    hometown: trainer.hometown_count === 0,
+    active_status: trainer.active_status === null,
+    pwtr_rating: trainer.pwtr_rating === null,
+    peak_rating: trainer.peak_rating === null,
+    peak_rank: trainer.peak_rank === null,
+    rating: trainer.latest_rating_id === null,
+    general_rating:
+      trainer.latest_rating_id !== null
+      && (
+        trainer.latest_overall_rating === null
+        || trainer.latest_typing_rating === null
+        || trainer.latest_mixed_rating === null
+        || trainer.latest_special_rating === null
+      ),
+    no_pokemon: trainer.pokemon_count === 0,
+    low_pokemon_count: trainer.pokemon_count >= 1 && trainer.pokemon_count <= 5,
+    pokemon_details: trainer.has_pokemon_missing_core_details === true
+      || trainer.has_pokemon_missing_core_details === 1,
+  };
+
+  return selectedFilters.filter((filter) => matchesFilter[filter]);
 }
 
 function appendTitleFilter(conditions: string[], title: TrainerTitleFilter): void {
@@ -214,6 +405,24 @@ function appendStatusFilter(conditions: string[], status: TrainerStatusFilter): 
 
 function trainerValues(input: TrainerWriteInput): unknown[] {
   return TRAINER_COLUMNS.map((column) => input[column]);
+}
+
+function metricExpression(metric: TrainerRatingMetric): string {
+  const option = TRAINER_RATING_METRIC_OPTIONS.find((candidate) => candidate.value === metric);
+  if (!option) {
+    throw new Error(`Unsupported trainer rating metric: ${metric}`);
+  }
+
+  if (option.group === 'General') {
+    return `latest_${metric}`;
+  }
+  if (option.group === 'Format') {
+    return `format_rating.${metric}`;
+  }
+  if (option.group === 'Mental') {
+    return `mental_rating.${metric}`;
+  }
+  return `field_rating.${metric}`;
 }
 
 export async function findActiveTrainers(database: sqlite3.Database): Promise<TrainerSummary[]> {
@@ -244,7 +453,12 @@ export async function findActiveTrainers(database: sqlite3.Database): Promise<Tr
     `
   );
 
-  return trainers.map((trainer, index) => ({ ...trainer, rank: index + 1, age: null }));
+  return trainers.map((trainer, index) => ({
+    ...trainer,
+    rank: index + 1,
+    age: null,
+    review_flags: [],
+  }));
 }
 
 export async function findTrainerPage(
@@ -268,7 +482,7 @@ export async function findTrainerPage(
        ${filters.sql}`,
       filters.parameters
     ),
-    queryAll<TrainerSummary>(
+    queryAll<TrainerSummaryRow>(
       database,
       `${TRAINER_SUMMARY_CTE}
        SELECT *
@@ -280,7 +494,101 @@ export async function findTrainerPage(
     ),
   ]);
 
-  return { trainers, totalItems: countRow?.count ?? 0 };
+  return {
+    trainers: trainers.map((trainer) => {
+      const {
+        hometown_count: _hometownCount,
+        pokemon_count: _pokemonCount,
+        has_pokemon_missing_core_details: _hasPokemonMissingCoreDetails,
+        latest_rating_id: _latestRatingId,
+        latest_overall_rating: _latestOverallRating,
+        latest_typing_rating: _latestTypingRating,
+        latest_mixed_rating: _latestMixedRating,
+        latest_special_rating: _latestSpecialRating,
+        ...summary
+      } = trainer;
+
+      return { ...summary, review_flags: findReviewFlags(trainer, input.missing) };
+    }),
+    totalItems: countRow?.count ?? 0,
+  };
+}
+
+export async function findTrainerRatingLeaderboardPage(
+  database: sqlite3.Database,
+  input: TrainerRatingLeaderboardInput
+): Promise<TrainerRatingLeaderboardPage> {
+  const metricSql = metricExpression(input.metric);
+  const sortColumn = TRAINER_RATING_LEADERBOARD_SORT_COLUMNS[input.sortBy];
+  const offset = (input.page - 1) * input.pageSize;
+  const orderBy = input.sortBy === 'rank' || input.sortBy === 'metric'
+    ? `${sortColumn} IS NULL ASC, ${sortColumn} ${input.sortOrder.toUpperCase()}, id ASC`
+    : `${sortColumn} ${input.sortOrder.toUpperCase()}, id ASC`;
+  const leaderboardCte = `
+    ${TRAINER_SUMMARY_CTE},
+    leaderboard_rows AS (
+      SELECT
+        trainer_summaries.id,
+        trainer_summaries.fname,
+        trainer_summaries.lname,
+        trainer_summaries.region_id,
+        trainer_summaries.birthdate,
+        trainer_summaries.pwtr_rating,
+        trainer_summaries.peak_rating,
+        trainer_summaries.peak_rank,
+        trainer_summaries.active_status,
+        trainer_summaries.region_name,
+        trainer_summaries.title,
+        trainer_summaries.age,
+        CASE
+          WHEN ${metricSql} IS NULL THEN NULL
+          ELSE RANK() OVER (ORDER BY ${metricSql} DESC)
+        END AS rating_rank,
+        ${metricSql} AS metric_value
+      FROM trainer_summaries
+      LEFT JOIN format_rating ON format_rating.rating_id = trainer_summaries.latest_rating_id
+      LEFT JOIN mental_rating ON mental_rating.rating_id = trainer_summaries.latest_rating_id
+      LEFT JOIN field_rating ON field_rating.rating_id = trainer_summaries.latest_rating_id
+      WHERE trainer_summaries.active_status = 1
+    )
+  `;
+
+  const [countRow, trainers] = await Promise.all([
+    queryOne<{ count: number }>(
+      database,
+      `${leaderboardCte}
+       SELECT COUNT(*) AS count
+       FROM leaderboard_rows`
+    ),
+    queryAll<TrainerRatingLeaderboardEntry>(
+      database,
+      `${leaderboardCte}
+       SELECT
+         id,
+         fname,
+         lname,
+         region_id,
+         birthdate,
+         pwtr_rating,
+         peak_rating,
+         peak_rank,
+         active_status,
+         region_name,
+         title,
+         rating_rank AS rank,
+         age,
+         metric_value
+       FROM leaderboard_rows
+       ORDER BY ${orderBy}
+       LIMIT ? OFFSET ?`,
+      [input.pageSize, offset]
+    ),
+  ]);
+
+  return {
+    trainers,
+    totalItems: countRow?.count ?? 0,
+  };
 }
 
 export function findTrainerOptions(
@@ -350,6 +658,7 @@ export async function findTrainerDetail(
         trainer.*,
         home_region.name AS region_name,
         ranked_trainers.rank AS rank,
+        (SELECT COUNT(*) FROM pokemon WHERE trainer_id = trainer.id) AS pokemon_count,
         CASE
           WHEN grand_champion.trainer_id IS NOT NULL THEN 'Grand Champion'
           WHEN gym_leader.id IS NOT NULL THEN type || ' Leader of ' || city.name

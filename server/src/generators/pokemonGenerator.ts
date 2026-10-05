@@ -36,6 +36,14 @@ const TEAM_SIZE_PROBABILITIES = [
     { size: 24, weight: 1 },
 ];
 
+const MIN_GENERATED_POKEMON_LEVEL = 25;
+const MAX_GENERATED_POKEMON_LEVEL = 99;
+const LEVEL_BASE_INTERCEPT = 30;
+const LEVEL_RATING_MULTIPLIER = 0.65;
+const LEVEL_VARIATION = 10;
+const ACE_LEVEL_BONUS_MINIMUM = 10;
+const ACE_LEVEL_BONUS_MAXIMUM = 15;
+
 /**
  * Cache structure for pre-calculated Pokemon weights
  */
@@ -49,6 +57,24 @@ interface PokemonWeightData {
 
 interface PokemonWeightCache {
     weights: Map<number, PokemonWeightData>;
+}
+
+export interface GeneratedTeamPokemon {
+    species_id: number;
+    pokemon_id: number;
+    name: string;
+    level: number;
+    types: Types[];
+    is_mega: boolean;
+    is_gigantamax: boolean;
+}
+
+export interface PokemonTeamGenerationOptions {
+  teamSize?: number;
+  excludedSpeciesIds?: readonly number[];
+  uniqueSpecies?: boolean;
+  strictGenerationPreferences?: boolean;
+  defaultFormsOnly?: boolean;
 }
 
 /**
@@ -170,19 +196,31 @@ export function generatePokemonTeam(
     overallRating: number,
     typePreferences?: Types[],
     generationPreferences?: number[],
-    fieldPreferences?: Fields[]
-): any[] {
+    fieldPreferences?: Fields[],
+    options: PokemonTeamGenerationOptions = {}
+): GeneratedTeamPokemon[] {
     // Ensure weight cache is built
     ensurePokemonWeightCache();
     
     // Determine team size using bell curve distribution
-    const teamSize = determineTeamSize();
+    const teamSize = options.teamSize ?? generatePokemonTeamSize();
     
-    // Calculate level range based on trainer rating
-    const levelRange = calculateLevelRange(overallRating);
+    const teamLevelBaseline = calculateTeamLevelBaseline(overallRating);
     
     // Get eligible fully evolved Pokémon
-    let eligiblePokemon = filterEligiblePokemon(typePreferences, generationPreferences, fieldPreferences);
+    const excludedSpeciesIds = new Set(options.excludedSpeciesIds ?? []);
+    let eligiblePokemon = filterEligiblePokemon(typePreferences, generationPreferences, fieldPreferences)
+        .filter((pokemon) => !excludedSpeciesIds.has(pokemon.species));
+
+    if (options.strictGenerationPreferences && generationPreferences && generationPreferences.length > 0) {
+        eligiblePokemon = eligiblePokemon.filter((pokemon) => {
+            const species = allSpecies.find((candidate) => candidate.id === pokemon.species);
+            return species !== undefined && generationPreferences.includes(species.generation);
+        });
+    }
+    if (options.defaultFormsOnly) {
+        eligiblePokemon = eligiblePokemon.filter((pokemon) => pokemon.isDefault);
+    }
     
     // We'll apply type/generation preferences at each selection step (in the loop below),
     // instead of filtering the entire pool upfront
@@ -205,7 +243,7 @@ export function generatePokemonTeam(
     const maxMythical = overallRating >= 95 ? 1 : 0;
     
     // Generate the team
-    const team: any[] = [];
+    const team: GeneratedTeamPokemon[] = [];
     
     for (let i = 0; i < teamSize; i++) {
         // Determine what kind of Pokémon to add based on trainer rating and position
@@ -289,10 +327,13 @@ export function generatePokemonTeam(
         
         if (pokemon) {
             // Remove selected Pokémon from eligible pool to avoid duplicates
-            eligiblePokemon = eligiblePokemon.filter(p => p.id !== pokemon.id);
+            eligiblePokemon = eligiblePokemon.filter((candidate) => (
+                options.uniqueSpecies
+                    ? candidate.species !== pokemon.species
+                    : candidate.id !== pokemon.id
+            ));
             
-            // Calculate Pokémon level based on trainer rating and some variance
-            const level = calculatePokemonLevel(levelRange.min, levelRange.max);
+            const level = calculatePokemonLevel(teamLevelBaseline, i === 0);
             
             // Get species info
             const species = allSpecies.find(s => s.id === pokemon.species);
@@ -374,7 +415,7 @@ export function generatePokemonTeam(
                 const speciesEntry = typeof allSpecies !== 'undefined' ? allSpecies.find(s => s.id === pokemon.species) : undefined;
                 if (speciesEntry && Array.isArray(speciesEntry.varieties) && speciesEntry.varieties.length > 0) {
                     outPokemonId = speciesEntry.varieties[0];
-                    outSpeciesId = speciesEntry.id as any;
+                    outSpeciesId = speciesEntry.id;
                     outName = speciesEntry.name;
 
                     // try to fetch base entity to get base types
@@ -404,7 +445,7 @@ export function generatePokemonTeam(
 /**
  * Determine team size using weighted random selection
  */
-function determineTeamSize(): number {
+export function generatePokemonTeamSize(): number {
     const totalWeight = TEAM_SIZE_PROBABILITIES.reduce((sum, entry) => sum + entry.weight, 0);
     let random = Math.random() * totalWeight;
     
@@ -418,41 +459,22 @@ function determineTeamSize(): number {
     return 12; // Default fallback
 }
 
-/**
- * Calculate level range based on trainer's overall rating
- */
-function calculateLevelRange(overallRating: number): { min: number, max: number } {
-    // Higher rating trainers get higher level Pokémon
-    // Overall rating 0-99 maps to level ranges
-    if (overallRating >= 90) {
-        return { min: 80, max: 100 };
-    } else if (overallRating >= 80) {
-        return { min: 70, max: 90 };
-    } else if (overallRating >= 70) {
-        return { min: 60, max: 80 };
-    } else if (overallRating >= 60) {
-        return { min: 55, max: 70 };
-    } else if (overallRating >= 50) {
-        return { min: 50, max: 65 };
-    } else if (overallRating >= 40) {
-        return { min: 45, max: 55 };
-    } else if (overallRating >= 30) {
-        return { min: 40, max: 50 };
-    } else if (overallRating >= 20) {
-        return { min: 35, max: 45 };
-    } else if (overallRating >= 10) {
-        return { min: 30, max: 40 };
-    } else {
-        return { min: 25, max: 35 };
-    }
+function calculateTeamLevelBaseline(overallRating: number): number {
+    const normalizedRating = Number.isFinite(overallRating)
+        ? Math.max(0, Math.min(99, overallRating))
+        : 0;
+    const baseline = LEVEL_BASE_INTERCEPT + normalizedRating * LEVEL_RATING_MULTIPLIER;
+    return Math.max(MIN_GENERATED_POKEMON_LEVEL, Math.min(MAX_GENERATED_POKEMON_LEVEL, baseline));
 }
 
-/**
- * Calculate individual Pokémon level within given range
- */
-function calculatePokemonLevel(min: number, max: number): number {
-    // Add some randomness within the range
-    return Math.floor(Math.random() * (max - min + 1)) + min;
+function calculatePokemonLevel(teamLevelBaseline: number, isAce: boolean): number {
+    const centeredVariation = Math.round((Math.random() + Math.random() - 1) * LEVEL_VARIATION);
+    const aceBonus = isAce
+        ? Math.floor(Math.random() * (ACE_LEVEL_BONUS_MAXIMUM - ACE_LEVEL_BONUS_MINIMUM + 1))
+            + ACE_LEVEL_BONUS_MINIMUM
+        : 0;
+    const level = Math.round(teamLevelBaseline) + centeredVariation + aceBonus;
+    return Math.max(MIN_GENERATED_POKEMON_LEVEL, Math.min(MAX_GENERATED_POKEMON_LEVEL, level));
 }
 
 /**
@@ -567,7 +589,7 @@ function getEvolutionStage(species: PokemonSpecies): number {
 function selectPokemon(
     eligiblePokemon: PokemonEntity[], 
     fieldPreferences?: Fields[],
-    currentTeam: any[] = [],
+    currentTeam: GeneratedTeamPokemon[] = [],
     cache?: PokemonWeightCache
 ): PokemonEntity {
     if (eligiblePokemon.length === 0) {

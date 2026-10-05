@@ -64,10 +64,24 @@ function generateOverallRating(pwtrRating: number | null): number {
   return mapPwtrToOverallRating(pwtrRating);
 }
 
+export interface GeneratedGeneralRatings {
+  id: number;
+  trainer_id: number;
+  year: number;
+  overall_rating: number;
+  typing_rating: number;
+  mixed_rating: number;
+  special_rating: number;
+}
+
 /**
  * Generate a complete ratings object based on PWTR rating
  */
-export function generateGeneralRatings(trainerId: number, pwtrRating: number | null): any {
+export function generateGeneralRatings(
+  trainerId: number,
+  pwtrRating: number | null,
+  year = 2036
+): GeneratedGeneralRatings {
   // Generate the overall rating
   const overallRating = generateOverallRating(pwtrRating);
   
@@ -81,7 +95,7 @@ export function generateGeneralRatings(trainerId: number, pwtrRating: number | n
   return {
     id: trainerId,  // Using trainer ID as the rating ID for now
     trainer_id: trainerId,
-    year: 2036, // Current year in the game timeline
+    year,
     overall_rating: overallRating,
     typing_rating: typingRating,
     mixed_rating: mixedRating,

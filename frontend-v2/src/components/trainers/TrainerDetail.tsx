@@ -13,12 +13,6 @@ const fetchTrainer = async (id: string): Promise<TrainerData> => {
 
 type Order = 'asc' | 'desc';
 
-interface HeadCell {
-    id: string;
-    label: string;
-    numeric: boolean;
-}
-
 const createRatingData = (ratings: Record<string, number | null>): RatingData[] => {
     return Object.entries(ratings).map(([name, rating]) => ({
         name: fieldNamesMap[name] || name,
@@ -28,9 +22,10 @@ const createRatingData = (ratings: Record<string, number | null>): RatingData[] 
 
 const RatingTable: React.FC<{
     title: string;
-    overallRating?: number;
+    overallRating?: number | null;
     data: RatingData[];
-}> = ({ title, overallRating, data }) => {
+    emptyMessage: string;
+}> = ({ title, overallRating, data, emptyMessage }) => {
     const [order, setOrder] = React.useState<Order>('desc');
     const [orderBy, setOrderBy] = React.useState<keyof RatingData>('rating');
 
@@ -58,59 +53,63 @@ const RatingTable: React.FC<{
             <Typography variant="h6" className="!text-white !mb-1">
                 {title}
             </Typography>
-            {overallRating !== undefined && (
+            {overallRating !== undefined && overallRating !== null && (
                 <Typography variant="subtitle1" className="!text-gray-400 !mb-4">
                     Overall: {overallRating}
                 </Typography>
             )}
-            <TableContainer>
-                <Table>
-                    <TableHead>
-                        <TableRow>
-                            <TableCell 
-                                className="!text-gray-400"
-                                sortDirection={orderBy === 'name' ? order : false}
-                            >
-                                <TableSortLabel
-                                    active={orderBy === 'name'}
-                                    direction={orderBy === 'name' ? order : 'asc'}
-                                    onClick={() => handleRequestSort('name')}
+            {data.length === 0 ? (
+                <Typography variant="body2" className="!text-gray-400">{emptyMessage}</Typography>
+            ) : (
+                <TableContainer>
+                    <Table>
+                        <TableHead>
+                            <TableRow>
+                                <TableCell
                                     className="!text-gray-400"
+                                    sortDirection={orderBy === 'name' ? order : false}
                                 >
-                                    Name
-                                </TableSortLabel>
-                            </TableCell>
-                            <TableCell 
-                                align="right" 
-                                className="!text-gray-400"
-                                sortDirection={orderBy === 'rating' ? order : false}
-                            >
-                                <TableSortLabel
-                                    active={orderBy === 'rating'}
-                                    direction={orderBy === 'rating' ? order : 'asc'}
-                                    onClick={() => handleRequestSort('rating')}
+                                    <TableSortLabel
+                                        active={orderBy === 'name'}
+                                        direction={orderBy === 'name' ? order : 'asc'}
+                                        onClick={() => handleRequestSort('name')}
+                                        className="!text-gray-400"
+                                    >
+                                        Name
+                                    </TableSortLabel>
+                                </TableCell>
+                                <TableCell
+                                    align="right"
                                     className="!text-gray-400"
+                                    sortDirection={orderBy === 'rating' ? order : false}
                                 >
-                                    Rating
-                                </TableSortLabel>
-                            </TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {sortedData.map((row) => (
-                            <TableRow 
-                                key={row.name}
-                                className="hover:!bg-gray-700"
-                            >
-                                <TableCell className="!text-white">{row.name}</TableCell>
-                                <TableCell align="right" className="!text-white">
-                                    {Math.round(row.rating) ?? 'N/A'}
+                                    <TableSortLabel
+                                        active={orderBy === 'rating'}
+                                        direction={orderBy === 'rating' ? order : 'asc'}
+                                        onClick={() => handleRequestSort('rating')}
+                                        className="!text-gray-400"
+                                    >
+                                        Rating
+                                    </TableSortLabel>
                                 </TableCell>
                             </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </TableContainer>
+                        </TableHead>
+                        <TableBody>
+                            {sortedData.map((row) => (
+                                <TableRow
+                                    key={row.name}
+                                    className="hover:!bg-gray-700"
+                                >
+                                    <TableCell className="!text-white">{row.name}</TableCell>
+                                    <TableCell align="right" className="!text-white">
+                                        {Math.round(row.rating) ?? 'N/A'}
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
+            )}
         </Paper>
     );
 };
@@ -148,7 +147,7 @@ const TrainerDetail: React.FC = () => {
 
     const { trainer, rating, field_rating, mental_rating, format_rating, hometowns, badges } = trainerData;
 
-    const typeFieldData = createRatingData({
+    const typeFieldData = field_rating ? createRatingData({
         pumped_field_rating: field_rating.pumped_field_rating,
         windy_field_rating: field_rating.windy_field_rating,
         corrosive_field_rating: field_rating.corrosive_field_rating,
@@ -169,9 +168,9 @@ const TrainerDetail: React.FC = () => {
         city_field_rating: field_rating.city_field_rating,
         mirror_field_rating: field_rating.mirror_field_rating,
         concertvenue_field_rating: field_rating.concertvenue_field_rating,
-    });
+    }) : [];
 
-    const mixedFieldData = createRatingData({
+    const mixedFieldData = field_rating ? createRatingData({
         crystalcavern_field_rating: field_rating.crystalcavern_field_rating,
         waterfall_field_rating: field_rating.waterfall_field_rating,
         volcanic_field_rating: field_rating.volcanic_field_rating,
@@ -189,9 +188,9 @@ const TrainerDetail: React.FC = () => {
         underwater_field_rating: field_rating.underwater_field_rating,
         starlightarena_field_rating: field_rating.starlightarena_field_rating,
         snowymountain_field_rating: field_rating.snowymountain_field_rating,
-    });
+    }) : [];
 
-    const specialFieldData = createRatingData({
+    const specialFieldData = field_rating ? createRatingData({
         bigtop_field_rating: field_rating.bigtop_field_rating,
         backalley_field_rating: field_rating.backalley_field_rating,
         neutral_field_rating: field_rating.neutral_field_rating,
@@ -205,9 +204,9 @@ const TrainerDetail: React.FC = () => {
         fantasy_field_rating: field_rating.fantasy_field_rating,
         rainbow_field_rating: field_rating.rainbow_field_rating,
         newworld_field_rating: field_rating.newworld_field_rating,
-    });
+    }) : [];
 
-    const mentalRatingData = createRatingData({
+    const mentalRatingData = mental_rating ? createRatingData({
         planning_rating: mental_rating.planning_rating,
         risk_rating: mental_rating.risk_rating,
         prediction_rating: mental_rating.prediction_rating,
@@ -224,9 +223,9 @@ const TrainerDetail: React.FC = () => {
         defense_rating: mental_rating.defense_rating,
         speed_rating: mental_rating.speed_rating,
         gimmick_rating: mental_rating.gimmick_rating,
-    });
+    }) : [];
 
-    const formatRatingData = createRatingData({
+    const formatRatingData = format_rating ? createRatingData({
         singles_rating: format_rating.singles_rating,
         doubles_rating: format_rating.doubles_rating,
         tag_battle_rating: format_rating.tag_battle_rating,
@@ -235,7 +234,7 @@ const TrainerDetail: React.FC = () => {
         sixes_rating: format_rating.sixes_rating,
         threes_rating: format_rating.threes_rating,
         twos_rating: format_rating.twos_rating,
-    });
+    }) : [];
 
     return (
         <Box className="!p-6">
@@ -417,29 +416,32 @@ const TrainerDetail: React.FC = () => {
                 Ratings
             </Typography>
             <Typography variant="h6" className="!text-white !mb-6">
-                Overall Rating: {rating.overall_rating}
+                Overall Rating: {rating?.overall_rating ?? 'Not generated yet'}
             </Typography>
 
             <Box className="!flex !flex-wrap !gap-6 !mb-6">
                 <Box className="!w-full md:!w-[calc(33.333%-16px)]">
                     <RatingTable 
                         title="Typing Field Ratings"
-                        overallRating={rating.typing_rating}
+                        overallRating={rating?.typing_rating}
                         data={typeFieldData}
+                        emptyMessage="Field ratings have not been generated yet."
                     />
                 </Box>
                 <Box className="!w-full md:!w-[calc(33.333%-16px)]">
                     <RatingTable 
                         title="Mixed Field Ratings"
-                        overallRating={rating.mixed_rating}
+                        overallRating={rating?.mixed_rating}
                         data={mixedFieldData}
+                        emptyMessage="Field ratings have not been generated yet."
                     />
                 </Box>
                 <Box className="!w-full md:!w-[calc(33.333%-16px)]">
                     <RatingTable 
                         title="Special Field Ratings"
-                        overallRating={rating.special_rating}
+                        overallRating={rating?.special_rating}
                         data={specialFieldData}
+                        emptyMessage="Field ratings have not been generated yet."
                     />
                 </Box>
             </Box>
@@ -449,12 +451,14 @@ const TrainerDetail: React.FC = () => {
                     <RatingTable 
                         title="Mental Ratings"
                         data={mentalRatingData}
+                        emptyMessage="Mental ratings have not been generated yet."
                     />
                 </Box>
                 <Box className="!w-full md:!w-[calc(50%-12px)]">
                     <RatingTable 
                         title="Format Ratings"
                         data={formatRatingData}
+                        emptyMessage="Format ratings have not been generated yet."
                     />
                 </Box>
             </Box>
@@ -474,4 +478,4 @@ const TrainerDetail: React.FC = () => {
     );
 };
 
-export default TrainerDetail; 
+export default TrainerDetail;

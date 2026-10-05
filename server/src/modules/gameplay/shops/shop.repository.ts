@@ -154,7 +154,7 @@ export function recordPurchase(database: sqlite3.Database, amount: number, descr
     INSERT INTO financial_transaction (trainer_id, amount, description, date, category)
     VALUES (
       (SELECT active_trainer_id FROM game_state), ?, ?,
-      (SELECT current_date || ' ' || current_time FROM game_state), 'item_purchase'
+      (SELECT "current_date" || ' ' || current_time FROM game_state), 'item_purchase'
     )
   `, [amount, description]).then(() => undefined);
 }

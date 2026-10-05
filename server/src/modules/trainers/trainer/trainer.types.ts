@@ -14,6 +14,23 @@ export const TRAINER_STATUS_FILTERS = ['all', 'active', 'inactive', 'unknown'] a
 
 export type TrainerStatusFilter = (typeof TRAINER_STATUS_FILTERS)[number];
 
+export const TRAINER_MISSING_DATA_FILTERS = [
+  'birthdate',
+  'region',
+  'hometown',
+  'active_status',
+  'pwtr_rating',
+  'peak_rating',
+  'peak_rank',
+  'rating',
+  'general_rating',
+  'no_pokemon',
+  'low_pokemon_count',
+  'pokemon_details',
+] as const;
+
+export type TrainerMissingDataFilter = (typeof TRAINER_MISSING_DATA_FILTERS)[number];
+
 export const TRAINER_SORT_FIELDS = [
   'rank',
   'name',
@@ -31,15 +48,26 @@ export type TrainerSortField = (typeof TRAINER_SORT_FIELDS)[number];
 
 export type SortOrder = 'asc' | 'desc';
 
+const GENERAL_RATING_COLUMNS = [
+  'overall_rating',
+  'typing_rating',
+  'mixed_rating',
+  'special_rating',
+] as const;
+
+export type GeneralRatingColumn = (typeof GENERAL_RATING_COLUMNS)[number];
+
 export interface TrainerListInput {
   page: number;
   pageSize: number;
   search?: string;
   regionId?: number;
+  hometownCityId?: number;
   title: TrainerTitleFilter;
   status: TrainerStatusFilter;
   sortBy: TrainerSortField;
   sortOrder: SortOrder;
+  missing: TrainerMissingDataFilter[];
 }
 
 export interface TrainerOptionsInput {
@@ -156,6 +184,59 @@ export const FORMAT_RATING_COLUMNS = [
 ] as const;
 
 export type FormatRatingColumn = (typeof FORMAT_RATING_COLUMNS)[number];
+
+export type TrainerRatingMetric =
+  | GeneralRatingColumn
+  | FormatRatingColumn
+  | MentalRatingColumn
+  | FieldRatingColumn;
+
+export type TrainerRatingMetricGroup = 'General' | 'Format' | 'Mental' | 'Field';
+
+export interface TrainerRatingMetricOption {
+  value: TrainerRatingMetric;
+  group: TrainerRatingMetricGroup;
+}
+
+function metricOptions<Column extends TrainerRatingMetric>(
+  columns: readonly Column[],
+  group: TrainerRatingMetricGroup
+): TrainerRatingMetricOption[] {
+  return columns.map((value) => ({ value, group }));
+}
+
+export const TRAINER_RATING_METRIC_OPTIONS: readonly TrainerRatingMetricOption[] = [
+  ...metricOptions(GENERAL_RATING_COLUMNS, 'General'),
+  ...metricOptions(FORMAT_RATING_COLUMNS, 'Format'),
+  ...metricOptions(MENTAL_RATING_COLUMNS, 'Mental'),
+  ...metricOptions(FIELD_RATING_COLUMNS, 'Field'),
+];
+
+export const TRAINER_RATING_METRICS = TRAINER_RATING_METRIC_OPTIONS.map(({ value }) => value);
+
+export const TRAINER_RATING_LEADERBOARD_SORT_FIELDS = [
+  'rank',
+  'name',
+  'pwtr_rating',
+  'region_name',
+  'title',
+  'birthdate',
+  'age',
+  'peak_rating',
+  'peak_rank',
+  'metric',
+] as const;
+
+export type TrainerRatingLeaderboardSortField =
+  (typeof TRAINER_RATING_LEADERBOARD_SORT_FIELDS)[number];
+
+export interface TrainerRatingLeaderboardInput {
+  page: number;
+  pageSize: number;
+  metric: TrainerRatingMetric;
+  sortBy: TrainerRatingLeaderboardSortField;
+  sortOrder: SortOrder;
+}
 
 export type FormatRatingWriteInput = {
   id: number;

@@ -8,6 +8,7 @@ import RegionLeague from './RegionLeague';
 import RegionMap from './RegionMap';
 import RegionCities from './RegionCities';
 import RegionLocations from './RegionLocations';
+import ScopedTrainerDirectory from '../trainers/ScopedTrainerDirectory';
 
 const fetchRegion = async (id: string): Promise<Region> => {
     const { data } = await axios.get(`http://localhost:5000/regions/${id}`);
@@ -64,6 +65,7 @@ const RegionDetail: React.FC = () => {
                     className="text-white"
                 >
                     <Tab label="Cities" className="text-white" />
+                    <Tab label="Trainers" className="text-white" />
                     <Tab label="Locations" className="text-white" />
                     <Tab label="League" className="text-white" />
                     <Tab label="Map" className="text-white" />
@@ -72,15 +74,22 @@ const RegionDetail: React.FC = () => {
 
             <Box className="mt-4">
                 {activeTab === 0 && region && <RegionCities cities={region.cities} />}
-                {activeTab === 1 && region && <RegionLocations locations={region.locations} />}
-                {activeTab === 2 && region && (
+                {activeTab === 1 && (
+                    <ScopedTrainerDirectory
+                        heading="Regional Trainers"
+                        emptyMessage="No active trainers have this region recorded as their home region."
+                        regionId={id}
+                    />
+                )}
+                {activeTab === 2 && region && <RegionLocations locations={region.locations} />}
+                {activeTab === 3 && region && (
                     <RegionLeague
                         champion={region.champion}
                         eliteFour={region.eliteFour}
                         gymLeaders={region.gymLeaders}
                     />
                 )}
-                {activeTab === 3 && region && (
+                {activeTab === 4 && region && (
                     <RegionMap 
                         regionName={region.name} 
                         cities={region.cities} 
