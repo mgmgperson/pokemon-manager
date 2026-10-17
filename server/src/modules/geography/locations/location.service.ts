@@ -1,5 +1,6 @@
 import sqlite3 from 'sqlite3';
 import { runInTransaction } from '../../../infrastructure/database/sqlite';
+import { parseGeographyId, validateLocationCityBudget } from '../cities/city-location.service';
 import {
   deleteLocationTerrain,
   deleteLocationTerrains,
@@ -26,6 +27,7 @@ export function updateLocationDetails(
   location: LocationUpdateInput
 ): Promise<void> {
   return runInTransaction(database, async () => {
+    await validateLocationCityBudget(database, parseGeographyId(locationId), location);
     await updateLocation(database, locationId, location);
     if (Array.isArray(location.terrains)) {
       await deleteLocationTerrains(database, locationId);

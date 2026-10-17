@@ -1,20 +1,23 @@
+import type { TrainerData } from '../../../types/trainer';
+import { TrainerPeakEstimateFields } from '../TrainerPeakEstimates';
+import type { Region } from '../../../types/region';
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { Box, Typography, Paper, CircularProgress, TextField, Button, MenuItem, FormControl, InputLabel, Select, SelectChangeEvent } from '@mui/material';
+import { Box, Typography, Paper, CircularProgress, Alert, TextField, Button, MenuItem, FormControl, InputLabel, Select, SelectChangeEvent } from '@mui/material';
 import axios from 'axios';
 
-const fetchTrainer = async (id: string) => {
+const fetchTrainer = async (id: string): Promise<TrainerData> => {
     const { data } = await axios.get(`http://localhost:5000/trainers/${id}`);
     return data.data;
 };
 
-const fetchRegions = async () => {
+const fetchRegions = async (): Promise<Pick<Region, 'id' | 'name'>[]> => {
     const { data } = await axios.get('http://localhost:5000/regions');
     return data.data;
 };
 
-const updateTrainer = async ({ id, updatedTrainer }: { id: string, updatedTrainer: any }) => {
+const updateTrainer = async ({ id, updatedTrainer }: { id: string, updatedTrainer: Record<string, string | number | null> }) => {
     const { data } = await axios.put(`http://localhost:5000/trainers/${id}`, updatedTrainer);
     return data;
 };
@@ -51,7 +54,9 @@ const EditTrainer: React.FC = () => {
         pwtr_rating: '',
         peak_rating: '',
         peak_rank: '',
-        active_status: 1,
+        active_status: '1',
+        estimated_peak_ability: '',
+        estimated_peak_ability_year: '',
     });
 
     useEffect(() => {
@@ -60,12 +65,14 @@ const EditTrainer: React.FC = () => {
             setFormData({
                 fname: trainer.fname || '',
                 lname: trainer.lname || '',
-                region_id: trainer.region_id || '',
+                region_id: String(trainer.region_id ?? ''),
                 birthdate: trainer.birthdate || '',
-                pwtr_rating: trainer.pwtr_rating || '',
-                peak_rating: trainer.peak_rating || '',
-                peak_rank: trainer.peak_rank || '',
-                active_status: trainer.active_status,
+                pwtr_rating: String(trainer.pwtr_rating ?? ''),
+                peak_rating: String(trainer.peak_rating ?? ''),
+                peak_rank: String(trainer.peak_rank ?? ''),
+                active_status: trainer.active_status == null ? '' : String(Number(trainer.active_status)),
+                estimated_peak_ability: String(trainer.estimated_peak_ability ?? ''),
+                estimated_peak_ability_year: String(trainer.estimated_peak_ability_year ?? ''),
             });
         }
     }, [trainerData]);
@@ -74,7 +81,7 @@ const EditTrainer: React.FC = () => {
         const { name, value } = e.target;
         setFormData(prev => ({
             ...prev,
-            [name]: value
+            [name]: String(value)
         }));
     };
 
@@ -82,7 +89,7 @@ const EditTrainer: React.FC = () => {
         const { name, value } = e.target;
         setFormData(prev => ({
             ...prev,
-            [name]: value
+            [name]: String(value)
         }));
     };
 
@@ -90,6 +97,9 @@ const EditTrainer: React.FC = () => {
         e.preventDefault();
         const updatedTrainer = {
             ...formData,
+            active_status: formData.active_status === '' ? null : Number(formData.active_status),
+            estimated_peak_ability: formData.estimated_peak_ability === '' ? null : Number(formData.estimated_peak_ability),
+            estimated_peak_ability_year: formData.estimated_peak_ability_year === '' ? null : Number(formData.estimated_peak_ability_year),
             region_id: formData.region_id ? Number(formData.region_id) : null,
             pwtr_rating: formData.pwtr_rating ? Number(formData.pwtr_rating) : null,
             peak_rating: formData.peak_rating ? Number(formData.peak_rating) : null,
@@ -149,6 +159,8 @@ const EditTrainer: React.FC = () => {
                     </Box>
                 </Box>
 
+                {mutation.isError && <Alert severity="error">{axios.isAxiosError(mutation.error)
+                    ? mutation.error.response?.data?.error ?? mutation.error.message : 'Unable to save trainer'}</Alert>}
                 <form onSubmit={handleSubmit} className="!space-y-4">
                     <Box className="!grid !grid-cols-1 md:!grid-cols-2 !gap-4">
                         <TextField
@@ -197,7 +209,7 @@ const EditTrainer: React.FC = () => {
                                 label="Region"
                                 className="!text-white"
                             >
-                                {regionsData?.map((region: any) => (
+                                {regionsData?.map((region) => (
                                     <MenuItem key={region.id} value={region.id}>
                                         {region.name}
                                     </MenuItem>
@@ -242,6 +254,12 @@ const EditTrainer: React.FC = () => {
                                 inputLabel: { className: '!text-gray-400' },
                                 input: { className: '!text-white' }
                             }}
+                        />
+                        <TrainerPeakEstimateFields
+                            ability={formData.estimated_peak_ability === '' ? null : Number(formData.estimated_peak_ability)}
+                            year={formData.estimated_peak_ability_year === '' ? null : Number(formData.estimated_peak_ability_year)}
+                            onAbility={(value) => setFormData(previous => ({ ...previous, estimated_peak_ability: value === null ? '' : String(value) }))}
+                            onYear={(value) => setFormData(previous => ({ ...previous, estimated_peak_ability_year: value === null ? '' : String(value) }))}
                         />
                         <FormControl fullWidth className="!bg-gray-700">
                             <InputLabel className="!text-gray-400">Active Status</InputLabel>

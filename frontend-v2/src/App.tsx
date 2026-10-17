@@ -31,6 +31,7 @@ import AddTrainerPokemon from './components/trainers/pokemon/AddTrainerPokemon';
 import EditTrainerPokemon from './components/trainers/pokemon/EditTrainerPokemon';
 import Squad from './components/squad/Squad';
 import CityDetail from './components/cities/CityDetail';
+import CityManagement from './components/cities/management/CityManagement';
 import EditCity from './components/cities/edit/EditCity';
 import MessageBox from './components/messages/MessageBox';
 import Items from './components/items/Items';
@@ -124,6 +125,7 @@ const App: React.FC = () => {
             <Route path="edit_trainer/:id/mental_ratings" element={<EditMentalRating />} />
             <Route path="edit_trainer/:id/format_ratings" element={<EditFormatRating />} />
             <Route path="cities/:id" element={<CityDetail />} />
+            <Route path="city-management" element={<CityManagement />} />
             <Route path="edit_city/:id" element={<EditCity />} />
             <Route path="add_city" element={<AddCity />} />
             <Route path="inbox" element={<MessageBox />} />

@@ -219,15 +219,17 @@ export function updateLocation(
   locationId: string,
   location: LocationWriteInput
 ): Promise<void> {
+  const columns = ['name', 'region_id', 'description', 'population', 'area_coordinates',
+    'travel_time', 'parent_location_id', 'accessibility'] as const;
+  const fields = columns.filter((column) => location[column] !== undefined);
+  if (fields.length === 0) return Promise.resolve();
   return runStatement(database, `
     UPDATE location
-    SET name = ?, region_id = ?, description = ?, population = ?, area_coordinates = ?,
-        travel_time = ?, parent_location_id = ?, accessibility = ?
+    SET ${fields.map((column) => `${column} = ?`).join(', ')}
     WHERE id = ?
   `, [
-    location.name, location.region_id, location.description, location.population,
-    JSON.stringify(location.area_coordinates), location.travel_time, location.parent_location_id,
-    location.accessibility, locationId,
+    ...fields.map((column) => column === 'area_coordinates' ? JSON.stringify(location[column]) : location[column]),
+    locationId,
   ]).then(() => undefined);
 }
 

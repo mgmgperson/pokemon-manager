@@ -1,3 +1,6 @@
+import { runInTransaction, runStatement } from '../../infrastructure/database/sqlite';
+import { requireCityLocationSchema } from '../../infrastructure/database/cityLocationSchema';
+import { TRAINER_PEAK_SCHEMA_VERSION, inspectTrainerPeakSchema } from '../../infrastructure/database/trainerPeakSchema';
 import sqlite3 from 'sqlite3';
 import fs from 'fs';
 import path from 'path';
@@ -67,7 +70,7 @@ export const createDatabaseSchema = (db: sqlite3.Database): Promise<void> => {
       return;
     }
 
-    statements.forEach((statement, index) => {
+    db.serialize(() => statements.forEach((statement, index) => {
       db.run(statement, (err) => {
         if (err) {
           console.error(`Error executing statement ${index + 1}:`, err);
@@ -78,10 +81,15 @@ export const createDatabaseSchema = (db: sqlite3.Database): Promise<void> => {
         completed++;
         if (completed === total) {
           console.log(`Database schema created: ${completed} statements executed`);
-          resolve();
+          // Version only the supported city/trainer shapes; never silently label an older existing table as upgraded.
+          runInTransaction(db, async () => {
+            await runStatement(db, `PRAGMA user_version = ${TRAINER_PEAK_SCHEMA_VERSION}`);
+            await requireCityLocationSchema(db);
+            await inspectTrainerPeakSchema(db);
+          }).then(resolve, reject);
         }
       });
-    });
+    }));
   });
 };
 

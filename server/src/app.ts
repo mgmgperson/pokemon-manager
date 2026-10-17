@@ -5,8 +5,10 @@ dotenv.config();
 
 import trainerRoutes from './modules/trainers/trainer/trainer.routes';
 import trainerManagementRoutes from './modules/trainers/management/trainer-management.routes';
+import { populationJson } from './modules/trainers/population/trainer-population.routes';
 import regionRoutes from './modules/geography/regions/region.routes';
 import cityRoutes from './modules/geography/cities/city.routes';
+import cityManagementRoutes from './modules/geography/cities/city-management.routes';
 import locationRoutes from './modules/geography/locations/location.routes';
 import leagueRoutes from './modules/competitions/league/league.routes';
 import pokemonRoutes from './modules/trainers/pokemon/pokemon.routes';
@@ -34,6 +36,7 @@ const app: Application = express();
 const PORT = process.env.PORT || 5000;
 
 app.use(cors());
+app.use('/trainer-management/population', populationJson);
 app.use(express.json());
 
 // Routes
@@ -41,6 +44,7 @@ app.use('/trainers', trainerRoutes);
 app.use('/trainer-management', trainerManagementRoutes);
 app.use('/regions', regionRoutes);
 app.use('/cities', cityRoutes);
+app.use('/city-management', cityManagementRoutes);
 app.use('/locations', locationRoutes);
 app.use('/league', leagueRoutes);
 app.use('/pokemon', pokemonRoutes);

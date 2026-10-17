@@ -75,6 +75,19 @@ export interface PokemonTeamGenerationOptions {
   uniqueSpecies?: boolean;
   strictGenerationPreferences?: boolean;
   defaultFormsOnly?: boolean;
+  specialSlots?: readonly PokemonGenerationSlot[];
+}
+
+export interface PokemonGenerationSlot {
+  rarity: 'normal' | 'legendary' | 'mythical';
+  mega: boolean;
+  gmax: boolean;
+}
+
+function supportsSpecialForm(pokemon: PokemonEntity, kind: 'MEGA' | 'GMAX'): boolean {
+  if (!pokemon.isDefault) return false;
+  const species = allSpecies.find((candidate) => candidate.id === pokemon.species);
+  return species?.varieties.some((id) => (Pokemon[id] ?? '').includes(`_${kind}`)) ?? false;
 }
 
 /**
@@ -204,6 +217,12 @@ export function generatePokemonTeam(
     
     // Determine team size using bell curve distribution
     const teamSize = options.teamSize ?? generatePokemonTeamSize();
+    const slots = options.specialSlots;
+    if (slots && (slots.length !== teamSize || slots.some((slot) => (
+        !['normal', 'legendary', 'mythical'].includes(slot.rarity)
+        || typeof slot.mega !== 'boolean' || typeof slot.gmax !== 'boolean'
+        || (slot.mega && slot.gmax) || (slot.rarity !== 'normal' && (slot.mega || slot.gmax))
+    )))) throw new Error('Special roster slots must match team size and use compatible rarity/form choices');
     
     const teamLevelBaseline = calculateTeamLevelBaseline(overallRating);
     
@@ -221,13 +240,16 @@ export function generatePokemonTeam(
     if (options.defaultFormsOnly) {
         eligiblePokemon = eligiblePokemon.filter((pokemon) => pokemon.isDefault);
     }
+    if (slots) {
+        eligiblePokemon = eligiblePokemon.filter((pokemon) => !/_(MEGA(?:_|$)|GMAX$)/.test(Pokemon[pokemon.id] ?? ''));
+    }
     
     // We'll apply type/generation preferences at each selection step (in the loop below),
     // instead of filtering the entire pool upfront
     
-    // Determine special Pokémon allowances based on trainer rating
-    const canUseMega = overallRating >= 80;  // Only trainers with 80+ rating can have Mega Pokémon
-    const canUseGmax = overallRating >= 83;  // Only high-rated trainers can have Gigantamax Pokémon
+    // Population proposals provide reviewed slots; other callers retain rating-based gates.
+    const canUseMega = slots ? slots.some((slot) => slot.mega) : overallRating >= 80;
+    const canUseGmax = slots ? slots.some((slot) => slot.gmax) : overallRating >= 83;
     
     // Count for special Pokémon
     let megaCount = 0;
@@ -235,19 +257,20 @@ export function generatePokemonTeam(
     let legendaryCount = 0;
     let mythicalCount = 0;
     
-    // Max allowed special Pokémon
-    const maxMega = overallRating >= 90 ? 1 : 0;  // At most 1 Mega per team for top trainers
+    // Explicit slots override only this call's legacy caps.
+    const maxMega = slots ? slots.filter((slot) => slot.mega).length : (overallRating >= 90 ? 1 : 0);
     // Gigantamax slightly more accessible than Mega but still restricted
-    const maxGmax = overallRating >= 95 ? 2 : (overallRating >= 87 ? 1 : 0);
-    const maxLegendary = overallRating >= 90 ? 2 : (overallRating >= 80 ? 1 : 0);
-    const maxMythical = overallRating >= 95 ? 1 : 0;
+    const maxGmax = slots ? slots.filter((slot) => slot.gmax).length : (overallRating >= 95 ? 2 : (overallRating >= 87 ? 1 : 0));
+    const maxLegendary = slots ? slots.filter((slot) => slot.rarity === 'legendary').length : (overallRating >= 90 ? 2 : (overallRating >= 80 ? 1 : 0));
+    const maxMythical = slots ? slots.filter((slot) => slot.rarity === 'mythical').length : (overallRating >= 95 ? 1 : 0);
     
     // Generate the team
     const team: GeneratedTeamPokemon[] = [];
     
     for (let i = 0; i < teamSize; i++) {
         // Determine what kind of Pokémon to add based on trainer rating and position
-        let pokemonRarity = determinePokemonRarity(overallRating, i, teamSize);
+        const slot = slots?.[i];
+        let pokemonRarity = slot?.rarity ?? determinePokemonRarity(overallRating, i, teamSize);
         
         // Get species info for all eligible Pokémon
         const eligibleSpecies = eligiblePokemon.map(p => {
@@ -265,6 +288,7 @@ export function generatePokemonTeam(
                 .map(item => item.pokemon);
             
             if (currentEligible.length === 0) {
+                if (slot) throw new Error('No eligible Legendary Pokemon remain for the requested roster');
                 // If no legendaries match our criteria, fall back to normal
                 pokemonRarity = 'normal';
             }
@@ -275,6 +299,7 @@ export function generatePokemonTeam(
                 .map(item => item.pokemon);
             
             if (currentEligible.length === 0) {
+                if (slot) throw new Error('No eligible Mythical Pokemon remain for the requested roster');
                 // If no mythicals match our criteria, fall back to normal
                 pokemonRarity = 'normal';
             }
@@ -288,6 +313,10 @@ export function generatePokemonTeam(
                 .map(item => item.pokemon);
         }
         
+        if (slot?.mega) currentEligible = currentEligible.filter((pokemon) => supportsSpecialForm(pokemon, 'MEGA'));
+        if (slot?.gmax) currentEligible = currentEligible.filter((pokemon) => supportsSpecialForm(pokemon, 'GMAX'));
+        if (slot && currentEligible.length === 0) throw new Error('The requested roster has exhausted its eligible species/form pool');
+
         // Avoid empty list
         if (currentEligible.length === 0) {
             currentEligible = eligiblePokemon;
@@ -343,13 +372,13 @@ export function generatePokemonTeam(
             
             // Check if this Pokémon can have a Gigantamax form
             const speciesName = pokemon.name.toUpperCase().replace(/[^A-Z0-9]/g, '_');
-            const hasGmaxForm = species?.varieties?.some(pokemonId => {
+            const hasGmaxForm = slot ? supportsSpecialForm(pokemon, 'GMAX') : species?.varieties?.some(pokemonId => {
                 // Look for form names like "CHARIZARD_GMAX"
                 const formName = Pokemon[pokemonId];
                 return typeof formName === 'string' && formName.includes(' GMAX');
             });
 
-            const hasMegaForm = species?.varieties?.some(pokemonId => {
+            const hasMegaForm = slot ? supportsSpecialForm(pokemon, 'MEGA') : species?.varieties?.some(pokemonId => {
                 // Look for form names like "CHARIZARD_Mega"
                 const formName = Pokemon[pokemonId];
                 return typeof formName === 'string' && formName.includes(' MEGA');
@@ -357,9 +386,13 @@ export function generatePokemonTeam(
             
             let isGigantamax = false;
             
-            // Only add mega if trainer is qualified and we haven't reached the limit
-            // Megas should be used on strong but not legendary Pokémon
-            if (canUseMega && megaCount < maxMega && 
+            // Supplied slots bypass strength gates without changing legacy randomization.
+            if (slot) {
+                isMega = slot.mega;
+                isGigantamax = slot.gmax;
+                megaCount += Number(isMega);
+                gmaxCount += Number(isGigantamax);
+            } else if (canUseMega && megaCount < maxMega &&
                 pokemonRarity === 'normal' && hasMegaForm &&
                 Math.random() < 0.5) { // 50% chance to use mega slot if available
                 isMega = true;
@@ -420,7 +453,10 @@ export function generatePokemonTeam(
 
                     // try to fetch base entity to get base types
                     const baseEntity = typeof allPokemon !== 'undefined' ? allPokemon.find(p => p.id === outPokemonId) : undefined;
-                    if (baseEntity) outTypes = baseEntity.types;
+                    if (baseEntity) {
+                        outTypes = baseEntity.types;
+                        if (slots) outName = baseEntity.name;
+                    }
                 } else {
                     // fallback: if no species entry, try to heuristically strip Mega/Gmax suffix
                     outName = outName.replace(/\s+MEGA$/i, '').replace(/\s+GMAX$/i, '').replace(/\s+G-MAX$/i, '').replace(/\s+GIGANTAMAX$/i, '');
@@ -445,11 +481,13 @@ export function generatePokemonTeam(
 /**
  * Determine team size using weighted random selection
  */
-export function generatePokemonTeamSize(): number {
-    const totalWeight = TEAM_SIZE_PROBABILITIES.reduce((sum, entry) => sum + entry.weight, 0);
+export function generatePokemonTeamSize(minimum = 6, maximum = 24): number {
+    const choices = TEAM_SIZE_PROBABILITIES.filter((entry) => entry.size >= minimum && entry.size <= maximum);
+    if (choices.length === 0) throw new Error('No existing weighted roster sizes fit the requested range');
+    const totalWeight = choices.reduce((sum, entry) => sum + entry.weight, 0);
     let random = Math.random() * totalWeight;
     
-    for (const entry of TEAM_SIZE_PROBABILITIES) {
+    for (const entry of choices) {
         if (random < entry.weight) {
             return entry.size;
         }

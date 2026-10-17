@@ -313,6 +313,8 @@ function parseNewTrainerProfileProposal(value: unknown): NewTrainerProfilePropos
     peakRating: requiredNumber(profile.peakRating, 'profile.peakRating'),
     peakRank: requiredPositiveInteger(profile.peakRank, 'profile.peakRank'),
     activeStatus: requiredBoolean(profile.activeStatus, 'profile.activeStatus'),
+    estimatedPeakAbility: profile.estimatedPeakAbility === null ? null : optionalNumber(profile.estimatedPeakAbility, 'profile.estimatedPeakAbility'),
+    estimatedPeakAbilityYear: profile.estimatedPeakAbilityYear === null ? null : optionalNumber(profile.estimatedPeakAbilityYear, 'profile.estimatedPeakAbilityYear'),
   };
 }
 

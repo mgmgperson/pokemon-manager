@@ -7,6 +7,11 @@ concise, accurate, and updated when the same mistake or ambiguity recurs.
 
 - Read `.pm/CURRENT.md` before substantial work when it exists.
 - Read the active change linked from `.pm/CURRENT.md` when one is identified.
+- Before proposing new behavior, follow the [capability reuse workflow](server/src/tooling/capabilities/README.md#agent-reuse-workflow):
+  check/search the catalog, inspect source, and identify what to reuse, extend,
+  or add. After code changes, refresh facts, review affected explanations, and
+  run the freshness check. Agents own upkeep; missing/stale entries require
+  source inspection and repair.
 - Read `.pm/CHARTER.md` before making product-scope decisions when it exists.
 - Read `.pm/WORLD.md` before changing domain rules, simulation behavior,
   generators, schemas, tournaments, rankings, geography, or world-facing text.

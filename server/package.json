@@ -6,12 +6,14 @@
   "scripts": {
     "dev": "ts-node src/app.ts",
     "build": "tsc",
-    "start": "node dist/app.js"
+    "start": "node dist/app.js",
+    "names:download": "ts-node src/bin/download-city-name-bases.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@modelcontextprotocol/server": "2.3.1",
     "axios": "^1.8.1",
     "better-sqlite3": "^12.2.0",
     "cors": "^2.8.5",
@@ -19,9 +21,11 @@
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "mongodb": "^6.14.2",
-    "sqlite3": "^5.1.7"
+    "sqlite3": "^5.1.7",
+    "zod": "4.6.7"
   },
   "devDependencies": {
+    "@modelcontextprotocol/client": "2.3.1",
     "@types/axios": "^0.14.4",
     "@types/better-sqlite3": "^7.6.13",
     "@types/cors": "^2.8.17",

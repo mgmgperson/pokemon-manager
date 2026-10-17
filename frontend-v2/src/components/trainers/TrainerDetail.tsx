@@ -1,3 +1,4 @@
+import { TrainerPeakEstimateSummary } from './TrainerPeakEstimates';
 import React from 'react';
 import { useParams, Link, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -351,6 +352,7 @@ const TrainerDetail: React.FC = () => {
                                 </Typography>
                             </div>
                         </Tooltip>
+                        <TrainerPeakEstimateSummary ability={trainer.estimated_peak_ability} year={trainer.estimated_peak_ability_year} />
                     </Box>
                     <Box className="!w-full md:!w-1/2">
                         <Typography variant="h6" className="!text-white !mb-3">

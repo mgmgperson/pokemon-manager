@@ -1,3 +1,4 @@
+import { TrainerPeakEstimateFields } from '../TrainerPeakEstimates';
 import React from 'react';
 import axios from 'axios';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -24,12 +25,14 @@ import {
 
 type NameGender = 'random' | 'M' | 'F';
 
-interface NumericRange {
+export interface NumericRange {
   minimum: number;
   maximum: number;
 }
 
-interface NewTrainerProfileProposal {
+export interface NewTrainerProfileProposal {
+  estimatedPeakAbility?: number | null;
+  estimatedPeakAbilityYear?: number | null;
   fname: string;
   lname: string;
   regionId: number;
@@ -274,7 +277,7 @@ const NewTrainerProposal: React.FC = () => {
             type="number"
             value={brief.ageMinimum}
             onChange={(event) => updateBrief('ageMinimum', event.target.value)}
-            helperText="Whole-number range between 14 and 80."
+            helperText="Whole-number range between 12 and 80."
           />
           <TextField
             label="Maximum age"
@@ -361,6 +364,8 @@ const NewTrainerProposal: React.FC = () => {
             <TextField label="Current PWTR" type="number" value={proposal.profile.pwtrRating} onChange={(event) => updateProfile('pwtrRating', Number(event.target.value))} />
             <TextField label="Peak rating" type="number" value={proposal.profile.peakRating} onChange={(event) => updateProfile('peakRating', Number(event.target.value))} />
             <TextField label="Peak rank" type="number" value={proposal.profile.peakRank} onChange={(event) => updateProfile('peakRank', Number(event.target.value))} />
+            <TrainerPeakEstimateFields ability={proposal.profile.estimatedPeakAbility} year={proposal.profile.estimatedPeakAbilityYear}
+              onAbility={(value) => updateProfile('estimatedPeakAbility', value)} onYear={(value) => updateProfile('estimatedPeakAbilityYear', value)} />
           </Box>
 
           {proposal.rating && (

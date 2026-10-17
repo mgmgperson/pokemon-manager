@@ -54,17 +54,25 @@ export interface NewTrainerProposalInput {
   includeRatings: boolean;
 }
 
-export interface NewTrainerProfileProposal {
+export interface TrainerProfileProposal {
+  estimatedPeakAbility?: number | null;
+  estimatedPeakAbilityYear?: number | null;
   fname: string;
   lname: string;
   regionId: number;
   hometownCityId?: number;
   hometownName?: string;
   birthdate: string;
+  pwtrRating: number | null;
+  peakRating: number | null;
+  peakRank: number | null;
+  activeStatus: boolean;
+}
+
+export interface NewTrainerProfileProposal extends TrainerProfileProposal {
   pwtrRating: number;
   peakRating: number;
   peakRank: number;
-  activeStatus: boolean;
 }
 
 export interface NewTrainerProposal {

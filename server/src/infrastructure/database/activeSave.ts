@@ -2,6 +2,8 @@ import sqlite3 from 'sqlite3';
 import { resolve } from 'path';
 import { updateSaveLastPlayedAt } from './metaDatabase';
 import { closeDatabase, openDatabase } from './sqlite';
+import { requireCityLocationSchema } from './cityLocationSchema';
+import { inspectTrainerPeakSchema } from './trainerPeakSchema';
 
 let activeDatabase: sqlite3.Database | null = null;
 const databaseCache = new Map<string, sqlite3.Database>();
@@ -19,6 +21,8 @@ export async function setActiveSave(code: string, databasePath: string): Promise
   }
 
   try {
+    await requireCityLocationSchema(database);
+    await inspectTrainerPeakSchema(database);
     await updateSaveLastPlayedAt(code);
   } catch (error) {
     if (openedConnection) {

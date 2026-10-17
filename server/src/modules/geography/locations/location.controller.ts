@@ -1,5 +1,6 @@
 import { type Request, type Response } from 'express';
 import { getActiveDB } from '../../../infrastructure/database/activeSave';
+import { CityLocationError } from '../cities/city-location.service';
 import {
   createBasicLocation,
   findAllTerrains,
@@ -19,7 +20,7 @@ interface LocationQuery { region_id?: string | string[]; }
 interface TerrainRateBody { updates?: unknown; }
 
 function sendError(response: Response, error: unknown): void {
-  response.status(400).json({ error: (error as Error).message });
+  response.status(error instanceof CityLocationError ? error.status : 400).json({ error: (error as Error).message });
 }
 
 export async function listLocations(

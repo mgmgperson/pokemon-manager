@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import populationRoutes from '../population/trainer-population.routes';
 import {
   applyNewTrainerProposalController,
   applyExistingTrainerProposalController,
@@ -10,6 +11,7 @@ import {
 
 const router: Router = Router();
 
+router.use('/population', populationRoutes);
 router.post('/trainers/:trainerId/proposal', previewExistingTrainerProposal);
 router.post('/trainers/:trainerId/apply', applyExistingTrainerProposalController);
 router.post('/trainers/:trainerId/roster-proposal', previewRosterProposal);

@@ -1,4 +1,5 @@
 import sqlite3 from 'sqlite3';
+import { peakEstimateFallback, peakEstimateStorage, validateSavedPeakEstimate, PEAK_ESTIMATE_COLUMNS } from '../../../infrastructure/database/trainerPeakSchema';
 import {
   queryAll,
   queryOne,
@@ -32,6 +33,8 @@ interface TrainerRow {
   pwtr_rating: number | null;
   peak_rating: number | null;
   peak_rank: number | null;
+  estimated_peak_ability?: number | null;
+  estimated_peak_ability_year?: number | null;
   active_status: boolean | number | null;
 }
 
@@ -157,7 +160,8 @@ const TRAINER_RATING_LEADERBOARD_SORT_COLUMNS = {
   metric: 'metric_value',
 } as const;
 
-const TRAINER_SUMMARY_CTE = `
+async function trainerSummaryCte(database: sqlite3.Database): Promise<string> {
+  return `
   WITH
   current_game_date AS (
     SELECT (
@@ -219,7 +223,7 @@ const TRAINER_SUMMARY_CTE = `
   ),
   trainer_summaries AS (
     SELECT
-      trainer.*,
+      trainer.*${await peakEstimateFallback(database)},
       home_region.name AS region_name,
       COALESCE(hometown_summaries.hometown_count, 0) AS hometown_count,
       COALESCE(pokemon_summaries.pokemon_count, 0) AS pokemon_count,
@@ -265,6 +269,7 @@ const TRAINER_SUMMARY_CTE = `
     LEFT JOIN grand_champion ON trainer.id = grand_champion.trainer_id
   )
 `;
+}
 
 interface TrainerSummaryRow extends Omit<TrainerSummary, 'review_flags'> {
   hometown_count: number;
@@ -403,10 +408,6 @@ function appendStatusFilter(conditions: string[], status: TrainerStatusFilter): 
   }
 }
 
-function trainerValues(input: TrainerWriteInput): unknown[] {
-  return TRAINER_COLUMNS.map((column) => input[column]);
-}
-
 function metricExpression(metric: TrainerRatingMetric): string {
   const option = TRAINER_RATING_METRIC_OPTIONS.find((candidate) => candidate.value === metric);
   if (!option) {
@@ -430,7 +431,7 @@ export async function findActiveTrainers(database: sqlite3.Database): Promise<Tr
     database,
     `
       SELECT
-        trainer.*,
+        trainer.*${await peakEstimateFallback(database)},
         home_region.name AS region_name,
         CASE
           WHEN grand_champion.trainer_id IS NOT NULL THEN 'Grand Champion'
@@ -465,6 +466,7 @@ export async function findTrainerPage(
   database: sqlite3.Database,
   input: TrainerListInput
 ): Promise<TrainerPage> {
+  const summaryCte = await trainerSummaryCte(database);
   const filters = buildTrainerFilters(input);
   const sortColumn = TRAINER_SORT_COLUMNS[input.sortBy];
   const offset = (input.page - 1) * input.pageSize;
@@ -476,7 +478,7 @@ export async function findTrainerPage(
   const [countRow, trainers] = await Promise.all([
     queryOne<{ count: number }>(
       database,
-      `${TRAINER_SUMMARY_CTE}
+      `${summaryCte}
        SELECT COUNT(*) AS count
        FROM trainer_summaries
        ${filters.sql}`,
@@ -484,7 +486,7 @@ export async function findTrainerPage(
     ),
     queryAll<TrainerSummaryRow>(
       database,
-      `${TRAINER_SUMMARY_CTE}
+      `${summaryCte}
        SELECT *
        FROM trainer_summaries
        ${filters.sql}
@@ -518,6 +520,7 @@ export async function findTrainerRatingLeaderboardPage(
   database: sqlite3.Database,
   input: TrainerRatingLeaderboardInput
 ): Promise<TrainerRatingLeaderboardPage> {
+  const summaryCte = await trainerSummaryCte(database);
   const metricSql = metricExpression(input.metric);
   const sortColumn = TRAINER_RATING_LEADERBOARD_SORT_COLUMNS[input.sortBy];
   const offset = (input.page - 1) * input.pageSize;
@@ -525,7 +528,7 @@ export async function findTrainerRatingLeaderboardPage(
     ? `${sortColumn} IS NULL ASC, ${sortColumn} ${input.sortOrder.toUpperCase()}, id ASC`
     : `${sortColumn} ${input.sortOrder.toUpperCase()}, id ASC`;
   const leaderboardCte = `
-    ${TRAINER_SUMMARY_CTE},
+    ${summaryCte},
     leaderboard_rows AS (
       SELECT
         trainer_summaries.id,
@@ -536,6 +539,8 @@ export async function findTrainerRatingLeaderboardPage(
         trainer_summaries.pwtr_rating,
         trainer_summaries.peak_rating,
         trainer_summaries.peak_rank,
+        trainer_summaries.estimated_peak_ability,
+        trainer_summaries.estimated_peak_ability_year,
         trainer_summaries.active_status,
         trainer_summaries.region_name,
         trainer_summaries.title,
@@ -572,6 +577,8 @@ export async function findTrainerRatingLeaderboardPage(
          pwtr_rating,
          peak_rating,
          peak_rank,
+         estimated_peak_ability,
+         estimated_peak_ability_year,
          active_status,
          region_name,
          title,
@@ -632,11 +639,11 @@ export function findTrainerOptions(
   );
 }
 
-export function findInactiveTrainers(database: sqlite3.Database): Promise<TrainerRow[]> {
+export async function findInactiveTrainers(database: sqlite3.Database): Promise<TrainerRow[]> {
   return queryAll<TrainerRow>(
     database,
     `
-      SELECT * FROM trainer
+      SELECT *${await peakEstimateFallback(database)} FROM trainer
       WHERE active_status = 0
       ORDER BY pwtr_rating DESC
     `
@@ -651,11 +658,11 @@ export async function findTrainerDetail(
     database,
     `
       WITH ranked_trainers AS (
-        SELECT id, RANK() OVER (ORDER BY pwtr_rating DESC) AS rank
+        SELECT id, CASE WHEN pwtr_rating IS NULL THEN NULL ELSE RANK() OVER (ORDER BY pwtr_rating DESC) END AS rank
         FROM trainer
       )
       SELECT
-        trainer.*,
+        trainer.*${await peakEstimateFallback(database)},
         home_region.name AS region_name,
         ranked_trainers.rank AS rank,
         (SELECT COUNT(*) FROM pokemon WHERE trainer_id = trainer.id) AS pokemon_count,
@@ -772,44 +779,33 @@ export function findPokemonForTrainer(
   );
 }
 
-export function createTrainer(
+export async function createTrainer(
   database: sqlite3.Database,
   input: TrainerWriteInput
 ): Promise<StatementResult> {
-  return runStatement(
-    database,
-    `
-      INSERT INTO trainer (
-        fname, lname, region_id, birthdate, pwtr_rating, peak_rating, peak_rank, active_status
-      )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `,
-    trainerValues(input)
-  );
+  const hasEstimates = await peakEstimateStorage(database, input.estimated_peak_ability, input.estimated_peak_ability_year);
+  await validateSavedPeakEstimate(database, input.estimated_peak_ability, input.estimated_peak_ability_year, input.birthdate);
+  const columns = hasEstimates ? [...TRAINER_COLUMNS, ...PEAK_ESTIMATE_COLUMNS] : TRAINER_COLUMNS;
+  return runStatement(database,
+    `INSERT INTO trainer (${columns.join(', ')}) VALUES (${columns.map(() => '?').join(', ')})`,
+    columns.map((column) => input[column] ?? null));
 }
 
-export function updateTrainer(
+export async function updateTrainer(
   database: sqlite3.Database,
   trainerId: string,
   input: TrainerWriteInput
 ): Promise<StatementResult> {
-  return runStatement(
-    database,
-    `
-      UPDATE trainer
-      SET
-        fname = ?,
-        lname = ?,
-        region_id = ?,
-        birthdate = ?,
-        pwtr_rating = ?,
-        peak_rating = ?,
-        peak_rank = ?,
-        active_status = ?
-      WHERE id = ?
-    `,
-    [...trainerValues(input), trainerId]
-  );
+  const hasEstimates = await peakEstimateStorage(database, input.estimated_peak_ability, input.estimated_peak_ability_year);
+  const previous = await queryOne<TrainerRow>(database,
+    `SELECT *${await peakEstimateFallback(database)} FROM trainer WHERE id = ?`, [trainerId]);
+  const ability = input.estimated_peak_ability === undefined ? previous?.estimated_peak_ability : input.estimated_peak_ability;
+  const year = input.estimated_peak_ability_year === undefined ? previous?.estimated_peak_ability_year : input.estimated_peak_ability_year;
+  await validateSavedPeakEstimate(database, ability, year, input.birthdate);
+  const columns = [...TRAINER_COLUMNS, ...PEAK_ESTIMATE_COLUMNS.filter((column) => hasEstimates && input[column] !== undefined)];
+  return runStatement(database,
+    `UPDATE trainer SET ${columns.map((column) => `${column} = ?`).join(', ')} WHERE id = ?`,
+    [...columns.map((column) => input[column] ?? null), trainerId]);
 }
 
 export function updateFieldRatings(

@@ -58,7 +58,7 @@ function ensurePokemonCache() {
 /**
  * Sample types without replacement using TYPE_WEIGHTS
  */
-function weightedSampleTypes(count: number): Types[] {
+export function weightedSampleTypes(count: number): Types[] {
   const entries: Array<{ type: Types; weight: number }> = [];
   for (const key in TYPE_WEIGHTS) {
     const t = Number(key) as unknown as Types;

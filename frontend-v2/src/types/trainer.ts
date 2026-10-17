@@ -7,6 +7,8 @@ export interface Trainer {
     region_name: string;
     title: string | null;
     rank: number | null;
+    estimated_peak_ability?: number | null;
+    estimated_peak_ability_year?: number | null;
     peak_rank: number | null;
     peak_rating: number | null;
     birthdate: string | null;

@@ -76,6 +76,8 @@ export interface TrainerOptionsInput {
 }
 
 export interface TrainerWriteInput {
+  estimated_peak_ability?: NumericValue;
+  estimated_peak_ability_year?: NumericValue;
   fname?: string | null;
   lname?: string | null;
   region_id?: NumericValue;

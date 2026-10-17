@@ -1,3 +1,4 @@
+import { TrainerPeakEstimateSummary } from './TrainerPeakEstimates';
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Box, Typography, Paper, Button } from '@mui/material';
@@ -9,7 +10,7 @@ interface InactiveTrainerDetailProps {
 
 const InactiveTrainerDetail: React.FC<InactiveTrainerDetailProps> = ({ trainerData }) => {
     const { id } = useParams<{ id: string }>();
-    const { trainer, hometowns } = trainerData;
+    const { trainer, hometowns, rating } = trainerData;
 
     return (
         <Box className="!p-6">
@@ -120,10 +121,14 @@ const InactiveTrainerDetail: React.FC<InactiveTrainerDetailProps> = ({ trainerDa
                         <Typography variant="h4" className="!text-white">
                             {trainer.peak_rating ? trainer.peak_rating.toFixed(2) : 'N/A'}
                         </Typography>
+                        <TrainerPeakEstimateSummary ability={trainer.estimated_peak_ability} year={trainer.estimated_peak_ability_year} />
                     </Box>
 
                     <Box className="!w-full md:!w-1/3">
-                        
+                        <Typography variant="h6" className="!text-white">Current battle ability</Typography>
+                        {(['overall_rating', 'typing_rating', 'mixed_rating', 'special_rating'] as const).map((key) => <Typography key={key}>
+                            {key.replace('_rating', '').replace(/^./, letter => letter.toUpperCase())}: {rating?.[key] ?? 'Unknown'}
+                        </Typography>)}
                     </Box>
                 </Box>
             </Paper>
@@ -131,4 +136,4 @@ const InactiveTrainerDetail: React.FC<InactiveTrainerDetailProps> = ({ trainerDa
     );
 };
 
-export default InactiveTrainerDetail; 
+export default InactiveTrainerDetail;

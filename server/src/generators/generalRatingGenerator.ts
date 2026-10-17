@@ -75,15 +75,19 @@ export interface GeneratedGeneralRatings {
 }
 
 /**
- * Generate a complete ratings object based on PWTR rating
+ * Generate ratings from PWTR, or an explicitly supplied current ability that bypasses the PWTR map.
  */
 export function generateGeneralRatings(
   trainerId: number,
   pwtrRating: number | null,
-  year = 2036
+  year = 2036,
+  currentAbility?: number
 ): GeneratedGeneralRatings {
   // Generate the overall rating
-  const overallRating = generateOverallRating(pwtrRating);
+  if (currentAbility !== undefined && (!Number.isInteger(currentAbility) || currentAbility < 0 || currentAbility > 99)) {
+    throw new Error('currentAbility must be a whole number between 0 and 99');
+  }
+  const overallRating = currentAbility ?? generateOverallRating(pwtrRating);
   
   // Generate specialized ratings based on the overall rating
   // Using bell curve distribution to cluster values around the overall rating

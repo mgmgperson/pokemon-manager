@@ -9,6 +9,7 @@ export interface City {
   x_coordinate: number | null;
   y_coordinate: number | null;
   description: string | null;
+  location_id: number | null;
 }
 
 interface CityDetailRow {
@@ -20,6 +21,8 @@ interface CityDetailRow {
   y_coordinate: number | null;
   region_id: number;
   region_name: string;
+  location_id: number | null;
+  location_name: string | null;
 }
 
 interface StadiumRow {
@@ -46,6 +49,8 @@ export interface CityDetail {
   x_coordinate: number | null;
   y_coordinate: number | null;
   region: { id: number; name: string };
+  location_id: number | null;
+  location: { id: number; name: string | null } | null;
   stadiums: StadiumRow[];
   gymLeaders: Array<{
     id: number;
@@ -63,6 +68,7 @@ export interface CityWriteInput {
   description?: string | null;
   x_coordinate?: number | null;
   y_coordinate?: number | null;
+  location_id?: number | null;
 }
 
 export interface StadiumWriteInput {
@@ -81,6 +87,14 @@ export function findAllCities(database: sqlite3.Database): Promise<City[]> {
   return queryAll<City>(database, 'SELECT * FROM city');
 }
 
+export function findCityRecord(database: sqlite3.Database, cityId: number): Promise<City | null> {
+  return queryOne<City>(database, 'SELECT * FROM city WHERE id = ?', [cityId]);
+}
+
+export async function cityRegionExists(database: sqlite3.Database, regionId: number): Promise<boolean> {
+  return !!await queryOne<{ id: number }>(database, 'SELECT id FROM region WHERE id = ?', [regionId]);
+}
+
 export async function findCityById(
   database: sqlite3.Database,
   cityId: string
@@ -89,9 +103,10 @@ export async function findCityById(
     database,
     `
       SELECT c.id, c.name, c.population, c.description, c.x_coordinate, c.y_coordinate,
-             r.id AS region_id, r.name AS region_name
+             r.id AS region_id, r.name AS region_name, c.location_id, l.name AS location_name
       FROM city c
       JOIN region r ON c.region_id = r.id
+      LEFT JOIN location l ON c.location_id = l.id
       WHERE c.id = ?
     `,
     [cityId]
@@ -127,6 +142,8 @@ export async function findCityById(
     x_coordinate: city.x_coordinate,
     y_coordinate: city.y_coordinate,
     region: { id: city.region_id, name: city.region_name },
+    location_id: city.location_id,
+    location: city.location_id === null ? null : { id: city.location_id, name: city.location_name },
     stadiums,
     gymLeaders: gymLeaders.map((leader) => ({
       id: leader.id,
@@ -145,23 +162,23 @@ export function createCity(
   return runStatement(
     database,
     `
-      INSERT INTO city (name, region_id, population, description, x_coordinate, y_coordinate)
-      VALUES (?, ?, ?, ?, ?, ?)
+      INSERT INTO city (name, region_id, population, description, x_coordinate, y_coordinate, location_id)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
     `,
-    [city.name, city.region_id, city.population, city.description, city.x_coordinate, city.y_coordinate]
+    [city.name, city.region_id, city.population, city.description, city.x_coordinate, city.y_coordinate, city.location_id]
   );
 }
 
 export function updateCity(
   database: sqlite3.Database,
   cityId: string,
-  city: CityWriteInput
+  city: Required<CityWriteInput>
 ): Promise<void> {
   return runStatement(
     database,
     `
       UPDATE city
-      SET name = ?, region_id = ?, population = ?, description = ?, x_coordinate = ?, y_coordinate = ?
+      SET name = ?, region_id = ?, population = ?, description = ?, x_coordinate = ?, y_coordinate = ?, location_id = ?
       WHERE id = ?
     `,
     [
@@ -171,6 +188,7 @@ export function updateCity(
       city.description,
       city.x_coordinate,
       city.y_coordinate,
+      city.location_id,
       cityId,
     ]
   ).then(() => undefined);

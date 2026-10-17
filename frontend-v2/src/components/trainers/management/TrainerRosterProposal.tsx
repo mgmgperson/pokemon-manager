@@ -32,7 +32,7 @@ interface PreferenceOption {
   name: string;
 }
 
-interface RosterPokemonProposal {
+export interface RosterPokemonProposal {
   speciesId: number;
   pokemonId: number;
   name: string;
@@ -43,7 +43,7 @@ interface RosterPokemonProposal {
   details: GeneratedPokemonDetails;
 }
 
-interface GeneratedPokemonDetails {
+export interface GeneratedPokemonDetails {
   otName: string;
   otId: number;
   nickname: string;

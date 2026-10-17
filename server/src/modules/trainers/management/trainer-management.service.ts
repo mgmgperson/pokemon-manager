@@ -1,3 +1,6 @@
+import type { TrainerProfileProposal } from './trainer-management.types';
+import { validatePeakEstimates } from '../trainer/trainer-peak.validation';
+import { peakEstimateStorage } from '../../../infrastructure/database/trainerPeakSchema';
 import sqlite3 from 'sqlite3';
 import { generateGeneralRatings } from '../../../generators/generalRatingGenerator';
 import { generateName } from '../../../generators/nameGenerator';
@@ -39,7 +42,7 @@ import type {
   TrainerNameGender,
 } from './trainer-management.types';
 
-const MINIMUM_GENERATED_AGE = 14;
+const MINIMUM_GENERATED_AGE = 12;
 const MAXIMUM_GENERATED_AGE = 80;
 const MINIMUM_PWTR = 1000;
 const MAXIMUM_PWTR = 4500;
@@ -54,7 +57,7 @@ export class TrainerManagementError extends Error {
   }
 }
 
-function parseDateOnly(value: string): Date | null {
+export function parseDateOnly(value: string): Date | null {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
     return null;
   }
@@ -76,7 +79,7 @@ function requireGameDate(gameDate: string | null): Date {
   return parsedDate;
 }
 
-function calculateAge(birthdate: Date, gameDate: Date): number {
+export function calculateAge(birthdate: Date, gameDate: Date): number {
   let age = gameDate.getUTCFullYear() - birthdate.getUTCFullYear();
   const gameMonthAndDay = [gameDate.getUTCMonth(), gameDate.getUTCDate()];
   const birthMonthAndDay = [birthdate.getUTCMonth(), birthdate.getUTCDate()];
@@ -89,7 +92,7 @@ function calculateAge(birthdate: Date, gameDate: Date): number {
   return age;
 }
 
-function generateBirthdate(ageRange: NumericRange, gameDate: Date): string {
+export function generateBirthdate(ageRange: NumericRange, gameDate: Date): string {
   const minimumAge = ageRange.minimum;
   const maximumAge = ageRange.maximum;
   const earliest = new Date(Date.UTC(
@@ -238,14 +241,16 @@ function validateProfileProposal(profile: ProfileProposal, gameDate: Date): void
   }
 }
 
-function validateRatingProposal(rating: GeneralRatingProposal): void {
+export function validateRatingProposal(rating: GeneralRatingProposal): void {
   const values = [rating.overallRating, rating.typingRating, rating.mixedRating, rating.specialRating];
   if (values.some((value) => !Number.isInteger(value) || value < 0 || value > 99)) {
     throw new TrainerManagementError(400, 'General ratings must be whole numbers between 0 and 99');
   }
 }
 
-function validateNewTrainerProfile(profile: NewTrainerProfileProposal, gameDate: Date): void {
+export function validateNewTrainerProfile(profile: TrainerProfileProposal, gameDate: Date, allowUnrated = false): void {
+  try { validatePeakEstimates(profile.estimatedPeakAbility, profile.estimatedPeakAbilityYear, profile.birthdate, gameDate); }
+  catch (error) { throw new TrainerManagementError(400, error instanceof Error ? error.message : 'Invalid peak estimates'); }
   if (!profile.fname.trim() && !profile.lname.trim()) {
     throw new TrainerManagementError(400, 'A new trainer needs a first or last name');
   }
@@ -262,16 +267,18 @@ function validateNewTrainerProfile(profile: NewTrainerProfileProposal, gameDate:
   if (!birthdate || birthdate > gameDate) {
     throw new TrainerManagementError(400, 'profile.birthdate must be a valid date on or before the current game date');
   }
-  if (!Number.isFinite(profile.pwtrRating) || profile.pwtrRating < MINIMUM_PWTR || profile.pwtrRating > MAXIMUM_PWTR) {
+  if (!(allowUnrated && profile.pwtrRating === null) && (profile.pwtrRating === null
+    || !Number.isFinite(profile.pwtrRating) || profile.pwtrRating < MINIMUM_PWTR || profile.pwtrRating > MAXIMUM_PWTR)) {
     throw new TrainerManagementError(400, `profile.pwtrRating must be between ${MINIMUM_PWTR} and ${MAXIMUM_PWTR}`);
   }
-  if (!Number.isFinite(profile.peakRating) || profile.peakRating < profile.pwtrRating || profile.peakRating > MAXIMUM_PWTR) {
+  if (!(allowUnrated && profile.peakRating === null) && (profile.peakRating === null || !Number.isFinite(profile.peakRating)
+    || profile.peakRating < (profile.pwtrRating ?? MINIMUM_PWTR) || profile.peakRating > MAXIMUM_PWTR)) {
     throw new TrainerManagementError(
       400,
       `profile.peakRating must be between the current PWTR rating and ${MAXIMUM_PWTR}`
     );
   }
-  if (!Number.isInteger(profile.peakRank) || profile.peakRank < 1) {
+  if (!(allowUnrated && profile.peakRank === null) && (profile.peakRank === null || !Number.isInteger(profile.peakRank) || profile.peakRank < 1)) {
     throw new TrainerManagementError(400, 'profile.peakRank must be a positive integer');
   }
   if (typeof profile.activeStatus !== 'boolean') {
@@ -458,7 +465,7 @@ function requireNonNegativeInteger(value: unknown, label: string): void {
   }
 }
 
-function validateRosterPokemon(
+export function validateRosterPokemon(
   trainerId: number,
   trainer: ManagementTrainerState['trainer'],
   gameDate: Date,
@@ -645,6 +652,11 @@ export async function applyNewTrainerProposal(
   return runInTransaction(database, async () => {
     const gameDate = requireGameDate(await findManagementGameDate(database));
     validateNewTrainerProfile(input.profile, gameDate);
+    try {
+      await peakEstimateStorage(database, input.profile.estimatedPeakAbility, input.profile.estimatedPeakAbilityYear);
+    } catch (error) {
+      throw new TrainerManagementError(409, error instanceof Error ? error.message : 'Invalid peak-estimate schema');
+    }
     if (!await regionExists(database, input.profile.regionId)) {
       throw new TrainerManagementError(400, 'The selected region does not exist');
     }

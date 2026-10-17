@@ -1,8 +1,9 @@
 import sqlite3 from 'sqlite3';
+import { peakEstimateProjection, peakEstimateStorage } from '../../../infrastructure/database/trainerPeakSchema';
 import { queryAll, queryOne, runStatement, type StatementResult } from '../../../infrastructure/database/sqlite';
 import type {
   GeneralRatingProposal,
-  NewTrainerProfileProposal,
+  TrainerProfileProposal,
   ProfileProposal,
 } from './trainer-management.types';
 
@@ -16,6 +17,8 @@ export interface ManagementTrainerState {
     pwtr_rating: number | null;
     peak_rating: number | null;
     peak_rank: number | null;
+    estimated_peak_ability?: number | null;
+    estimated_peak_ability_year?: number | null;
     active_status: boolean | number | null;
   };
   hometownCityIds: number[];
@@ -45,7 +48,7 @@ export async function findManagementTrainerState(
   const trainer = await queryOne<ManagementTrainerState['trainer']>(
     database,
     `
-      SELECT id, fname, lname, region_id, birthdate, pwtr_rating, peak_rating, peak_rank, active_status
+      SELECT id, fname, lname, region_id, birthdate, pwtr_rating, peak_rating, peak_rank, active_status, ${await peakEstimateProjection(database)}
       FROM trainer
       WHERE id = ?
     `,
@@ -194,17 +197,19 @@ export function addTrainerHometown(
   );
 }
 
-export function createManagementTrainer(
+export async function createManagementTrainer(
   database: sqlite3.Database,
-  profile: NewTrainerProfileProposal
+  profile: TrainerProfileProposal
 ): Promise<StatementResult> {
+  const storeEstimates = await peakEstimateStorage(database, profile.estimatedPeakAbility, profile.estimatedPeakAbilityYear);
   return runStatement(
     database,
     `
       INSERT INTO trainer (
         fname, lname, region_id, birthdate, pwtr_rating, peak_rating, peak_rank, active_status
+        ${storeEstimates ? ', estimated_peak_ability, estimated_peak_ability_year' : ''}
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?${storeEstimates ? ', ?, ?' : ''})
     `,
     [
       profile.fname,
@@ -215,6 +220,7 @@ export function createManagementTrainer(
       profile.peakRating,
       profile.peakRank,
       profile.activeStatus,
+      ...(storeEstimates ? [profile.estimatedPeakAbility ?? null, profile.estimatedPeakAbilityYear ?? null] : []),
     ]
   );
 }

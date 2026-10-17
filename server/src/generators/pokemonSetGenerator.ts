@@ -9,6 +9,7 @@ import { allNatures, initNatures } from '../reference-data/nature';
 import { Stat } from '../reference-data/enums/stat';
 
 export interface PokemonDetailsGenerationInput {
+  battleCounterMode?: 'unrecorded-zero';
   trainerId: number;
   trainerFirstName: string | null;
   trainerLastName: string | null;
@@ -867,6 +868,25 @@ export async function populatePokemonDetails(db: sqlite3.Database): Promise<void
   });
 }
 
+export function calculatePokemonStats(
+  pokemonId: number,
+  level: number,
+  details: Pick<GeneratedPokemonDetails, 'natureId' | 'ivHp' | 'ivAttack' | 'ivDefense' | 'ivSpecialAttack' | 'ivSpecialDefense' | 'ivSpeed'
+    | 'evHp' | 'evAttack' | 'evDefense' | 'evSpecialAttack' | 'evSpecialDefense' | 'evSpeed'>
+): Pick<GeneratedPokemonDetails, 'hp' | 'attack' | 'defense' | 'specialAttack' | 'specialDefense' | 'speed'> {
+  const pokemon = allPokemon.find((candidate) => candidate.id === pokemonId);
+  if (!pokemon) throw new Error(`Unknown Pokemon form ${pokemonId}`);
+  const nature = getNatureMultipliers(details.natureId);
+  return {
+    hp: computeFinalStat('hp', pokemon.baseHP, details.ivHp, details.evHp, level, nature[0]),
+    attack: computeFinalStat('attack', pokemon.baseATK, details.ivAttack, details.evAttack, level, nature[1]),
+    defense: computeFinalStat('defense', pokemon.baseDEF, details.ivDefense, details.evDefense, level, nature[2]),
+    specialAttack: computeFinalStat('special_attack', pokemon.baseSPATK, details.ivSpecialAttack, details.evSpecialAttack, level, nature[3]),
+    specialDefense: computeFinalStat('special_defense', pokemon.baseSPDEF, details.ivSpecialDefense, details.evSpecialDefense, level, nature[4]),
+    speed: computeFinalStat('speed', pokemon.baseSPE, details.ivSpeed, details.evSpeed, level, nature[5]),
+  };
+}
+
 /**
  * Generate a complete Pokémon detail record without reading or writing a save.
  * The caller supplies the trainer and planned roster context so a proposal can be
@@ -899,7 +919,10 @@ export function generatePokemonDetails(input: PokemonDetailsGenerationInput): Ge
   const pokeballId = generatePokeballId();
   const levelMetAt = generateLevelMetAt(input.level, isHighestForTrainer);
   const dateMetAt = generateDateMetAt(input.trainerBirthdate, isHighestForTrainer, gameDate);
-  const battleStats = generateBattleStats(dateMetAt, input.trainerPwtrRating ?? 0, gameDate.getUTCFullYear());
+  if (input.battleCounterMode !== undefined && input.battleCounterMode !== 'unrecorded-zero') throw new Error('Unsupported Pokemon battle-counter mode');
+  const battleStats = input.battleCounterMode === 'unrecorded-zero'
+    ? { battlesWon: 0, battlesLost: 0, kills: 0, deaths: 0 }
+    : generateBattleStats(dateMetAt, input.trainerPwtrRating ?? 0, gameDate.getUTCFullYear());
 
   let abilityId = pokemonEntity.abilities[0] ?? 0;
   let natureId = Natures.HARDY;
@@ -941,8 +964,6 @@ export function generatePokemonDetails(input: PokemonDetailsGenerationInput): Ge
   const ivSpecialAttack = generateIV();
   const ivSpecialDefense = generateIV();
   const ivSpeed = generateIV();
-  const natureMultipliers = getNatureMultipliers(natureId);
-
   return {
     otName,
     otId: input.trainerId,
@@ -977,12 +998,9 @@ export function generatePokemonDetails(input: PokemonDetailsGenerationInput): Ge
     ivSpecialAttack,
     ivSpecialDefense,
     ivSpeed,
-    hp: computeFinalStat('hp', pokemonEntity.baseHP, ivHp, evHp, input.level, natureMultipliers[0]),
-    attack: computeFinalStat('attack', pokemonEntity.baseATK, ivAttack, evAttack, input.level, natureMultipliers[1]),
-    defense: computeFinalStat('defense', pokemonEntity.baseDEF, ivDefense, evDefense, input.level, natureMultipliers[2]),
-    specialAttack: computeFinalStat('special_attack', pokemonEntity.baseSPATK, ivSpecialAttack, evSpecialAttack, input.level, natureMultipliers[3]),
-    specialDefense: computeFinalStat('special_defense', pokemonEntity.baseSPDEF, ivSpecialDefense, evSpecialDefense, input.level, natureMultipliers[4]),
-    speed: computeFinalStat('speed', pokemonEntity.baseSPE, ivSpeed, evSpeed, input.level, natureMultipliers[5]),
+    ...calculatePokemonStats(input.pokemonId, input.level, { natureId,
+      ivHp, ivAttack, ivDefense, ivSpecialAttack, ivSpecialDefense, ivSpeed,
+      evHp, evAttack, evDefense, evSpecialAttack, evSpecialDefense, evSpeed }),
   };
 }
 

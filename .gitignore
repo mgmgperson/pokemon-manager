@@ -10,6 +10,10 @@
 # Ignore all .csv files
 *.csv
 
+# Downloaded city-name reference lists (restore with server's names:download)
+database/city-names/*.json
+database/city-names/*.tmp
+
 # Ignore the database/backups folder
 database/backups/
 

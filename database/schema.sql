@@ -14,8 +14,12 @@ CREATE TABLE city (
     x_coordinate FLOAT,
     y_coordinate FLOAT,
     description TEXT,
-    FOREIGN KEY (region_id) REFERENCES region(id)
+    location_id INTEGER,
+    FOREIGN KEY (region_id) REFERENCES region(id),
+    FOREIGN KEY (location_id) REFERENCES location(id)
 );
+
+CREATE INDEX city_location_idx ON city(location_id);
 
 CREATE TABLE stadium (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -83,6 +87,8 @@ CREATE TABLE trainer (
     peak_rating FLOAT,
     peak_rank INTEGER,
     active_status BOOLEAN,
+    estimated_peak_ability INTEGER CHECK (estimated_peak_ability IS NULL OR (typeof(estimated_peak_ability) = 'integer' AND estimated_peak_ability BETWEEN 0 AND 99)),
+    estimated_peak_ability_year INTEGER CHECK (estimated_peak_ability_year IS NULL OR (estimated_peak_ability IS NOT NULL AND typeof(estimated_peak_ability_year) = 'integer')),
     FOREIGN KEY (region_id) REFERENCES region(id)
 );
 
@@ -752,3 +758,5 @@ CREATE TABLE event_log (
     data_json TEXT,
     FOREIGN KEY (event_id) REFERENCES event_instance(id)
 );
+
+PRAGMA user_version = 2;

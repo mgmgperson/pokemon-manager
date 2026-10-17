@@ -35,6 +35,7 @@ import type {
 } from '../../../types/trainer';
 import TrainerEnrichment from './TrainerEnrichment';
 import NewTrainerProposal from './NewTrainerProposal';
+import PopulationWorkbench from './PopulationWorkbench';
 
 interface TrainerDirectoryResponse {
   data: TrainerDirectoryEntry[];
@@ -196,6 +197,7 @@ const TrainerManagement: React.FC = () => {
           <Tab label="Pokémon and roster" />
           <Tab label="Enrich existing trainer" />
           <Tab label="Add trainer" />
+          <Tab label="Regional population" />
         </Tabs>
 
         {isReviewTab && <Box className="!mt-4 !flex !flex-wrap !gap-6 !items-start">
@@ -254,6 +256,7 @@ const TrainerManagement: React.FC = () => {
 
       {tab === 2 && <TrainerEnrichment initialTrainerId={enrichmentTrainerId} />}
       {tab === 3 && <NewTrainerProposal />}
+      <Box hidden={tab !== 4}><PopulationWorkbench active={tab === 4} /></Box>
 
       {isReviewTab && !hasFilters && (
         <Paper className="!p-6 !text-center">
